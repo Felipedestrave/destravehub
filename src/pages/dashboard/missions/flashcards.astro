@@ -1,0 +1,49 @@
+---
+import DashboardLayout from '../../../layouts/DashboardLayout.astro';
+import { FlashcardsApp } from '../../../components/flashcards/FlashcardsApp.tsx';
+---
+
+<DashboardLayout title="Destrave Cards" activeNav="flashcards">
+  <div class="page-header">
+    <div class="breadcrumb">
+      <a href="/dashboard">Dashboard</a>
+      <span class="separator">/</span>
+      <span class="current">Destrave Cards</span>
+    </div>
+    <div class="title-section">
+      <h1 class="page-title">Destrave Cards 🃏</h1>
+      <p class="page-subtitle">
+        Gere decks personalizados com IA e aprove cada card antes de enviar ao seu aluno.
+      </p>
+    </div>
+  </div>
+
+  <FlashcardsApp client:only="react" />
+</DashboardLayout>
+
+<style>
+  .page-header { margin-bottom: 2rem; }
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-slate-mid);
+    margin-bottom: 1rem;
+  }
+  .breadcrumb a { color: var(--color-slate-mid); text-decoration: none; transition: color 150ms ease; }
+  .breadcrumb a:hover { color: var(--color-brand); }
+  .breadcrumb .separator { color: var(--color-slate-border); }
+  .breadcrumb .current { color: var(--color-slate-dark); }
+  .title-section { display: flex; flex-direction: column; gap: 0.25rem; }
+  .page-title {
+    font-family: var(--font-outfit);
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: var(--color-slate-dark);
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+  .page-subtitle { font-size: 1.1rem; color: var(--color-slate-mid); margin: 0; font-weight: 400; }
+</style>

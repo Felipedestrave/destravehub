@@ -1,0 +1,266 @@
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;700&display=swap");
+
+/* ============================================
+   DESIGN SYSTEM: ICE META
+   Destrave Hub — v1.0
+   ============================================ */
+
+@theme {
+  /* --- Color Tokens --- */
+  --color-ice:           #F3F7FA;
+  --color-brand:         #58317E;
+  --color-brand-hover:   #4C2A6D;
+  --color-action:        #FF7F32;
+  --color-action-hover:  #E66A1F;
+  --color-lilac:         #D1C4E9;
+  --color-slate-dark:    #1E293B;
+  --color-slate-mid:     #64748B;
+  --color-slate-border:  #E2E8F0;
+  --color-white:         #FFFFFF;
+
+  /* --- Typography --- */
+  --font-outfit: "Outfit", sans-serif;
+  --font-inter:  "Inter", sans-serif;
+  --font-jp:     "Noto Sans JP", sans-serif;
+
+  /* --- Shadows --- */
+  --shadow-card:  0 4px 20px -2px rgba(88,49,126,0.05), 0 2px 10px -2px rgba(30,41,59,0.05);
+  --shadow-hover: 0 20px 40px -4px rgba(88,49,126,0.12), 0 8px 16px -4px rgba(30,41,59,0.08);
+  --shadow-btn:   0 4px 14px 0 rgba(255,127,50,0.35);
+
+  /* --- Transitions --- */
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast:   150ms;
+  --duration-base:   200ms;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-inter);
+  background-color: var(--color-ice);
+  color: var(--color-slate-dark);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   TYPOGRAPHY UTILITIES
+   ============================================ */
+.font-outfit { font-family: var(--font-outfit); }
+.font-inter  { font-family: var(--font-inter); }
+.font-jp     { font-family: var(--font-jp); }
+
+/* ============================================
+   COMPONENT PATTERNS
+   ============================================ */
+
+/* Button: Primary (Brand Purple) */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2rem;
+  background-color: var(--color-brand);
+  color: var(--color-white);
+  font-family: var(--font-outfit);
+  font-weight: 700;
+  font-size: 1rem;
+  border-radius: 0.875rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color var(--duration-base) var(--ease-smooth),
+              transform var(--duration-base) var(--ease-smooth),
+              box-shadow var(--duration-base) var(--ease-smooth);
+}
+.btn-primary:hover {
+  background-color: var(--color-brand-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -4px rgba(88, 49, 126, 0.3);
+}
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Button: Action (Bold Orange) */
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2rem;
+  background-color: var(--color-action);
+  color: var(--color-white);
+  font-family: var(--font-outfit);
+  font-weight: 700;
+  font-size: 1rem;
+  border-radius: 0.875rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--shadow-btn);
+  transition: background-color var(--duration-base) var(--ease-smooth),
+              transform var(--duration-base) var(--ease-smooth),
+              box-shadow var(--duration-base) var(--ease-smooth);
+}
+.btn-action:hover {
+  background-color: var(--color-action-hover);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px -4px rgba(255, 127, 50, 0.45);
+}
+.btn-action:active {
+  transform: translateY(0);
+}
+
+/* Button: Ghost */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2rem;
+  background-color: var(--color-white);
+  color: var(--color-slate-dark);
+  font-family: var(--font-outfit);
+  font-weight: 700;
+  font-size: 1rem;
+  border-radius: 0.875rem;
+  border: 2px solid var(--color-slate-border);
+  cursor: pointer;
+  transition: border-color var(--duration-base) var(--ease-smooth),
+              color var(--duration-base) var(--ease-smooth),
+              transform var(--duration-base) var(--ease-smooth);
+}
+.btn-ghost:hover {
+  border-color: var(--color-brand);
+  color: var(--color-brand);
+  transform: translateY(-2px);
+}
+
+/* Card */
+.card {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-slate-border);
+  border-radius: 1.5rem;
+  padding: 2rem;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow var(--duration-base) var(--ease-smooth),
+              transform var(--duration-base) var(--ease-smooth);
+}
+.card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-4px);
+}
+
+/* Badge: Lilac (fundo, nunca texto) */
+.badge-brand {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background-color: var(--color-lilac);
+  color: var(--color-brand);
+  font-family: var(--font-outfit);
+  font-weight: 700;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-radius: 9999px;
+}
+
+/* Badge: Ice (neutro) */
+.badge-neutral {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background-color: var(--color-ice);
+  color: var(--color-slate-mid);
+  font-family: var(--font-outfit);
+  font-weight: 700;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-radius: 9999px;
+}
+
+/* 🎨 Destrave Draw Animations */
+@layer utilities {
+  @keyframes typing-word {
+    from { opacity: 0; transform: translateY(8px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .animate-typing-word {
+    animation: typing-word 0.3s cubic-bezier(0.17, 0.67, 0.83, 0.67) forwards;
+  }
+
+  @keyframes typing-cursor {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  .animate-typing-cursor {
+    animation: typing-cursor 0.7s infinite;
+  }
+
+  @keyframes matsuri-particle {
+    0% { transform: translate(0, 0) rotate(0); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rot)); opacity: 0; }
+  }
+  .animate-matsuri-particle {
+    animation: matsuri-particle 1s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+  }
+
+  @keyframes rocket-fly {
+    0% { transform: translate(-150px, 150px) rotate(0); }
+    100% { transform: translate(120vw, -120vh) rotate(0); }
+  }
+  .animate-rocket-fly {
+    animation: rocket-fly 2s cubic-bezier(0.47, 0, 0.745, 0.715) forwards;
+  }
+
+  @keyframes sweat-drop {
+    0% { transform: translateY(-100px); opacity: 0; }
+    20% { transform: translateY(0); opacity: 1; }
+    80% { transform: translateY(40px); opacity: 1; }
+    100% { transform: translateY(200px); opacity: 0; }
+  }
+  .animate-sweat-drop {
+    animation: sweat-drop 3s ease-in-out forwards;
+  }
+
+  @keyframes focus-pop {
+    0% { transform: translate(-50%, -50%) scale(0) rotate(-20deg); opacity: 0; }
+    40% { transform: translate(-50%, -50%) scale(1.5) rotate(0); opacity: 1; }
+    50% { transform: translate(-52%, -50%) scale(1.5); }
+    60% { transform: translate(-48%, -50%) scale(1.5); }
+    100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+  }
+  .animate-focus-pop {
+    animation: focus-pop 1s ease-in-out forwards;
+  }
+
+  @keyframes master-entry {
+    0% { transform: scaleX(0); opacity: 0; }
+    10% { transform: scaleX(1); opacity: 1; }
+    90% { transform: scaleX(1); opacity: 1; }
+    100% { transform: scaleX(0); opacity: 0; }
+  }
+  .animate-master-entry {
+    animation: master-entry 3s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  }
+
+  @keyframes scale-pop {
+    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+    20% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  }
+  .animate-scale-pop {
+    animation: scale-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+}

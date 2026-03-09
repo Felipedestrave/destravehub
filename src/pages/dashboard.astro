@@ -1,0 +1,8 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+import StudentList from '../components/dashboard/StudentList';
+---
+
+<DashboardLayout title="Dashboard — Destrave Hub" activeNav="students">
+  <StudentList client:load />
+</DashboardLayout>

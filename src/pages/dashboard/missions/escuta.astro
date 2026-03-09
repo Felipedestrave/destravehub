@@ -1,0 +1,60 @@
+---
+import DashboardLayout from '../../../layouts/DashboardLayout.astro';
+import { EscutaApp } from '../../../components/escuta/EscutaApp.tsx';
+---
+
+<DashboardLayout title="Destrave a Escuta — Missões" activeNav="escuta">
+  <div class="page-header">
+    <div class="breadcrumb">
+      <a href="/dashboard">Dashboard</a>
+      <span class="separator">/</span>
+      <span class="current">Destrave a Escuta</span>
+    </div>
+    <div class="title-section">
+      <h1 class="page-title">Destrave a Escuta 🎧</h1>
+      <p class="page-subtitle">Gere exercícios de compreensão auditiva em japonês a partir de qualquer material PDF.</p>
+    </div>
+  </div>
+
+  <EscutaApp client:only="react" />
+</DashboardLayout>
+
+<style>
+  .page-header {
+    margin-bottom: 1.5rem;
+  }
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-slate-mid);
+    margin-bottom: 1rem;
+  }
+  .breadcrumb a {
+    color: var(--color-slate-mid);
+    text-decoration: none;
+    transition: color 150ms ease;
+  }
+  .breadcrumb a:hover { color: var(--color-brand); }
+  .breadcrumb .separator { color: var(--color-slate-border); }
+  .breadcrumb .current { color: var(--color-slate-dark); }
+  .title-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .page-title {
+    font-family: var(--font-outfit);
+    font-size: 1.875rem;
+    font-weight: 800;
+    color: var(--color-slate-dark);
+    margin: 0;
+  }
+  .page-subtitle {
+    font-size: 1rem;
+    color: var(--color-slate-mid);
+    margin: 0;
+  }
+</style>

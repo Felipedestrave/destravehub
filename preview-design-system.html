@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Destrave Hub - Design Preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ice: '#F3F7FA',
+                        brand: {
+                            DEFAULT: '#58317E',
+                            hover: '#4C2A6D',
+                        },
+                        action: {
+                            DEFAULT: '#FF7F32',
+                            hover: '#E66A1F',
+                        },
+                        lilac: '#D1C4E9',
+                        slate: {
+                            default: '#1E293B',
+                            border: '#E2E8F0',
+                        }
+                    },
+                    fontFamily: {
+                        outfit: ['Outfit', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                        jp: ['Noto Sans JP', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'premium': '0 4px 20px -2px rgba(88, 49, 126, 0.05), 0 2px 10px -2px rgba(30, 41, 59, 0.05)',
+                        'hover': '0 20px 40px -4px rgba(88, 49, 126, 0.1), 0 8px 16px -4px rgba(30, 41, 59, 0.08)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F3F7FA; color: #1E293B; }
+        .hero-text { font-family: 'Outfit', sans-serif; letter-spacing: -0.02em; }
+        .transition-all { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .bg-gradient-mesh {
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(209, 196, 233, 0.3) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(255, 127, 50, 0.1) 0px, transparent 50%);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-ice bg-gradient-mesh p-8">
+    <!-- Header -->
+    <nav class="max-w-6xl mx-auto flex justify-between items-center mb-16">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-brand rounded-lg flex items-center justify-center shadow-lg transform -rotate-6">
+                <span class="text-white font-outfit font-bold text-xl">D</span>
+            </div>
+            <span class="font-outfit font-bold text-2xl tracking-tight text-brand">Destrave<span class="text-slate-default/70">Hub</span></span>
+        </div>
+        <div class="hidden md:flex items-center gap-8 font-medium text-slate-default/80">
+            <a href="#" class="hover:text-brand transition-colors">Aplicações</a>
+            <a href="#" class="hover:text-brand transition-colors">Dashboard</a>
+            <button class="px-6 py-2.5 bg-brand text-white rounded-xl font-semibold hover:bg-brand-hover hover:shadow-lg hover:-translate-y-0.5 transition-all">
+                Entrar
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Fragment -->
+    <main class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-24">
+        <div class="lg:col-span-12 text-center">
+            <span class="inline-block px-4 py-1.5 bg-lilac text-brand font-bold text-xs uppercase tracking-widest rounded-full mb-6">
+                Premium Authoring Tools
+            </span>
+            <h1 class="hero-text text-6xl md:text-8xl font-bold text-slate-default mb-8 leading-[1.05]">
+                A Liberdade de <br/>
+                <span class="text-brand">Criar e Ensinar</span>
+            </h1>
+            <p class="text-lg text-slate-default/60 max-w-2xl mx-auto mb-12">
+                Transforme materiais estáticos em experiências interativas com o poder do Gemini Flash. 
+                Uma suíte de ferramentas projetada para professores que buscam o extraordinário.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button class="px-8 py-4 bg-action text-white rounded-2xl font-bold text-lg hover:bg-action-hover shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all">
+                    Começar Agora
+                </button>
+                <button class="px-8 py-4 bg-white border-2 border-slate-border text-slate-default rounded-2xl font-bold text-lg hover:border-brand hover:text-brand transition-all">
+                    Ver Demonstração
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Cards Section -->
+    <section class="max-w-6xl mx-auto">
+        <div class="flex justify-between items-end mb-10">
+            <div>
+                <h2 class="font-outfit text-3xl font-bold mb-2">Seu Arsenal de Autoria</h2>
+                <p class="text-slate-default/50">Mini-apps integrados para máxima performance pedagógica.</p>
+            </div>
+            <a href="#" class="text-brand font-semibold flex items-center gap-2 group">
+                Ver todos os apps 
+                <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="9 5l7 7-7 7"/></svg>
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Card 1: Destrave Draw -->
+            <div class="bg-white p-8 rounded-3xl border border-slate-border shadow-premium hover:shadow-hover hover:-translate-y-2 transition-all cursor-pointer group">
+                <div class="w-14 h-14 bg-lilac/30 rounded-2xl flex items-center justify-center mb-6 text-brand">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                </div>
+                <h3 class="font-outfit text-xl font-bold mb-3 group-hover:text-brand transition-colors">Destrave Draw</h3>
+                <p class="text-slate-default/60 text-sm leading-relaxed mb-6">
+                    Quadro branco inteligente com Dual-Canvas e efeito de revelação progressiva.
+                </p>
+                <div class="flex items-center gap-2">
+                    <span class="px-3 py-1 bg-ice rounded-lg text-[10px] font-bold text-slate-default/40 uppercase tracking-tighter">60 FPS</span>
+                    <span class="px-3 py-1 bg-lilac rounded-lg text-[10px] font-bold text-brand uppercase tracking-tighter">Flagship</span>
+                </div>
+            </div>
+
+            <!-- Card 2: MRP -->
+            <div class="bg-white p-8 rounded-3xl border border-slate-border shadow-premium hover:shadow-hover hover:-translate-y-2 transition-all cursor-pointer group">
+                <div class="w-14 h-14 bg-orange-100/50 rounded-2xl flex items-center justify-center mb-6 text-action">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                </div>
+                <h3 class="font-outfit text-xl font-bold mb-3 group-hover:text-action transition-colors text-slate-default">Destrave MRP</h3>
+                <p class="text-slate-default/60 text-sm leading-relaxed mb-6">
+                    Simulação de cenários reais com validação de intenção e polidez via Gemini Flash.
+                </p>
+                <div class="flex items-center gap-2">
+                    <span class="px-3 py-1 bg-ice rounded-lg text-[10px] font-bold text-slate-default/40 uppercase tracking-tighter">AI Feedback</span>
+                </div>
+            </div>
+
+            <!-- Card 3: Caça-Palavras -->
+            <div class="bg-white p-8 rounded-3xl border border-slate-border shadow-premium hover:shadow-hover hover:-translate-y-2 transition-all cursor-pointer group">
+                <div class="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mb-6 text-slate-default">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                </div>
+                <h3 class="font-outfit text-xl font-bold mb-3 text-slate-default/50">Em breve</h3>
+                <p class="text-slate-default/40 text-sm leading-relaxed mb-6">
+                    Módulos de gamificação baseados em padrões de reconhecimento visual de Hiragana.
+                </p>
+                <div class="w-full h-1 bg-slate-border rounded-full overflow-hidden">
+                    <div class="w-1/3 h-full bg-slate-border/50"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer Example -->
+    <footer class="max-w-6xl mx-auto mt-32 pt-12 border-t border-slate-border/50 text-center pb-12">
+        <p class="text-slate-default/40 text-sm">© 2026 Destrave Hub. Powered by Gemini Flash 2.5.</p>
+    </footer>
+</body>
+</html>
