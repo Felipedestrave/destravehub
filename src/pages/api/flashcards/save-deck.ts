@@ -47,22 +47,27 @@ export const POST: APIRoute = async ({ request }) => {
             cards: body.cards as unknown as Json,
         };
 
-        const { data, error: dbError } = await supabaseAdmin.from('activities').insert({
-            teacher_id: user.id,
-            type: 'flashcards',
-            title: body.title,
-            config: configPayload,
-        }).select('id').single();
+        // Save activity only — teacher assigns manually via Central de Atividades
+        const { data: activity, error: dbError } = await supabaseAdmin
+            .from('activities')
+            .insert({
+                teacher_id: user.id,
+                type: 'flashcards',
+                title: body.title,
+                config: configPayload,
+            })
+            .select('id')
+            .single();
 
-        if (dbError) {
+        if (dbError || !activity) {
             console.error('[Flashcards] Erro ao salvar deck:', dbError);
-            return new Response(JSON.stringify({ saved: false, reason: dbError.message }), {
+            return new Response(JSON.stringify({ saved: false, reason: dbError?.message }), {
                 status: 500,
                 headers: { 'Content-Type': 'application/json' },
             });
         }
 
-        return new Response(JSON.stringify({ saved: true, activityId: data?.id }), {
+        return new Response(JSON.stringify({ saved: true, activityId: activity.id }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
         });

@@ -1,6 +1,33 @@
 ---
 import DashboardLayout from '../../../layouts/DashboardLayout.astro';
 import { FlashcardsApp } from '../../../components/flashcards/FlashcardsApp.tsx';
+import { supabaseAdmin } from '../../../lib/supabase-admin';
+
+const assignmentId = Astro.url.searchParams.get('assignment');
+const editingId = Astro.url.searchParams.get('edit');
+let initialDeck = undefined;
+
+if (assignmentId) {
+    const { data: assignment } = await supabaseAdmin
+        .from('assignments')
+        .select('*, activities(*)')
+        .eq('id', assignmentId)
+        .single();
+    if (assignment && assignment.activities) {
+        initialDeck = assignment.activities.config as any;
+    }
+}
+
+if (editingId) {
+    const { data: activity } = await supabaseAdmin
+        .from('activities')
+        .select('*')
+        .eq('id', editingId)
+        .single();
+    if (activity) {
+        initialDeck = activity.config as any;
+    }
+}
 ---
 
 <DashboardLayout title="Destrave Cards" activeNav="flashcards">
@@ -18,7 +45,12 @@ import { FlashcardsApp } from '../../../components/flashcards/FlashcardsApp.tsx'
     </div>
   </div>
 
-  <FlashcardsApp client:only="react" />
+  <FlashcardsApp 
+    client:only="react" 
+    assignmentId={assignmentId || undefined} 
+    editingId={editingId || undefined} 
+    initialDeck={initialDeck} 
+  />
 </DashboardLayout>
 
 <style>

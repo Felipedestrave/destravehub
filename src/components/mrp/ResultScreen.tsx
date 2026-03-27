@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Trophy, Target, Lightbulb, RotateCcw, CheckCircle2, XCircle } from 'lucide-react';
+import { Trophy, Target, Lightbulb, RotateCcw, CheckCircle2, XCircle, Save, Loader2 } from 'lucide-react';
 import type { MrpConfig, MrpQuestion, MrpUserAnswer } from '../../types/mrp';
 
 interface ResultScreenProps {
@@ -7,6 +7,10 @@ interface ResultScreenProps {
     questions: MrpQuestion[];
     answers: MrpUserAnswer[];
     onRestart: () => void;
+    onSave?: (title: string) => void;
+    isSaving?: boolean;
+    initialTitle?: string;
+    hideActions?: boolean;
 }
 
 const RANK_LEVELS = [
@@ -16,7 +20,7 @@ const RANK_LEVELS = [
     { min: 0, label: '🌱 Iniciante', color: '#dc2626', bg: 'rgba(220,38,38,0.08)', border: 'rgba(220,38,38,0.2)' },
 ];
 
-export const ResultScreen: React.FC<ResultScreenProps> = ({ config, questions, answers, onRestart }) => {
+export const ResultScreen: React.FC<ResultScreenProps> = ({ config, questions, answers, onRestart, onSave, isSaving, initialTitle, hideActions }) => {
     const totalScore = answers.reduce((acc, a) => acc + a.scoreEarned, 0);
     const maxPossible = questions.reduce((acc, q) => acc + q.points, 0);
     const correctCount = answers.filter((a) => a.isCorrect).length;
@@ -97,11 +101,39 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ config, questions, a
                 </div>
             </div>
 
-            {/* Restart */}
-            <button onClick={onRestart} className="mrp-restart-btn">
-                <RotateCcw size={16} />
-                Novo Treinamento
-            </button>
+            {/* Actions */}
+            {!hideActions ? (
+                <div className="mrp-result-actions">
+                    <button onClick={onRestart} className="mrp-restart-btn flex-1">
+                        <RotateCcw size={16} />
+                        Novo Treinamento
+                    </button>
+                    {onSave && (
+                        <button 
+                            onClick={() => onSave(initialTitle || 'Novo Role Play')} 
+                            disabled={isSaving}
+                            className="mrp-save-btn flex-1"
+                        >
+                            {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                            Salvar na Central
+                        </button>
+                    )}
+                </div>
+            ) : (
+                <div className="bg-white/60 backdrop-blur-sm rounded-3xl border-2 border-slate-border p-8 text-center shadow-lg animate-fade-in" style={{ width: '100%', marginTop: '1rem' }}>
+                    <div className="w-16 h-16 bg-brand/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <CheckCircle2 size={32} className="text-brand" />
+                    </div>
+                   <h1 className="font-outfit text-2xl font-extrabold text-slate-dark mb-2">Role Play Concluído! 🎭</h1>
+                   <p className="text-slate-mid mb-6 px-4">Parabéns pela dedicação! Seus resultados foram registrados e seu professor poderá analisá-los em breve.</p>
+                   <div className="flex justify-center">
+                       <a href="/dashboard" className="px-8 py-3 bg-brand text-white rounded-xl font-outfit font-bold hover:scale-105 transition-transform shadow-md" style={{ textDecoration: 'none' }}>
+                           Voltar para o Dashboard
+                       </a>
+                   </div>
+                </div>
+            )}
+
 
             <style>{`
         .mrp-result-wrapper { display: flex; flex-direction: column; gap: 1.5rem; max-width: 680px; width: 100%; margin: 0 auto; }
@@ -118,6 +150,11 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ config, questions, a
         .mrp-rank-eyebrow { font-family: var(--font-inter); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-slate-mid); margin: 0; }
         .mrp-rank-label { font-family: var(--font-outfit); font-size: 1.375rem; font-weight: 900; margin: 0.125rem 0 0; }
         .mrp-rank-pct { font-family: var(--font-outfit); font-size: 2.5rem; font-weight: 900; margin-left: auto; }
+        @media (max-width: 500px) {
+          .mrp-rank-banner { padding: 1rem; gap: 0.75rem; }
+          .mrp-rank-label { font-size: 1.1rem; }
+          .mrp-rank-pct { font-size: 1.75rem; }
+        }
         .mrp-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.875rem; }
         @media (max-width: 500px) { .mrp-stats-grid { grid-template-columns: 1fr; } }
         .mrp-stat-card {
@@ -163,9 +200,10 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ config, questions, a
           border-radius: 999px; padding: 0.1rem 0.45rem;
           font-weight: 700; font-size: 0.65rem;
         }
+        .mrp-result-actions { display: flex; gap: 1rem; width: 100%; }
         .mrp-restart-btn {
           display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-          width: 100%; padding: 0.875rem 1.5rem;
+          padding: 0.875rem 1.5rem;
           background: var(--color-brand); color: white;
           border: none; border-radius: 0.875rem;
           font-family: var(--font-outfit); font-size: 1rem; font-weight: 800;
@@ -173,6 +211,17 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ config, questions, a
           box-shadow: 0 4px 16px rgba(88,49,126,0.25);
         }
         .mrp-restart-btn:hover { background: #4C2A6D; box-shadow: 0 6px 24px rgba(88,49,126,0.35); transform: translateY(-1px); }
+        
+        .mrp-save-btn {
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+            padding: 0.875rem 1.5rem;
+            background: white; border: 2px solid var(--color-brand); color: var(--color-brand);
+            border-radius: 0.875rem;
+            font-family: var(--font-outfit); font-size: 1rem; font-weight: 800;
+            cursor: pointer; transition: all 150ms;
+        }
+        .mrp-save-btn:hover:not(:disabled) { background: var(--color-ice); transform: translateY(-1px); }
+        .mrp-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
       `}</style>
         </div>
     );

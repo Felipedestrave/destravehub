@@ -26,6 +26,7 @@ export interface FlashDeck {
 
 export interface DeckConfig {
     context: string;
+    pdfBase64?: string;
     title: string;
     level: JLPTCardLevel;
     quantity: number;

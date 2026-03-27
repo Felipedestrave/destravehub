@@ -1,13 +1,17 @@
 import React from 'react';
-import { Trophy, RotateCcw, Star, CheckCircle, XCircle } from 'lucide-react';
+import { Trophy, RotateCcw, Star, CheckCircle, XCircle, Save } from 'lucide-react';
 import type { GameResult } from '../../types/escuta';
 
 interface ResultScreenProps {
     result: GameResult;
     onRestart: () => void;
+    onSave?: (title?: string) => void;
+    isSaving?: boolean;
+    hideActions?: boolean;
 }
 
-export const ResultScreen: React.FC<ResultScreenProps> = ({ result, onRestart }) => {
+export const ResultScreen: React.FC<ResultScreenProps> = ({ result, onRestart, onSave, isSaving, hideActions }) => {
+
     const { score, total, history } = result;
     const correctCount = history.filter((h) => h.correct).length;
     const accuracy = Math.round((correctCount / total) * 100);
@@ -93,10 +97,38 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ result, onRestart })
             </div>
 
             {/* Actions */}
-            <button onClick={onRestart} className="btn-primary w-full flex items-center justify-center gap-2">
-                <RotateCcw size={18} />
-                Praticar novamente
-            </button>
+            {!hideActions ? (
+                <div className="flex flex-col sm:flex-row gap-4">
+                    <button onClick={onRestart} className="btn-ghost flex-1 flex items-center justify-center gap-2">
+                        <RotateCcw size={18} />
+                        Praticar novamente
+                    </button>
+                    {onSave && (
+                        <button 
+                            onClick={() => onSave()} 
+                            disabled={isSaving}
+                            className="btn-brand flex-1 flex items-center justify-center gap-2"
+                        >
+                            {isSaving ? <span className="animate-spin w-5 h-5 border-2 border-white/30 border-t-white rounded-full" /> : <Save size={18} />}
+                            Salvar na Central
+                        </button>
+                    )}
+                </div>
+            ) : (
+                <div className="bg-white/60 backdrop-blur-sm rounded-3xl border-2 border-slate-border p-8 text-center shadow-lg animate-fade-in">
+                    <div className="w-16 h-16 bg-brand/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <CheckCircle size={32} className="text-brand" />
+                    </div>
+                   <h1 className="font-outfit text-2xl font-extrabold text-slate-dark mb-2">Missão Concluída! 🚀</h1>
+                   <p className="text-slate-mid mb-6 px-4">Parabéns pelo seu esforço! Seus resultados foram registrados e seu professor poderá analisá-los em breve.</p>
+                   <div className="flex justify-center">
+                       <a href="/dashboard" className="px-8 py-3 bg-brand text-white rounded-xl font-outfit font-bold hover:scale-105 transition-transform shadow-md">
+                           Voltar para o Dashboard
+                       </a>
+                   </div>
+                </div>
+            )}
+
         </div>
     );
 };

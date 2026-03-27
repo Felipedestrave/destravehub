@@ -272,6 +272,11 @@ export const GameScreen: React.FC<GameScreenProps> = ({ questions, mode, onCompl
           gap: 1.25rem;
           box-shadow: 0 2px 16px rgba(30,41,59,0.06);
         }
+        @media (max-width: 600px) {
+          .mrp-card { padding: 1rem; gap: 1rem; }
+          .mrp-game-score-num { font-size: 1.5rem; }
+          .mrp-scenario-text, .mrp-task-text { font-size: 0.95rem; }
+        }
         .mrp-scenario-block, .mrp-task-block { display: flex; align-items: flex-start; gap: 0.875rem; }
         .mrp-scenario-icon {
           width: 40px; height: 40px; border-radius: 0.75rem; flex-shrink: 0;

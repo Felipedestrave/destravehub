@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react';
-import { Upload, ChevronDown, Layers } from 'lucide-react';
+import React, { useState } from 'react';
+import { ChevronDown, Layers, FileText, ChevronRight, Loader2 } from 'lucide-react';
 import { JLPTLevel, QuizMode, type MrpConfig } from '../../types/mrp';
+import { PdfUploadBox } from '../shared/PdfUploadBox';
 
 interface ConfigScreenProps {
     onSubmit: (config: MrpConfig) => void;
@@ -9,166 +10,145 @@ interface ConfigScreenProps {
 
 export const ConfigScreen: React.FC<ConfigScreenProps> = ({ onSubmit, isLoading }) => {
     const [context, setContext] = useState('');
+    const [pdfBase64, setPdfBase64] = useState<string | null>(null);
+    const [fileName, setFileName] = useState<string | null>(null);
     const [quantity, setQuantity] = useState(10);
     const [level, setLevel] = useState<JLPTLevel>(JLPTLevel.N5);
     const [mode, setMode] = useState<QuizMode>(QuizMode.MULTIPLE_CHOICE);
-    const [isReadingPdf, setIsReadingPdf] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        setIsReadingPdf(true);
-        try {
-            const reader = new FileReader();
-            reader.onload = async (event) => {
-                const typedarray = new Uint8Array(event.target?.result as ArrayBuffer);
-                // @ts-ignore - pdfjsLib from CDN
-                const pdf = await window.pdfjsLib.getDocument(typedarray).promise;
-                let fullText = '';
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const content = await page.getTextContent();
-                    const strings = content.items.map((item: any) => item.str);
-                    fullText += strings.join(' ') + '\n';
-                }
-                setContext(fullText);
-                setIsReadingPdf(false);
-            };
-            reader.readAsArrayBuffer(file);
-        } catch {
-            alert('Não foi possível ler o PDF. Tente copiar e colar o texto.');
-            setIsReadingPdf(false);
-        }
-    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (context.trim().length < 20) {
-            alert('Por favor, insira um texto base com pelo menos 20 caracteres.');
+        if (!pdfBase64 && context.trim().length < 20) {
+            alert('Por favor, faça upload de um PDF ou insira um texto com pelo menos 20 caracteres.');
             return;
         }
-        onSubmit({ context, quantity, level, mode });
+        onSubmit({ context, pdfBase64: pdfBase64 || undefined, quantity, level, mode });
     };
 
     return (
         <form onSubmit={handleSubmit} className="mrp-config-form">
             {/* Header */}
-            <div className="mrp-config-header">
-                <div className="mrp-config-badge">
-                    <Layers size={14} />
-                    <span>Destrave MRP</span>
+            <div className="text-center mb-8">
+                <div className="inline-flex items-center gap-2 badge-brand mb-4">
+                    <Layers size={12} />
+                    Destrave MRP
                 </div>
-                <h2 className="mrp-config-title">Configurar Treinamento</h2>
-                <p className="mrp-config-subtitle">
-                    Cole um texto em japonês ou faça upload de um PDF para o MRP gerar seus cenários de role play.
+                <h1 className="font-outfit text-4xl font-extrabold text-slate-dark leading-tight">
+                    Criação de <span className="text-brand">Role Play</span> IA
+                </h1>
+                <p className="mt-3 text-slate-mid font-inter">
+                    Faça upload do seu material em PDF e a IA criará cenários interativos para seus alunos.
                 </p>
             </div>
 
-            {/* Context Input */}
-            <div className="mrp-field">
-                <div className="mrp-field-label-row">
-                    <label className="mrp-label">Contexto Base</label>
-                    <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={isReadingPdf}
-                        className="mrp-pdf-btn"
-                    >
-                        <Upload size={14} />
-                        {isReadingPdf ? 'Lendo PDF...' : 'Upload PDF'}
-                    </button>
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handlePdfUpload}
-                        accept=".pdf"
-                        className="hidden"
+            {/* Multi-input Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4">
+                {/* PDF Box */}
+                <PdfUploadBox 
+                    onFileSelected={(base64, name) => {
+                        setPdfBase64(base64);
+                        setFileName(name);
+                    }}
+                    currentFileName={fileName}
+                    description="O PDF servirá de base para os cenários da IA" 
+                />
+
+                {/* Context Input (Manual) */}
+                <div className="card h-full">
+                    <div className="flex items-center gap-2 mb-3">
+                        <FileText size={16} className="text-slate-mid" />
+                        <label className="text-xs font-bold text-slate-mid uppercase tracking-wider">Conteúdo Manual (Opcional)</label>
+                    </div>
+                    <textarea
+                        value={context}
+                        onChange={(e) => setContext(e.target.value)}
+                        placeholder="Se não tiver PDF, cole aqui notas da aula, lista de palavras ou texto de estudo..."
+                        className="mrp-textarea h-[120px]"
                     />
                 </div>
-                <textarea
-                    value={context}
-                    onChange={(e) => setContext(e.target.value)}
-                    placeholder="Cole aqui o texto em japonês ou lição para gerar os cenários do Mini Role Play..."
-                    className="mrp-textarea"
-                    rows={6}
-                />
             </div>
 
             {/* Options Grid */}
-            <div className="mrp-options-grid">
-                {/* Quantity */}
-                <div className="mrp-field">
-                    <label className="mrp-label">Quantidade</label>
-                    <div className="mrp-qty-group">
-                        {[5, 10, 20].map((q) => (
-                            <button
-                                key={q}
-                                type="button"
-                                onClick={() => setQuantity(q)}
-                                className={`mrp-qty-btn ${quantity === q ? 'active' : ''}`}
+            <div className="card space-y-6">
+                <h2 className="font-outfit text-lg font-bold text-slate-dark mb-4">Personalização do Treinamento</h2>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Quantity */}
+                    <div className="mrp-field">
+                        <label className="mrp-label">Quantidade de Questões</label>
+                        <div className="mrp-qty-group">
+                            {[5, 10, 20].map((q) => (
+                                <button
+                                    key={q}
+                                    type="button"
+                                    onClick={() => setQuantity(q)}
+                                    className={`mrp-qty-btn ${quantity === q ? 'active' : ''}`}
+                                >
+                                    {q}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Level */}
+                    <div className="mrp-field">
+                        <label className="mrp-label">Nível de Dificuldade</label>
+                        <div className="mrp-select-wrapper">
+                            <select
+                                value={level}
+                                onChange={(e) => setLevel(e.target.value as JLPTLevel)}
+                                className="mrp-select"
                             >
-                                {q}
-                            </button>
-                        ))}
+                                <option value={JLPTLevel.N5}>N5 — Básico (Iniciante)</option>
+                                <option value={JLPTLevel.N4}>N4 — Intermediário</option>
+                                <option value={JLPTLevel.N3}>N3 — Avançado</option>
+                                <option value={JLPTLevel.MIXED}>JLPT Misto (N5–N3)</option>
+                            </select>
+                            <ChevronDown size={16} className="mrp-select-icon" />
+                        </div>
                     </div>
-                </div>
 
-                {/* Level */}
-                <div className="mrp-field">
-                    <label className="mrp-label">Nível JLPT</label>
-                    <div className="mrp-select-wrapper">
-                        <select
-                            value={level}
-                            onChange={(e) => setLevel(e.target.value as JLPTLevel)}
-                            className="mrp-select"
-                        >
-                            <option value={JLPTLevel.N5}>N5 — Básico</option>
-                            <option value={JLPTLevel.N4}>N4 — Intermediário</option>
-                            <option value={JLPTLevel.N3}>N3 — Avançado</option>
-                            <option value={JLPTLevel.MIXED}>Misto (N5–N3)</option>
-                        </select>
-                        <ChevronDown size={16} className="mrp-select-icon" />
-                    </div>
-                </div>
-
-                {/* Mode */}
-                <div className="mrp-field">
-                    <label className="mrp-label">Modo de Resposta</label>
-                    <div className="mrp-select-wrapper">
-                        <select
-                            value={mode}
-                            onChange={(e) => setMode(e.target.value as QuizMode)}
-                            className="mrp-select"
-                        >
-                            <option value={QuizMode.MULTIPLE_CHOICE}>Múltipla Escolha</option>
-                            <option value={QuizMode.DISCURSIVE}>Discursiva (Digitar)</option>
-                        </select>
-                        <ChevronDown size={16} className="mrp-select-icon" />
+                    {/* Mode */}
+                    <div className="mrp-field">
+                        <label className="mrp-label">Formato de Resposta</label>
+                        <div className="mrp-select-wrapper">
+                            <select
+                                value={mode}
+                                onChange={(e) => setMode(e.target.value as QuizMode)}
+                                className="mrp-select"
+                            >
+                                <option value={QuizMode.MULTIPLE_CHOICE}>Múltipla Escolha</option>
+                                <option value={QuizMode.DISCURSIVE}>Discursiva (Digitar)</option>
+                            </select>
+                            <ChevronDown size={16} className="mrp-select-icon" />
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* Info Scoring */}
-            <div className="mrp-scoring-info">
-                <span>N5 = 2 pts</span>
-                <span className="mrp-dot">·</span>
-                <span>N4 = 4 pts</span>
-                <span className="mrp-dot">·</span>
-                <span>N3 = 6 pts</span>
-                <span className="mrp-dot">·</span>
-                <span>Dica = −50%</span>
+            {/* Info Scoring (Small and Elegant) */}
+            <div className="flex justify-center gap-4 text-[0.7rem] font-bold text-slate-mid/60 uppercase tracking-widest mt-2">
+                <span>N5: 2pts</span>
+                <span>•</span>
+                <span>N4: 4pts</span>
+                <span>•</span>
+                <span>N3: 6pts</span>
+                <span>•</span>
+                <span>Hint: -50%</span>
             </div>
 
             {/* Submit */}
-            <button type="submit" disabled={isLoading} className="mrp-submit-btn">
+            <button type="submit" disabled={isLoading} className="btn-action w-full py-4 mt-4">
                 {isLoading ? (
                     <>
-                        <span className="mrp-spinner" />
+                        <Loader2 className="animate-spin" size={20} />
                         Gerando cenários com IA...
                     </>
                 ) : (
-                    'Iniciar Treinamento MRP →'
+                    <>
+                        Iniciar Criação de Missão
+                        <ChevronRight size={18} />
+                    </>
                 )}
             </button>
 

@@ -46,7 +46,7 @@ const {
         </div>
 
         <!-- Nav -->
-        <nav class="sidebar-nav">
+        <nav class="sidebar-nav hidden" id="teacher-nav">
           <a href="/dashboard" class={`sidebar-link ${activeNav === 'students' ? 'active' : ''}`}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             Alunos
@@ -71,9 +71,16 @@ const {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 11V9a3 3 0 0 1 6 0v2"/></svg>
             Destrave Cards
           </a>
-          <a href="/activities" class={`sidebar-link ${activeNav === 'activities' ? 'active' : ''}`}>
+          <a href="/dashboard/activities" class={`sidebar-link ${activeNav === 'activities' ? 'active' : ''}`}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-            Missões
+            Atividades
+          </a>
+        </nav>
+
+        <nav class="sidebar-nav hidden" id="student-nav">
+          <a href="/dashboard" class={`sidebar-link ${activeNav === 'students' ? 'active' : ''}`}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            Mergulho no Japonês
           </a>
         </nav>
 
@@ -95,7 +102,7 @@ const {
           <p class="topbar-greeting">Olá, <span id="user-name" class="topbar-name">Professor</span> 👋</p>
         </div>
         <div class="topbar-badge hidden sm:flex">
-          <span class="badge-brand">Professor</span>
+          <span class="badge-brand" id="role-badge">Professor</span>
         </div>
       </header>
 
@@ -113,32 +120,101 @@ const {
 <script>
   import { supabase } from '../lib/supabase';
 
-  // --- Auth logic ---
-  const { data: { session } } = await supabase.auth.getSession();
-
-  if (!session) {
-    window.location.href = '/auth/login';
-  } else {
-    // Fetch profile name
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('full_name')
-      .eq('id', session.user.id)
-      .single();
-
-    const nameEl = document.getElementById('user-name');
-    if (nameEl) {
-      const firstName = profile?.full_name?.split(' ')[0] ?? session.user.email?.split('@')[0] ?? 'Professor';
-      nameEl.textContent = firstName;
+  // --- 1. Logout Listener (Highest Priority) ---
+  const initLogout = () => {
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async () => {
+        try {
+          console.log('[Auth] Deslogando...');
+          const { error } = await supabase.auth.signOut();
+          if (error) throw error;
+          
+          // Limpa qualquer dado residual no localStorage por garantia
+          localStorage.removeItem('sb-access-token');
+          localStorage.removeItem('sb-refresh-token');
+          
+          window.location.href = '/auth/login';
+        } catch (err) {
+          console.error('[Auth] Erro ao deslogar:', err);
+          // Força o redirecionamento mesmo se o signOut do Supabase falhar
+          window.location.href = '/auth/login';
+        }
+      });
     }
-  }
+  };
 
-  document.getElementById('logout-btn')?.addEventListener('click', async () => {
-    await supabase.auth.signOut();
-    window.location.href = '/auth/login';
-  });
+  initLogout();
 
-  // --- Mobile Sidebar Toggle ---
+  // --- 2. Auth & Session Logic ---
+  const initDashboard = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        window.location.href = '/auth/login';
+        return;
+      }
+
+      // Fetch profile with more resilience
+      let { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id);
+      
+      const profile = profiles && profiles.length > 0 ? profiles[0] : null;
+
+      if (profileError) {
+        console.warn('Erro ao carregar perfil:', profileError);
+      }
+
+      const nameEl = document.getElementById('user-name');
+      const roleBadge = document.getElementById('role-badge');
+      const teacherNav = document.getElementById('teacher-nav');
+      const studentNav = document.getElementById('student-nav');
+
+      // Determine role from metadata first (faster), then profile
+      const userRole = profile?.role || session.user.user_metadata?.role || 'teacher';
+      console.log('[Dashboard] Identified role:', userRole);
+
+      if (nameEl) {
+        const defaultName = userRole === 'teacher' ? 'Professor' : 'Aluno';
+        const firstName = profile?.full_name?.split(' ')[0] ?? session.user.email?.split('@')[0] ?? defaultName;
+        nameEl.textContent = firstName;
+      }
+
+      if (roleBadge) {
+        roleBadge.textContent = userRole === 'teacher' ? 'Professor' : 'Aluno';
+        roleBadge.className = userRole === 'teacher' ? 'badge-brand' : 'badge-student';
+        // Force visibility of badge to verify role
+        roleBadge.parentElement?.classList.remove('hidden');
+      }
+
+      // Toggle navs based on role
+      if (userRole === 'student') {
+        if (teacherNav) teacherNav.style.display = 'none';
+        if (studentNav) studentNav.style.display = 'flex';
+        if (roleBadge) {
+          roleBadge.textContent = 'Aluno';
+          roleBadge.className = 'badge-student';
+        }
+      } else {
+        if (teacherNav) teacherNav.style.display = 'flex';
+        if (studentNav) studentNav.style.display = 'none';
+        if (roleBadge) {
+          roleBadge.textContent = 'Professor';
+          roleBadge.className = 'badge-brand';
+        }
+      }
+    } catch (err) {
+      console.error('[Dashboard] Erro crítico no init:', err);
+    }
+  };
+
+  // Run dashboard init
+  initDashboard();
+
+  // --- 3. Mobile Sidebar Toggle ---
   const sidebar = document.getElementById('dashboard-sidebar');
   const toggleBtn = document.getElementById('mobile-menu-toggle');
   const backdrop = document.getElementById('sidebar-backdrop');

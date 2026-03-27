@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
-import { GoogleGenAI, SchemaType } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 
-const genAI = new GoogleGenAI(import.meta.env.GEMINI_API_KEY || '');
+const geminiKey = import.meta.env.GEMINI_API_KEY || '';
 
 export const POST: APIRoute = async ({ request }) => {
     try {
@@ -11,29 +11,28 @@ export const POST: APIRoute = async ({ request }) => {
             return new Response(JSON.stringify({ error: 'Palavra não fornecida' }), { status: 400 });
         }
 
-        const model = genAI.getGenerativeModel({
-            model: "gemini-2.0-flash-lite-preview-02-05", // Usando o modelo mais recente e performático
-            generationConfig: {
+        const ai = new GoogleGenAI({ apiKey: geminiKey });
+
+        const result = await ai.models.generateContent({
+            model: "gemini-2.5-flash-lite",
+            contents: { parts: [{ text: `Traduza e analise a palavra ou frase japonesa: "${word}".` }] },
+            config: {
+                systemInstruction: "Você é um dicionário Japonês-Português profissional. Retorne APENAS um objeto JSON com as propriedades solicitadas.",
                 responseMimeType: "application/json",
                 responseSchema: {
-                    type: SchemaType.OBJECT,
+                    type: Type.OBJECT,
                     properties: {
-                        word: { type: SchemaType.STRING },
-                        meaning: { type: SchemaType.STRING },
-                        reading: { type: SchemaType.STRING },
-                        example: { type: SchemaType.STRING },
+                        word: { type: Type.STRING },
+                        meaning: { type: Type.STRING },
+                        reading: { type: Type.STRING },
+                        example: { type: Type.STRING },
                     },
                     required: ["word", "meaning", "reading", "example"]
                 }
             }
         });
 
-        const result = await model.generateContent({
-            contents: [{ role: 'user', parts: [{ text: `Traduza e analise a palavra ou frase japonesa: "${word}".` }] }],
-            systemInstruction: "Você é um dicionário Japonês-Português profissional. Retorne APENAS um objeto JSON com as propriedades solicitadas."
-        });
-
-        return new Response(result.response.text(), {
+        return new Response(result.text, {
             status: 200,
             headers: { 'Content-Type': 'application/json' }
         });

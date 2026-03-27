@@ -2,99 +2,105 @@ import type { APIRoute } from 'astro';
 import { GoogleGenAI, Type } from '@google/genai';
 import type { DeckConfig } from '../../../types/flashcards';
 
+const withRetry = async <T>(fn: () => Promise<T>, retries = 3, delay = 2000): Promise<T> => {
+    try {
+        return await fn();
+    } catch (error: any) {
+        if (retries > 0 && error?.message?.includes('429')) {
+            await new Promise((r) => setTimeout(r, delay));
+            return withRetry(fn, retries - 1, delay * 2);
+        }
+        throw error;
+    }
+};
+
 export const POST: APIRoute = async ({ request }) => {
     const geminiKey = import.meta.env.GEMINI_API_KEY;
     if (!geminiKey) {
-        return new Response(JSON.stringify({ error: 'Gemini API Key não configurada.' }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-        });
+        return new Response(JSON.stringify({ error: 'Gemini API Key não configurada.' }), { status: 500 });
     }
 
     let config: DeckConfig;
     try {
         config = await request.json();
     } catch {
-        return new Response(JSON.stringify({ error: 'Payload inválido.' }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-        });
+        return new Response(JSON.stringify({ error: 'Payload inválido.' }), { status: 400 });
     }
 
-    const { context, quantity, level } = config;
+    const { context, title, level, quantity, pdfBase64 } = config;
 
-    if (!context || context.trim().length < 20) {
-        return new Response(JSON.stringify({ error: 'Conteúdo da aula muito curto para gerar flashcards.' }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-        });
+    if (!pdfBase64 && (!context || context.trim().length < 20)) {
+        return new Response(JSON.stringify({ error: 'Forneça um PDF ou um texto base de pelos menos 20 caracteres.' }), { status: 400 });
     }
 
     const ai = new GoogleGenAI({ apiKey: geminiKey });
 
     const prompt = `
-    Você é um professor especialista em língua japonesa (JLPT) e designer instrucional.
-    Analise o CONTEÚDO DA AULA abaixo e gere exatamente ${quantity} flashcards pedagógicos de alta qualidade.
+    Você é um Professor de Japonês (Sensei) especialista em JLPT (${level}) e Aprendizado Espaçado (SRS).
+    Gere exatamente ${quantity} flashcards pedagógicos de alta qualidade baseados no material fornecido.
+    
+    TÍTULO DO DECK: "${title}"
+    NÍVEL ALVO: ${level}
 
-    CONTEÚDO DA AULA:
-    ---
-    ${context}
-    ---
+    FONTES DE CONTEÚDO:
+    1. Se houver um PDF, use-o como fonte primária para extrair vocabulário, kanjis e gramática.
+    2. Se houver texto manual ("${context}"), integre os pontos principais.
 
-    Nível alvo: ${level}
+    REGRAS OBRIGATÓRIAS PARA OS CARDS:
+    1. FRENTE ('front'): Palavra ou gramática em japonês (Kanji/Kana).
+    2. LEITURA ('reading'): Leitura em Hiragana/Katakana.
+    3. VERSO ('back'): Tradução clara em português.
+    4. EXEMPLO ('example'): Frase de exemplo em japonês NO CONTEXTO da aula.
+    5. TRADUÇÃO DO EXEMPLO ('exampleTranslation'): Tradução do exemplo.
+    6. NÍVEL ('level'): Use exatamente "${level}".
+    7. VARIEDADE: Mescle vocabulário e padrões gramaticais.
 
-    REGRAS OBRIGATÓRIAS:
-    1. FRENTE ('front'): A palavra, expressão ou ponto gramatical em japonês (use Kanji quando adequado ao nível ${level}).
-    2. LEITURA ('reading'): A leitura em Hiragana/Katakana. Para estruturas gramaticais, coloque a leitura do padrão (ex: "〜てもいいですか").
-    3. VERSO ('back'): A tradução direta e clara em português. Seja conciso (max 15 palavras).
-    4. EXEMPLO ('example'): Uma frase de exemplo em japonês usando o item do flashcard NO CONTEXTO da aula. OBRIGATÓRIO.
-    5. TRADUÇÃO DO EXEMPLO ('exampleTranslation'): Tradução do exemplo para português.
-    6. NÍVEL ('level'): Use exatamente "${level}" para todos os cards.
-    7. VARIEDADE: Extraia vocabulário, expressões idiomáticas E estruturas gramaticais. Não repita itens.
-    8. PEDAGOGIA: Priorize os itens mais úteis e recorrentes do conteúdo apresentado.
-
-    Retorne APENAS um JSON array seguindo o esquema definido. Sem texto adicional.
-  `;
+    Retorne APENAS um JSON array contendo os ${quantity} objetos.
+    `;
 
     try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-pro-preview-03-25',
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: {
-                    type: Type.ARRAY,
-                    items: {
-                        type: Type.OBJECT,
-                        properties: {
-                            front: { type: Type.STRING },
-                            reading: { type: Type.STRING },
-                            back: { type: Type.STRING },
-                            example: { type: Type.STRING },
-                            exampleTranslation: { type: Type.STRING },
-                            level: { type: Type.STRING },
+        const parts: any[] = [{ text: prompt }];
+        if (pdfBase64) {
+            parts.push({ inlineData: { mimeType: 'application/pdf', data: pdfBase64 } });
+        }
+
+        const result = await withRetry(() => 
+            ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: [{ role: 'user', parts }],
+                config: {
+                    responseMimeType: 'application/json',
+                    responseSchema: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                front: { type: Type.STRING },
+                                reading: { type: Type.STRING },
+                                back: { type: Type.STRING },
+                                example: { type: Type.STRING },
+                                exampleTranslation: { type: Type.STRING },
+                                level: { type: Type.STRING },
+                            },
+                            required: ['front', 'reading', 'back', 'example', 'exampleTranslation', 'level'],
                         },
-                        required: ['front', 'reading', 'back', 'example', 'exampleTranslation', 'level'],
                     },
                 },
-            },
-        });
+            })
+        );
 
-        const raw: any[] = JSON.parse(response.text || '[]');
+        const text = result.text;
+        if (!text) throw new Error('IA retornou resposta vazia.');
+
+        const raw: any[] = JSON.parse(text);
         const cards = raw.map((c, idx) => ({
             ...c,
             id: `card-${idx}-${Date.now()}`,
         }));
 
-        return new Response(JSON.stringify({ cards }), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-        });
+        return new Response(JSON.stringify({ cards }), { status: 200 });
     } catch (err: any) {
-        console.error('[Flashcards] Erro ao gerar deck:', err);
-        return new Response(JSON.stringify({ error: 'Falha ao gerar flashcards com a IA.' }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-        });
+        console.error('[Deck Generation Error]:', err);
+        return new Response(JSON.stringify({ error: 'Erro ao gerar deck: ' + err.message }), { status: 500 });
     }
 };

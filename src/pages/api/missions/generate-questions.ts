@@ -78,7 +78,7 @@ export const POST: APIRoute = async ({ request }) => {
 
         const response = await withRetry(() =>
             ai.models.generateContent({
-                model: 'gemini-2.0-flash',
+                model: 'gemini-2.5-flash',
                 contents: {
                     parts: [
                         { inlineData: { mimeType: 'application/pdf', data: pdfBase64 } },

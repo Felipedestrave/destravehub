@@ -1,6 +1,7 @@
-import React, { useRef, useState } from 'react';
-import { UploadCloud, BookOpen, Target, Layers, ChevronRight, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { BookOpen, Target, Layers, ChevronRight, Loader2 } from 'lucide-react';
 import { Difficulty, StudyFocus, type GameConfig } from '../../types/escuta';
+import { PdfUploadBox } from '../shared/PdfUploadBox';
 
 interface UploadScreenProps {
     onStart: (config: GameConfig) => void;
@@ -8,41 +9,11 @@ interface UploadScreenProps {
 }
 
 export const UploadScreen: React.FC<UploadScreenProps> = ({ onStart, isGenerating }) => {
-    const fileInputRef = useRef<HTMLInputElement>(null);
     const [fileName, setFileName] = useState<string | null>(null);
     const [pdfBase64, setPdfBase64] = useState<string | null>(null);
     const [difficulty, setDifficulty] = useState<Difficulty>(Difficulty.MEDIUM);
     const [focus, setFocus] = useState<StudyFocus>(StudyFocus.CONTEXTUAL);
     const [count, setCount] = useState(5);
-    const [dragOver, setDragOver] = useState(false);
-
-    const processFile = (file: File) => {
-        if (file.type !== 'application/pdf') {
-            alert('Por favor, selecione um arquivo PDF.');
-            return;
-        }
-        setFileName(file.name);
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const result = e.target?.result as string;
-            // Strip the data URL prefix
-            const base64 = result.split(',')[1];
-            setPdfBase64(base64);
-        };
-        reader.readAsDataURL(file);
-    };
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) processFile(file);
-    };
-
-    const handleDrop = (e: React.DragEvent) => {
-        e.preventDefault();
-        setDragOver(false);
-        const file = e.dataTransfer.files?.[0];
-        if (file) processFile(file);
-    };
 
     const handleSubmit = () => {
         if (!pdfBase64) return;
@@ -73,36 +44,13 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({ onStart, isGeneratin
             </div>
 
             {/* Upload Area */}
-            <div
-                className={`card cursor-pointer border-2 border-dashed transition-all duration-200 mb-6 ${dragOver
-                        ? 'border-brand bg-brand/5 scale-[1.01]'
-                        : fileName
-                            ? 'border-action bg-action/5'
-                            : 'border-slate-border hover:border-brand/40 hover:bg-brand/3'
-                    }`}
-                onClick={() => fileInputRef.current?.click()}
-                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                onDragLeave={() => setDragOver(false)}
-                onDrop={handleDrop}
-            >
-                <div className="flex flex-col items-center gap-3 py-4">
-                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-colors ${fileName ? 'bg-action/10' : 'bg-brand/10'}`}>
-                        <UploadCloud size={28} className={fileName ? 'text-action' : 'text-brand'} />
-                    </div>
-                    {fileName ? (
-                        <>
-                            <p className="font-outfit font-bold text-slate-dark text-center">{fileName}</p>
-                            <span className="badge-brand">PDF pronto ✓</span>
-                        </>
-                    ) : (
-                        <>
-                            <p className="font-outfit font-semibold text-slate-dark">Arraste o PDF ou clique para selecionar</p>
-                            <p className="text-sm text-slate-mid">Suporta PDF com conteúdo de japonês (JLPT N5–N3)</p>
-                        </>
-                    )}
-                </div>
-                <input ref={fileInputRef} type="file" accept=".pdf" className="hidden" onChange={handleFileChange} />
-            </div>
+            <PdfUploadBox 
+                onFileSelected={(base64, name) => {
+                    setPdfBase64(base64);
+                    setFileName(name);
+                }}
+                currentFileName={fileName}
+            />
 
             {/* Config Grid */}
             <div className="card mb-6">

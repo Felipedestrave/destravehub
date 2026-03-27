@@ -28,6 +28,7 @@ export interface MrpQuestion {
 
 export interface MrpConfig {
     context: string;
+    pdfBase64?: string;
     quantity: number;
     level: JLPTLevel;
     mode: QuizMode;
@@ -42,4 +43,4 @@ export interface MrpUserAnswer {
     feedback?: string;
 }
 
-export type MrpStatus = 'CONFIG' | 'LOADING' | 'PLAYING' | 'RESULTS';
+export type MrpStatus = 'CONFIG' | 'LOADING' | 'REVIEW' | 'PLAYING' | 'RESULTS' | 'SAVED';

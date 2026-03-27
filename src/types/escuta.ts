@@ -52,7 +52,7 @@ export interface GameResult {
     history: HistoryItem[];
 }
 
-export type GameStatus = 'UPLOAD' | 'GENERATING' | 'PLAYING' | 'RESULT';
+export type GameStatus = 'UPLOAD' | 'GENERATING' | 'REVIEW' | 'PLAYING' | 'RESULT' | 'SAVED';
 
 export const POINTS_CONFIG: Record<Difficulty, number> = {
     [Difficulty.EASY]: 2,

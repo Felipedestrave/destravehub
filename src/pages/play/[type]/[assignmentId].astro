@@ -1,0 +1,114 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { EscutaApp } from '@/components/escuta/EscutaApp.tsx';
+import { MrpApp } from '@/components/mrp/MrpApp.tsx';
+import { CardViewer } from '@/components/flashcards/CardViewer.tsx';
+import { supabaseAdmin } from '@/lib/supabase-admin';
+
+const { type, assignmentId } = Astro.params;
+const isTest = Astro.url.searchParams.get('test') === 'true';
+
+if (!assignmentId || !type) {
+    return Astro.redirect('/404');
+}
+
+let assignment = null;
+
+if (isTest) {
+    // Modo Professor: Busca direto na biblioteca
+    const { data: activity } = await supabaseAdmin
+        .from('activities')
+        .select('*')
+        .eq('id', assignmentId)
+        .single();
+    
+    if (activity) {
+        assignment = {
+            id: assignmentId, // Usamos o ID da atividade como ID da missão no modo de teste
+            activities: activity
+        };
+    }
+} else {
+    // Modo Aluno: Busca na tabela de atribuições
+    const { data } = await supabaseAdmin
+        .from('assignments')
+        .select('*, activities(*)')
+        .eq('id', assignmentId)
+        .single();
+    
+    if (data) {
+        assignment = data;
+    }
+}
+
+if (!assignment) {
+    return Astro.redirect('/404?error=not_found');
+}
+
+const rawConfig = assignment.activities.config as any;
+let initialQuestions = [];
+let initialConfig = null;
+let flashcardsCards = [];
+
+// Preparação de dados específica por tipo
+if (type === 'escuta' || type === 'mrp') {
+    initialQuestions = Array.isArray(rawConfig) ? rawConfig : (rawConfig?.questions || []);
+    initialConfig = {
+        difficulty: rawConfig?.difficulty || 'Fácil',
+        count: initialQuestions.length,
+        focus: rawConfig?.focus || 'Tradução Fiel'
+    };
+} else if (type === 'flashcards') {
+    // No Destrave Cards, os cards estão dentro da config
+    flashcardsCards = rawConfig?.cards || [];
+}
+---
+
+<Layout title={`Missão: ${assignment.activities.title}`}>
+    <div class="mission-player-overlay">
+        <div class="mission-container">
+            {type === 'escuta' && (
+                <EscutaApp 
+                    client:only="react" 
+                    assignmentId={isTest ? undefined : assignment.id} 
+                    initialQuestions={initialQuestions} 
+                    initialConfig={initialConfig} 
+                    publicAccess={true}
+                />
+            )}
+            {type === 'mrp' && (
+                <MrpApp 
+                    client:only="react" 
+                    assignmentId={isTest ? undefined : assignment.id} 
+                    initialQuestions={initialQuestions} 
+                    initialConfig={initialConfig}
+                    publicAccess={true}
+                />
+            )}
+            {type === 'flashcards' && (
+                <div class="max-w-xl mx-auto py-12">
+                    <CardViewer client:only="react" cards={flashcardsCards} />
+                </div>
+            )}
+        </div>
+    </div>
+</Layout>
+
+<style>
+    .mission-player-overlay {
+        min-height: 100vh;
+        background: var(--color-ice);
+        background-image: 
+            radial-gradient(circle at 5% 5%, rgba(139, 92, 246, 0.03) 0%, transparent 50%),
+            radial-gradient(circle at 95% 95%, rgba(139, 92, 246, 0.03) 0%, transparent 50%);
+        display: flex;
+        flex-direction: column;
+    }
+    .mission-container {
+        flex: 1;
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+</style>

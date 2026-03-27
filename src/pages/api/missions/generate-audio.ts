@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { GoogleGenAI, Modality } from '@google/genai';
+import { supabaseAdmin } from '../../../lib/supabase-admin';
 
 // Maps context name to TTS voice for naturalness
 const getVoiceForContext = (context?: string): string => {
@@ -32,10 +33,33 @@ export const POST: APIRoute = async ({ request }) => {
         if (!apiKey) return new Response(JSON.stringify({ error: 'GEMINI_API_KEY não configurada.' }), { status: 500 });
 
         const body = await request.json();
-        const { text, contextName, difficulty } = body;
+        const { text, contextName, difficulty, activityId } = body;
 
         if (!text) return new Response(JSON.stringify({ error: 'text é obrigatório.' }), { status: 400 });
 
+        // --- CACHE LOGIC START ---
+        if (activityId) {
+            const { data: activity } = await supabaseAdmin
+                .from('activities')
+                .select('config')
+                .eq('id', activityId)
+                .single();
+
+            if (activity && activity.config) {
+                const config = activity.config as any;
+                const cache = config.cached_audios || {};
+                // We use a simplified key for the cache (text + voice)
+                const cacheKey = `${text}_${getVoiceForContext(contextName)}`;
+                
+                if (cache[cacheKey]) {
+                    console.log('[Audio Cache] HIT for:', text);
+                    return new Response(JSON.stringify({ audioBase64: cache[cacheKey], cached: true }), { status: 200 });
+                }
+            }
+        }
+        // --- CACHE LOGIC END ---
+
+        console.log('[Audio Cache] MISS for:', text, '- Generating with Gemini...');
         const ai = new GoogleGenAI({ apiKey });
         const voiceName = getVoiceForContext(contextName);
 
@@ -65,7 +89,33 @@ export const POST: APIRoute = async ({ request }) => {
         const audioData = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
         if (!audioData) throw new Error('Falha ao gerar áudio.');
 
-        return new Response(JSON.stringify({ audioBase64: audioData }), { status: 200 });
+        // --- SAVE TO CACHE START ---
+        if (activityId) {
+            try {
+                const { data: activity } = await supabaseAdmin.from('activities').select('config').eq('id', activityId).single();
+                if (activity) {
+                    const config = (activity.config as any) || {};
+                    const cache = config.cached_audios || {};
+                    const cacheKey = `${text}_${voiceName}`;
+                    cache[cacheKey] = audioData;
+                    
+                    await supabaseAdmin
+                        .from('activities')
+                        .update({ 
+                            config: { ...config, cached_audios: cache } 
+                        })
+                        .eq('id', activityId);
+                    
+                    console.log('[Audio Cache] SAVED for:', text);
+                }
+            } catch (cacheErr) {
+                console.error('[Audio Cache] Failed to save cache:', cacheErr);
+                // Non-blocking
+            }
+        }
+        // --- SAVE TO CACHE END ---
+
+        return new Response(JSON.stringify({ audioBase64: audioData, cached: false }), { status: 200 });
     } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Erro desconhecido';
         return new Response(JSON.stringify({ error: message }), { status: 500 });

@@ -57,7 +57,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-pro-preview-03-25',
+            model: 'gemini-2.5-flash',
             contents: prompt,
             config: {
                 responseMimeType: 'application/json',
