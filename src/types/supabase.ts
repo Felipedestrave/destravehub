@@ -107,6 +107,7 @@ export type Database = {
                     inventory: Json | null
                     attendance_streak: number | null
                     equipped: Json | null
+                    whatsapp: string | null
                 }
                 Insert: {
                     avatar_url?: string | null
@@ -120,6 +121,7 @@ export type Database = {
                     inventory?: Json | null
                     attendance_streak?: number | null
                     equipped?: Json | null
+                    whatsapp?: string | null
                 }
                 Update: {
                     avatar_url?: string | null
@@ -133,6 +135,7 @@ export type Database = {
                     inventory?: Json | null
                     attendance_streak?: number | null
                     equipped?: Json | null
+                    whatsapp?: string | null
                 }
                 Relationships: []
             }

@@ -23,9 +23,18 @@
 ---
 
 ### 🚀 Próximos Passos (Para a volta do descanso):
-1.  **Sincronizar Tipos:** Adicionar a coluna `whatsapp` manualmente no arquivo `/src/types/supabase.ts` para eliminar os erros de código.
-2.  **Formatação Automática:** Adicionar uma máscara no campo de WhatsApp do Japão (+81) para garantir que o número seja salvo sempre no formato correto para o `wa.me`.
-3.  **Migração de Atividades Antigas:** Criar um script para atualizar o `teacher_id` de atividades órfãs para a sua nova ID real, permitindo que todas as missões carreguem seu contato.
+1.  **Sincronizar Tipos:** Adicionar a coluna `whatsapp` manualmente no arquivo `/src/types/supabase.ts` (CONCLUÍDO ✅).
+2.  **Formatação Automática:** Adicionar uma máscara no campo de WhatsApp do Japão (+81) e Brasil (+55) (CONCLUÍDO ✅).
+3.  **Migração e Reparo de Perfil:** Criado o perfil do professor (`destraveseujapones@gmail.com`) na tabela `profiles` e verificada a vinculação de 6 atividades e 3 alunos. Todas as missões agora estão funcionais (CONCLUÍDO ✅).
+
+### 💡 Planejamento Próxima Fase:
+1.  **Biblioteca de Materiais (LMS):**
+    *   Implementar upload de PDFs/PNGs via **Supabase Storage**.
+    *   Vincular links de materiais às missões/alunos no banco de dados.
+    *   Interface de **Gaveta Lateral (Side Panel)** para consulta de materiais sem sair da atividade.
+2.  **Histórico do Sensei:**
+    *   Área para registrar tópicos estudados em cada aula.
+    *   Painel de desempenho histórico do aluno (evolução de notas e XP).
 
 ---
-**Bom descanso, Sensei! Até a volta.** 🍵
+**Bom descanso, Sensei! Suas alterações e o plano da próxima fase estão salvos.** 🏯

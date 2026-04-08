@@ -36,6 +36,55 @@ export const SettingsPanel = () => {
         }
     };
 
+    const formatWhatsAppDisplay = (digits: string) => {
+        if (!digits) return '';
+        
+        // Japão (+81)
+        if (digits.startsWith('81')) {
+            let formatted = '+81 ';
+            const rest = digits.slice(2);
+            if (rest.length > 0) {
+                formatted += rest.slice(0, 2);
+                if (rest.length > 2) {
+                    formatted += '-' + rest.slice(2, 6);
+                    if (rest.length > 6) {
+                        formatted += '-' + rest.slice(6, 13);
+                    }
+                }
+            }
+            return formatted.trim();
+        }
+        
+        // Brasil (+55)
+        if (digits.startsWith('55')) {
+            let formatted = '+55 ';
+            const rest = digits.slice(2);
+            if (rest.length > 0) {
+                formatted += '(' + rest.slice(0, 2) + ') ';
+                if (rest.length > 2) {
+                    formatted += rest.slice(2, 7);
+                    if (rest.length > 7) {
+                        formatted += '-' + rest.slice(7, 13);
+                    }
+                }
+            }
+            return formatted.trim();
+        }
+
+        // Outros: Apenas garante o + na frente
+        return digits ? `+${digits}` : '';
+    };
+
+    const handleWhatsAppChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        // Pega apenas os dígitos
+        const digits = val.replace(/\D/g, '');
+        // Limite de 15 dígitos (padrão internacional)
+        if (digits.length <= 15) {
+            setWhatsapp(digits);
+        }
+    };
+
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
@@ -45,20 +94,22 @@ export const SettingsPanel = () => {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) throw new Error('Não autenticado');
 
-            const cleanNumber = whatsapp.replace(/\D/g, '');
+            // Validação mínima: precisa de DDI + Número
+            if (whatsapp.length < 8) {
+                throw new Error('Por favor, informe um número de WhatsApp válido com código de país.');
+            }
 
             const { error } = await supabase
                 .from('profiles')
-                .update({ whatsapp: cleanNumber })
+                .update({ whatsapp: whatsapp }) // Agora 'whatsapp' no state já é apenas dígitos
                 .eq('id', session.user.id);
 
             if (error) throw error;
 
-            setNotification({ type: 'success', message: 'Configurações salvas com sucesso!' });
-            setWhatsapp(cleanNumber); // Update format in input
-        } catch (error) {
+            setNotification({ type: 'success', message: 'Configurações de contato salvas!' });
+        } catch (error: any) {
             console.error('Error saving profile:', error);
-            setNotification({ type: 'error', message: 'Erro ao salvar configurações. Tente novamente.' });
+            setNotification({ type: 'error', message: error.message || 'Erro ao salvar configurações.' });
         } finally {
             setSaving(false);
         }
@@ -86,10 +137,10 @@ export const SettingsPanel = () => {
                 <div className="space-y-6">
                     <div>
                         <label className="block text-sm font-bold text-slate-dark mb-2 font-outfit uppercase tracking-wider">
-                            Seu WhatsApp de Atendimento
+                            WhatsApp do Sensei (Recomendado)
                         </label>
                         <p className="text-xs text-slate-mid mb-3 font-inter">
-                            Este é o número que os alunos usarão para entrar em contato com você ao concluir uma Missão Pública. (Ex: 5511999999999)
+                            Inicie com o código do país (ex: 81 para Japão, 55 para Brasil). Os alunos usarão este contato ao concluir missões.
                         </p>
                         <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -99,9 +150,9 @@ export const SettingsPanel = () => {
                             </div>
                             <input 
                                 type="text" 
-                                value={whatsapp} 
-                                onChange={(e) => setWhatsapp(e.target.value)}
-                                placeholder="Ex: 5511999999999" 
+                                value={formatWhatsAppDisplay(whatsapp)} 
+                                onChange={handleWhatsAppChange}
+                                placeholder="81 90-XXXX-XXXX" 
                                 className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-slate-border bg-ice focus:bg-white focus:border-brand outline-none transition-colors font-inter font-medium text-slate-dark placeholder-slate-mid"
                             />
                         </div>
