@@ -30,7 +30,7 @@ export default function ActivitiesPanel() {
     const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
     const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
     const [sharingActivity, setSharingActivity] = useState<Activity | null>(null);
-    const [shareTab, setShareTab] = useState<'platform' | 'experimental'>('platform');
+    const [shareTab, setShareTab] = useState<'platform' | 'experimental' | 'public'>('platform');
     const [experimentalLink, setExperimentalLink] = useState<string | null>(null);
     const [generatingLink, setGeneratingLink] = useState(false);
 
@@ -400,6 +400,12 @@ export default function ActivitiesPanel() {
                                 Na plataforma
                             </button>
                             <button 
+                                className={`ap-tab-btn ${shareTab === 'public' ? 'active' : ''}`}
+                                onClick={() => setShareTab('public')}
+                            >
+                                Link Público
+                            </button>
+                            <button 
                                 className={`ap-tab-btn ${shareTab === 'experimental' ? 'active' : ''}`}
                                 onClick={() => setShareTab('experimental')}
                             >
@@ -469,6 +475,19 @@ export default function ActivitiesPanel() {
                                     )}
 
                                     <p className="ap-link-hint">⚠️ Atenção: Assim que o aluno concluir o exercício, o link expirará automaticamente.</p>
+                                </div>
+                            )}
+
+                            {shareTab === 'public' && sharingActivity && (
+                                <div className="animation-fade-in">
+                                    <p className="ap-modal-instruction">Link para a sua Landing Page pública. Qualquer aluno pode se cadastrar para fazer a missão, sendo capturado como Lead e redirecionado para o seu WhatsApp posteriormente.</p>
+                                    
+                                    <div className="ap-link-box">
+                                        <input className="ap-link-input" readOnly value={`${window.location.origin}/convite/${sharingActivity.id}`} />
+                                        <button className="ap-link-copy" onClick={() => copyToClipboard(`${window.location.origin}/convite/${sharingActivity.id}`)}>Copiar</button>
+                                    </div>
+
+                                    <p className="ap-link-hint">🚀 Ótimo para usar no seu Instagram, YouTube ou disparos de e-mail!</p>
                                 </div>
                             )}
                         </div>

@@ -6,6 +6,7 @@ import { supabaseAdmin } from '../../../lib/supabase-admin';
 const assignmentId = Astro.url.searchParams.get('assignment');
 const editingId = Astro.url.searchParams.get('edit');
 let initialDeck = undefined;
+let initialTitle = 'Missão de Flashcards';
 
 if (assignmentId) {
     const { data: assignment } = await supabaseAdmin
@@ -15,6 +16,7 @@ if (assignmentId) {
         .single();
     if (assignment && assignment.activities) {
         initialDeck = assignment.activities.config as any;
+        initialTitle = assignment.activities.title;
     }
 }
 
@@ -50,6 +52,7 @@ if (editingId) {
     assignmentId={assignmentId || undefined} 
     editingId={editingId || undefined} 
     initialDeck={initialDeck} 
+    initialTitle={initialTitle}
   />
 </DashboardLayout>
 

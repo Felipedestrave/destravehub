@@ -5,6 +5,8 @@ import { supabase } from '../../lib/supabase';
 import { DeckGenerator } from './DeckGenerator';
 import { ReviewStudio } from './ReviewStudio';
 import { RoleGuard } from '../shared/RoleGuard';
+import { CardViewer } from './CardViewer';
+import { ResultScreen } from '../escuta/ResultScreen';
 import type { FlashcardStatus, FlashDeck, DeckConfig } from '../../types/flashcards';
 
 interface FlashcardsAppProps {
@@ -13,14 +15,20 @@ interface FlashcardsAppProps {
     editingId?: string;
     initialDeck?: FlashDeck;
     publicAccess?: boolean;
+    initialTitle?: string;
 }
 
-export const FlashcardsApp: React.FC<FlashcardsAppProps> = ({ userToken, assignmentId, editingId, initialDeck, publicAccess }) => {
-    const [status, setStatus] = useState<FlashcardStatus>(initialDeck ? 'REVIEW' : 'GENERATE');
+export const FlashcardsApp: React.FC<FlashcardsAppProps> = ({ userToken, assignmentId, editingId, initialDeck, publicAccess, initialTitle }) => {
+    const [status, setStatus] = useState<FlashcardStatus>(
+        assignmentId && initialDeck ? 'PLAYING' : 
+        (initialDeck ? 'REVIEW' : 'GENERATE')
+    );
     const [deck, setDeck] = useState<FlashDeck | null>(initialDeck || null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [rewards, setRewards] = useState<any>(null);
+    const [gameResult, setGameResult] = useState<any>(null);
 
     const handleGenerate = async (config: DeckConfig) => {
         setIsGenerating(true);
@@ -94,10 +102,56 @@ export const FlashcardsApp: React.FC<FlashcardsAppProps> = ({ userToken, assignm
         }
     };
 
+    const handleFinishGame = async (stats: { 
+        score: number, 
+        total: number, 
+        history: any[], 
+        timeSpent: number, 
+        targetTime: number 
+    }) => {
+        setGameResult(stats);
+        setStatus('RESULT');
+        
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token || userToken;
+            
+            if (token && assignmentId) {
+                const res = await fetch('/api/missions/save-result', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        assignmentId,
+                        score: stats.score,
+                        totalQuestions: stats.total,
+                        history: stats.history,
+                        timeSpent: stats.timeSpent,
+                        targetTime: stats.targetTime,
+                        title: initialTitle || deck?.title || 'Missão de Flashcards'
+                    }),
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.rewards) {
+                        setRewards(data.rewards);
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('[Flashcards] Error saving result:', err);
+        }
+    };
+
     const reset = () => {
         setDeck(null);
         setStatus('GENERATE');
         setError(null);
+        setRewards(null);
+        setGameResult(null);
     };
 
     return (
@@ -127,6 +181,22 @@ export const FlashcardsApp: React.FC<FlashcardsAppProps> = ({ userToken, assignm
                         onApprove={handleApprove}
                         onCancel={reset}
                         isSaving={isSaving}
+                    />
+                )}
+
+                {status === 'PLAYING' && deck && (
+                    <CardViewer 
+                        cards={deck.cards} 
+                        onFinish={handleFinishGame}
+                    />
+                )}
+
+                {status === 'RESULT' && gameResult && (
+                    <ResultScreen
+                        result={gameResult}
+                        onRestart={() => setStatus('PLAYING')}
+                        hideActions={!!assignmentId}
+                        rewards={rewards}
                     />
                 )}
 

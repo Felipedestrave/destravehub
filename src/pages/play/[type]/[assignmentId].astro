@@ -62,6 +62,8 @@ if (type === 'escuta' || type === 'mrp') {
     // No Destrave Cards, os cards estão dentro da config
     flashcardsCards = rawConfig?.cards || [];
 }
+
+const teacherId = assignment.activities.teacher_id;
 ---
 
 <Layout title={`Missão: ${assignment.activities.title}`}>
@@ -71,9 +73,11 @@ if (type === 'escuta' || type === 'mrp') {
                 <EscutaApp 
                     client:only="react" 
                     assignmentId={isTest ? undefined : assignment.id} 
+                    activityId={assignment.activities.id}
                     initialQuestions={initialQuestions} 
                     initialConfig={initialConfig} 
                     publicAccess={true}
+                    senseiWhatsapp={teacherId}
                 />
             )}
             {type === 'mrp' && (
@@ -83,11 +87,12 @@ if (type === 'escuta' || type === 'mrp') {
                     initialQuestions={initialQuestions} 
                     initialConfig={initialConfig}
                     publicAccess={true}
+                    senseiWhatsapp={teacherId}
                 />
             )}
             {type === 'flashcards' && (
                 <div class="max-w-xl mx-auto py-12">
-                    <CardViewer client:only="react" cards={flashcardsCards} />
+                    <CardViewer client:only="react" cards={flashcardsCards} senseiWhatsapp={teacherId} />
                 </div>
             )}
         </div>

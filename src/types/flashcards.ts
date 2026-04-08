@@ -33,6 +33,6 @@ export interface DeckConfig {
 }
 
 // SRS feedback options (for student view)
-export type SrsDifficulty = 'easy' | 'medium' | 'hard';
+export type SrsDifficulty = 'correct' | 'wrong';
 
-export type FlashcardStatus = 'GENERATE' | 'LOADING' | 'REVIEW' | 'SAVED';
+export type FlashcardStatus = 'GENERATE' | 'LOADING' | 'REVIEW' | 'SAVED' | 'PLAYING' | 'SUMMARY' | 'RESULT';

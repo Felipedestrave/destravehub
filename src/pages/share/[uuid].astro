@@ -34,6 +34,11 @@ if (assignment.status === 'completed') {
     return Astro.redirect('/share/completed');
 }
 
+// Check 48h expiration for leads
+if (assignment.expires_at && new Date(assignment.expires_at) < new Date()) {
+    return Astro.redirect('/share/expired');
+}
+
 // Redirect to the actual mission player
 // We use a special /play route that doesn't require login
 const missionType = assignment.activities.type;

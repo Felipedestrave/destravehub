@@ -1,4 +1,4 @@
-import { supabaseAdmin } from './lib/supabase-admin';
+import { supabaseAdmin } from './src/lib/supabase-admin';
 
 async function checkStudent() {
     const authId = '2eb1006d-d3e0-4fc9-878e-bbda2e209a1c';

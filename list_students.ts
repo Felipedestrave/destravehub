@@ -1,4 +1,4 @@
-import { supabaseAdmin } from './lib/supabase-admin';
+import { supabaseAdmin } from './src/lib/supabase-admin';
 
 async function listAllStudents() {
     console.log('--- All Students in DB ---');

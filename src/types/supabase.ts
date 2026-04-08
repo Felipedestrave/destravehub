@@ -102,6 +102,11 @@ export type Database = {
                     id: string
                     role: string | null
                     updated_at: string | null
+                    xp: number | null
+                    coins: number | null
+                    inventory: Json | null
+                    attendance_streak: number | null
+                    equipped: Json | null
                 }
                 Insert: {
                     avatar_url?: string | null
@@ -110,6 +115,11 @@ export type Database = {
                     id: string
                     role?: string | null
                     updated_at?: string | null
+                    xp?: number | null
+                    coins?: number | null
+                    inventory?: Json | null
+                    attendance_streak?: number | null
+                    equipped?: Json | null
                 }
                 Update: {
                     avatar_url?: string | null
@@ -118,6 +128,11 @@ export type Database = {
                     id?: string
                     role?: string | null
                     updated_at?: string | null
+                    xp?: number | null
+                    coins?: number | null
+                    inventory?: Json | null
+                    attendance_streak?: number | null
+                    equipped?: Json | null
                 }
                 Relationships: []
             }
@@ -228,7 +243,14 @@ export type Database = {
             [_ in never]: never
         }
         Functions: {
-            [_ in never]: never
+            increment_gamification: {
+                Args: {
+                    user_id: string
+                    xp_gain: number
+                    coins_gain: number
+                }
+                Returns: undefined
+            }
         }
         Enums: {
             activity_status: "pending" | "in_progress" | "completed"

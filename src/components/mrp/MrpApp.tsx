@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { AlertCircle, CheckCircle, Theater, Users, MessageSquare } from 'lucide-react';
+import { BuddyView, type BuddyState } from '../buddy/BuddyView';
+import { STORE_ITEMS } from '../../lib/store';
+import { getBuddyPhrase } from '../../lib/buddy-phrases';
 import { supabase } from '../../lib/supabase';
 import { ConfigScreen } from './ConfigScreen';
 import { ReviewScreen } from './ReviewScreen';
@@ -16,10 +19,11 @@ interface MrpAppProps {
     initialQuestions?: MrpQuestion[];
     initialTitle?: string;
     publicAccess?: boolean;
+    senseiWhatsapp?: string | null;
 }
 
 
-export const MrpApp: React.FC<MrpAppProps> = ({ userToken, assignmentId, editingId, initialConfig, initialQuestions, initialTitle, publicAccess }) => {
+export const MrpApp: React.FC<MrpAppProps> = ({ userToken, assignmentId, editingId, initialConfig, initialQuestions, initialTitle, publicAccess, senseiWhatsapp }) => {
 
     const [status, setStatus] = useState<MrpStatus>(initialQuestions ? (editingId ? 'REVIEW' : 'PLAYING') : 'CONFIG');
     const [config, setConfig] = useState<MrpConfig | null>(initialConfig || null);
@@ -28,6 +32,36 @@ export const MrpApp: React.FC<MrpAppProps> = ({ userToken, assignmentId, editing
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [rewards, setRewards] = useState<any>(null);
+
+    // BUDDY COMPANION
+    const [buddyState, setBuddyState] = useState<BuddyState>('idle');
+    const [buddyMessage, setBuddyMessage] = useState<string | null>(null);
+    const [buddyAvatarUrl, setBuddyAvatarUrl] = useState<string>('/assets/avatars/tanuki-novato.png');
+    const [buddyAvatarId, setBuddyAvatarId] = useState<string | null>(null);
+
+    React.useEffect(() => {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (!session) return;
+            supabase.from('profiles').select('equipped').eq('id', session.user.id).single().then(({ data }) => {
+                const equipped = data?.equipped as any;
+                if (equipped?.avatar) {
+                    setBuddyAvatarId(equipped.avatar);
+                    const item = STORE_ITEMS.find(i => i.id === equipped.avatar);
+                    if (item?.previewUrl) setBuddyAvatarUrl(item.previewUrl);
+                }
+            });
+        });
+    }, []);
+
+    const triggerBuddy = (newState: BuddyState, type?: 'success' | 'error') => {
+        setBuddyState(newState);
+        if (type) setBuddyMessage(getBuddyPhrase(buddyAvatarId || null, type));
+        setTimeout(() => {
+            setBuddyState('idle');
+            setBuddyMessage(null);
+        }, 2000);
+    };
 
     React.useEffect(() => {
         if (!editingId && initialQuestions && initialQuestions.length > 0) {
@@ -137,8 +171,14 @@ export const MrpApp: React.FC<MrpAppProps> = ({ userToken, assignmentId, editing
                     totalQuestions: questions.length,
                     percentage, 
                     rankLabel,
-                    history: userAnswers // For compliance with generic API
+                    history: userAnswers, // For compliance with generic API
+                    title: initialTitle || 'Missão Role Play'
                 }),
+            }).then(async res => {
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.rewards) setRewards(data.rewards);
+                }
             }).catch((err) => console.error('[MrpApp] Error saving:', err));
         }
     };
@@ -197,7 +237,10 @@ export const MrpApp: React.FC<MrpAppProps> = ({ userToken, assignmentId, editing
                 )}
 
                 {status === 'PLAYING' && config && (
-                    <GameScreen questions={questions} mode={config.mode} onComplete={handleComplete} />
+                    <>
+                        <GameScreen questions={questions} mode={config.mode} onComplete={handleComplete} onTriggerBuddy={triggerBuddy} />
+                        <BuddyView avatarUrl={buddyAvatarUrl} avatarId={buddyAvatarId} state={buddyState} message={buddyMessage} />
+                    </>
                 )}
                 
                 {status === 'RESULTS' && config && (
@@ -208,8 +251,9 @@ export const MrpApp: React.FC<MrpAppProps> = ({ userToken, assignmentId, editing
                     onRestart={handleRestart}
                     onSave={(!assignmentId && !publicAccess) ? handleSaveActivity : undefined}
                     isSaving={isSaving}
-                    initialTitle={initialTitle}
                     hideActions={!!assignmentId}
+                    rewards={rewards}
+                    senseiWhatsapp={senseiWhatsapp}
                 />
                 )}
 

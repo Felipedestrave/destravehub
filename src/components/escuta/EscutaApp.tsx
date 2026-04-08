@@ -7,7 +7,10 @@ import { GameScreen } from './GameScreen';
 import { ResultScreen } from './ResultScreen';
 import { RoleGuard } from '../shared/RoleGuard';
 import { AdvancedLoading } from '../shared/AdvancedLoading';
-import { Volume2, Music, Mic2 } from 'lucide-react';
+import { Volume2, Mic2 } from 'lucide-react';
+import { BuddyView, type BuddyState } from '../buddy/BuddyView';
+import { STORE_ITEMS } from '../../lib/store';
+import { getBuddyPhrase } from '../../lib/buddy-phrases';
 import {
     Difficulty,
     POINTS_CONFIG,
@@ -24,11 +27,12 @@ interface EscutaAppProps {
     assignmentId?: string;
     editingId?: string;
     initialData?: GeneratedData[];
-    initialConfig?: GameConfig;
+    initialConfig?: GameConfig | null;
     initialQuestions?: Question[];
     initialTitle?: string;
     publicAccess?: boolean;
     activityId?: string;
+    senseiWhatsapp?: string | null;
 }
 
 export const EscutaApp: React.FC<EscutaAppProps> = ({ 
@@ -38,9 +42,10 @@ export const EscutaApp: React.FC<EscutaAppProps> = ({
     initialData, 
     initialConfig, 
     initialQuestions, 
-    initialTitle, 
+    initialTitle,
     publicAccess,
-    activityId
+    activityId,
+    senseiWhatsapp
 }) => {
     const [status, setStatus] = useState<GameStatus>(
         editingId && (initialData || initialQuestions) ? 'REVIEW' : 
@@ -59,6 +64,36 @@ export const EscutaApp: React.FC<EscutaAppProps> = ({
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
     const [scoreAdjustment, setScoreAdjustment] = useState<number | null>(null);
     const [config, setConfig] = useState<GameConfig | null>(initialConfig || null);
+    const [rewards, setRewards] = useState<any>(null);
+    
+    // BUDDY COMPANION
+    const [buddyState, setBuddyState] = useState<BuddyState>('idle');
+    const [buddyMessage, setBuddyMessage] = useState<string | null>(null);
+    const [buddyAvatarUrl, setBuddyAvatarUrl] = useState<string>('/assets/avatars/tanuki-novato.png');
+    const [buddyAvatarId, setBuddyAvatarId] = useState<string | null>(null);
+
+    useEffect(() => {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (!session) return;
+            supabase.from('profiles').select('equipped').eq('id', session.user.id).single().then(({ data }) => {
+                const equipped = data?.equipped as any;
+                if (equipped?.avatar) {
+                    setBuddyAvatarId(equipped.avatar);
+                    const item = STORE_ITEMS.find(i => i.id === equipped.avatar);
+                    if (item?.previewUrl) setBuddyAvatarUrl(item.previewUrl);
+                }
+            });
+        });
+    }, []);
+
+    const triggerBuddy = (newState: BuddyState, msg?: string) => {
+        setBuddyState(newState);
+        if (msg) setBuddyMessage(msg);
+        setTimeout(() => {
+            setBuddyState('idle');
+            setBuddyMessage(null);
+        }, 2000);
+    };
 
     useEffect(() => {
         if (initialQuestions && initialQuestions.length > 0) {
@@ -192,6 +227,13 @@ export const EscutaApp: React.FC<EscutaAppProps> = ({
         setIsAnswered(true);
         setScoreAdjustment(points);
         setScore((prev) => prev + points);
+        
+        if (correct) {
+            triggerBuddy('success', getBuddyPhrase(buddyAvatarId, 'success'));
+        } else {
+            triggerBuddy('error', getBuddyPhrase(buddyAvatarId, 'error'));
+        }
+
         setHistory((prev) => [
             ...prev,
             { correct, points, questionData: currentData, userAnswer: idx, usedHint },
@@ -206,7 +248,7 @@ export const EscutaApp: React.FC<EscutaAppProps> = ({
                 const token = session?.access_token || userToken;
                 
                 if (token) {
-                    await fetch('/api/missions/save-result', {
+                    const res = await fetch('/api/missions/save-result', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -216,9 +258,17 @@ export const EscutaApp: React.FC<EscutaAppProps> = ({
                             assignmentId,
                             score,
                             totalQuestions: history.length,
-                            resultData: result
+                            history: history, // Updated field name in API
+                            title: initialTitle || 'Missão de Escuta'
                         }),
                     });
+                    
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.rewards) {
+                            setRewards(data.rewards);
+                        }
+                    }
                 }
             } catch (err) {
                 console.error('Error saving result:', err);
@@ -351,8 +401,9 @@ export const EscutaApp: React.FC<EscutaAppProps> = ({
                     onSave={(!assignmentId && !publicAccess) ? handleSaveActivity : undefined}
                     isSaving={isSaving}
                     hideActions={!!assignmentId}
+                    rewards={rewards}
+                    senseiWhatsapp={senseiWhatsapp}
                 />
-
             )}
 
             {status === 'SAVED' && (
@@ -370,6 +421,7 @@ export const EscutaApp: React.FC<EscutaAppProps> = ({
                     </div>
                 </div>
             )}
+            {status === 'PLAYING' && <BuddyView avatarUrl={buddyAvatarUrl} avatarId={buddyAvatarId} state={buddyState} message={buddyMessage} />}
         </div>
     );
 

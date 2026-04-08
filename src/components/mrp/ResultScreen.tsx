@@ -11,6 +11,8 @@ interface ResultScreenProps {
     isSaving?: boolean;
     initialTitle?: string;
     hideActions?: boolean;
+    rewards?: any;
+    senseiWhatsapp?: string | null;
 }
 
 const RANK_LEVELS = [
@@ -20,7 +22,7 @@ const RANK_LEVELS = [
     { min: 0, label: '🌱 Iniciante', color: '#dc2626', bg: 'rgba(220,38,38,0.08)', border: 'rgba(220,38,38,0.2)' },
 ];
 
-export const ResultScreen: React.FC<ResultScreenProps> = ({ config, questions, answers, onRestart, onSave, isSaving, initialTitle, hideActions }) => {
+export const ResultScreen: React.FC<ResultScreenProps> = ({ config, questions, answers, onRestart, onSave, isSaving, initialTitle, hideActions, rewards, senseiWhatsapp }) => {
     const totalScore = answers.reduce((acc, a) => acc + a.scoreEarned, 0);
     const maxPossible = questions.reduce((acc, q) => acc + q.points, 0);
     const correctCount = answers.filter((a) => a.isCorrect).length;
@@ -72,6 +74,22 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ config, questions, a
                     <p className="mrp-stat-label">Dicas usadas</p>
                     <p className="mrp-stat-sub">com penalidade</p>
                 </div>
+
+                {/* Gamificação */}
+                {rewards && (
+                    <>
+                        <div className="mrp-stat-card" style={{ background: 'rgba(245,158,11,0.05)', borderColor: 'rgba(245,158,11,0.2)' }}>
+                            <div style={{ color: '#d97706', fontSize: '0.75rem', fontWeight: 800, marginBottom: '0.25rem' }}>COINS</div>
+                            <p style={{ fontFamily: 'var(--font-outfit)', fontSize: '2rem', fontWeight: 900, color: '#d97706', margin: 0 }}>+{rewards.coinsGain}</p>
+                            <p style={{ fontSize: '0.65rem', fontWeight: 700, color: '#92400e', margin: 0 }}>Destrave Coins</p>
+                        </div>
+                        <div className="mrp-stat-card" style={{ background: 'rgba(79,70,229,0.05)', borderColor: 'rgba(79,70,229,0.2)' }}>
+                            <div style={{ color: '#4f46e5', fontSize: '0.75rem', fontWeight: 800, marginBottom: '0.25rem' }}>XP</div>
+                            <p style={{ fontFamily: 'var(--font-outfit)', fontSize: '2rem', fontWeight: 900, color: '#4f46e5', margin: 0 }}>+{rewards.xpGain}</p>
+                            <p style={{ fontSize: '0.65rem', fontWeight: 700, color: '#3730a3', margin: 0 }}>Experiência</p>
+                        </div>
+                    </>
+                )}
             </div>
 
             {/* Detailed Review */}
@@ -120,17 +138,30 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ config, questions, a
                     )}
                 </div>
             ) : (
-                <div className="bg-white/60 backdrop-blur-sm rounded-3xl border-2 border-slate-border p-8 text-center shadow-lg animate-fade-in" style={{ width: '100%', marginTop: '1rem' }}>
+                <div className="bg-white rounded-3xl border border-slate-border p-8 text-center shadow-lg" style={{ width: '100%', marginTop: '1rem' }}>
                     <div className="w-16 h-16 bg-brand/10 rounded-full flex items-center justify-center mx-auto mb-4">
                         <CheckCircle2 size={32} className="text-brand" />
                     </div>
-                   <h1 className="font-outfit text-2xl font-extrabold text-slate-dark mb-2">Role Play Concluído! 🎭</h1>
-                   <p className="text-slate-mid mb-6 px-4">Parabéns pela dedicação! Seus resultados foram registrados e seu professor poderá analisá-los em breve.</p>
-                   <div className="flex justify-center">
-                       <a href="/dashboard" className="px-8 py-3 bg-brand text-white rounded-xl font-outfit font-bold hover:scale-105 transition-transform shadow-md" style={{ textDecoration: 'none' }}>
-                           Voltar para o Dashboard
-                       </a>
-                   </div>
+                    <h1 className="font-outfit text-2xl font-extrabold text-slate-dark mb-2">Role Play Concluído! 🎭</h1>
+                    <p className="text-slate-mid mb-2 px-4">
+                        Você atingiu <strong className="text-slate-dark">{percentage}%</strong> de desempenho — Rank: <strong className="text-slate-dark">{rank.label}</strong>
+                    </p>
+                    {senseiWhatsapp ? (
+                        <>
+                            <p className="text-slate-mid mb-5 px-4 text-sm">Gostou do desafio? Clique abaixo para contar como foi para o Sensei!</p>
+                            <a
+                                href={`/api/contact/sensei?teacherId=${senseiWhatsapp}&text=${encodeURIComponent(`Oi Sensei! Acabei de completar o Role Play e atingi ${percentage}% de desempenho (${rank.label}). Quero saber mais sobre as aulas! 🎭`)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl font-outfit font-bold text-white text-base transition-all hover:-translate-y-0.5"
+                                style={{ background: '#25D366', boxShadow: '0 4px 14px rgba(37,211,102,0.35)', textDecoration: 'none' }}
+                            >
+                                💬 Falar com o Sensei no WhatsApp
+                            </a>
+                        </>
+                    ) : (
+                        <p className="text-slate-mid mt-4 px-4 text-sm">Seus resultados foram registrados. O Sensei entrará em contato em breve!</p>
+                    )}
                 </div>
             )}
 

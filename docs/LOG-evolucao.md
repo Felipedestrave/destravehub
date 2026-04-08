@@ -7,8 +7,8 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - [x] **Segurança e Acesso:** Logout de professor corrigido e `RoleGuard` implementado (Geradores restritos).
 - [x] CRUD Completo na Central (Deletar, Duplicar, Renomear, Editar Conteúdo)
 - [x] **Padronização de PDF IA:** MRP e Flashcards agora leem PDFs diretamente através do Gemini Sensei API.
-- **Status:** Sistema de Gestão de Atividades (CRUD Pro), Gerador Multimodal e Controle de Acesso concluídos.
-- **Última Atualização:** 27/03/2026 (18:00h)
+- **Status:** Ecossistema de Aluno (Agenda + Inventário), Buddy Reativo e Loja Completa.
+- **Última Atualização:** 29/03/2026 (10:00h)
 - **GitHub:** `https://github.com/Felipedestrave/destravehub.git` (Branch `main`)
 
 ---
@@ -111,15 +111,61 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
     - [x] **Histórico de Prática:** Alunos podem refazer lições para estudo; novas tentativas são salvas em um array de `replays` sem sobrescrever a original.
     - [x] **Painel de Atividades Recentes (Professor):** Feed em tempo real no dashboard do professor mostrando quem terminou lições, notas e horários.
     - [x] **Upgrade de IA (MRP):** Modelo de validação atualizado para `gemini-2.5-flash` para maior precisão em respostas discursivas.
-- [x] **Estabilização do MRP:** Correção de bug no carregamento de `assignmentId` e logs de depuração aprimorados.
+- [x] **Upgrade Destrave Cards (Modo Desafio) 🃏:**
+    - [x] **Setup de Missão:** Tela inicial para definir Alvo de Acertos e Tempo Alvo antes de iniciar.
+    - [x] **Feedback Binário:** Substituído o sistema SRS complexo por botões simplificados "Certo" e "Errado".
+    - [x] **Cronômetro Central:** Monitoramento de tempo real integrado ao cabeçalho da atividade.
+    - [x] **Atalhos de Aula:** Implementado controle total via teclado (`Espaço/Enter` para virar, `1/2` ou `Setas` para feedback).
+    - [x] **Visual Premium (Cards):** Ampliação do tamanho dos cards e verso com identidade visual da marca (Roxo/Branco).
+    - [x] **Animações Cinematográficas:** Chuva de confetes, brilho (glow) e efeitos de escala para vitórias e encorajamento.
 
 
 ---
 
-- [ ] **Ajustes Finos de Layout & Prompts (PRIORIDADE MÁXIMA):** Refinamento da UI para experiência Premium e otimização dos prompts do Gemini Sensei para maior precisão pedagógica.
-- [x] **Dashboard Principal (Estatísticas):** Adicionado painel de Atividades Recentes de alunos em tempo real.
-- [x] **Relatórios de Desempenho:** Implementada a distinção entre Primeira Tentativa e Prática no banco de dados.
+- [x] **Gamificação Fase 1 (Motor) 🪙:**
+    - [x] **RPC `increment_gamification`:** Função atômica no banco para atualizar XP, Coins e Inventário em uma única transação.
+    - [x] **Integração de Recompensas:** Flashcards e Escuta agora geram 20 DC base + bônus de assertividade e tempo.
+- [x] **Gamificação Fase 2 (Loja - Mercado Destrave) 🛒:**
+    - [x] **Store Engine:** Catálogo unificado em `store.ts` com categorias (Avatar, Tema, Título) e raridades.
+    - [x] **Infraestrutura:** Endpoints `/api/store/purchase` (validação de saldo e estoque) e `/api/store/equip` (persistência de estado visual).
+    - [x] **Design Temático (Guerreiros Pixar):** Reformulação total para 21 itens exclusivos com temática japonesa urbana e 3D Pixar.
+    - [x] **UX da Loja:** Cards com prévia em 1:1, suporte a imagens de corpo inteiro (`contain`) e banners de cenário (`cover`).
+    - [x] **Economia Balanceada:** Projeção de ganhos para perfis Hardcore (6 meses) e Médio (2 anos) para retenção de longo prazo.
 
+### Fase 3: O Companheiro (Buddy) & Gamificação Refinada (28/03/2026) ✅
+- **Criação do Buddy Motor**: Implementação do `BuddyView.tsx` com Framer Motion (animações Pixar de idle, sucesso e erro).
+- **Avatar Inicial**: Criação do **Tanuki Novato** como o companheiro padrão de todos os alunos.
+- **Integração Total**: 
+  - **Flashcards**: Buddy reage aos cliques de Certo/Errado.
+  - **Escuta**: Buddy reage à validação da transcrição de áudio.
+  - **MRP**: Buddy reage ao feedback da IA sobre o desempenho do aluno.
+- **Economia Blindada**: Alterado `REPLAY_MULTIPLIER` para 0. Alunos podem praticar infinitamente, mas só ganham moedas/XP na primeira tentativa.
+- **Loja Finalizada**: Catálogo de Títulos, Temas e Avatars com metadados e preços definitivos.
+
+### Fase 5: Experiência do Aluno & Buddy Imersivo (29/03/2026) ✅
+- **Agenda do Aluno**: Criado `AgendaView.tsx` consolidando Aulas Agendadas e Missões Pendentes em uma linha do tempo dinâmica no dashboard.
+- **Speech Bubbles (Buddy)**: Implementado sistema de balões de fala contextuais com animação `AnimatePresence`.
+- **Alma dos Avatares (Personalidades)**: Criada a biblioteca `buddy-phrases.ts`. Cada avatar lendário agora possui frases características de acerto e erro (Ex: `Tenka ippin da!` para o Shogun).
+- **Integração Total de Gamificação**: O sistema de feedback interativo do Buddy foi propagado para **Flashcards**, **Escuta** e **MRP**.
+- **Sistema de Inventário**: Criado `InventoryManager.tsx` e página `/dashboard/inventory`. Alunos podem gerenciar e equipar Avatares, Temas e Títulos.
+- **Títulos 3D Integrados**: Todas as artes dos 7 títulos (Turista, Senpai, etc.) já estão configuradas no `store.ts` e prontas para uso.
+- **Correções Linguísticas**: Revisão do vocabulário do Buddy para japonês natural (**Seikou** vs Seika).
+- **Fix de Áudio (Buddy)**: Refatorado `BuddyView.tsx` para sincronia à prova de cliques rápidos e adição de telemetria no console (`console.warn`).
+- **⚠️ Bloqueador de Áudio (Para Próxima Sessão)**: Descoberto que os arquivos de áudio em `/assets/buddy-voices/...` foram gerados como PCM bruto sem cabeçalho (causando `NotSupportedError`). **Ação pendente:** Re-gerar as vozes garantindo um encoder para MP3 verdadeiro, para que o navegador consiga tocar.
+
+---
+
+## ⏭️ Próximos Passos (Próxima Sessão)
+
+1. ✅ **[PRIORIDADE MÁXIMA] Portal de Captura (Lead Magnet)**: Criado e finalizado!
+   - Link de convite na Central de Atividades para Landing Page `convite/[id]`.
+   - Landing Page de captura `CaptureForm` com validação.
+   - Rotina API `api/leads/capture` para salvar leads via JSONB na tabela de `students` (campo `metadata: { is_lead: true, whatsapp, email }`).
+   - Propagação de botão "Chamar o Sensei no Zap" (usando prop `senseiWhatsapp`) no sumário das 3 atividades experimentais concluídas.
+   - Aba "Leads Capturados" adicionada ao Dashboard do professor para listar e contactar vendas.
+2. **Mecânica de Streaks (Fogo)**: Implementar visual de sequência de dias para bônus de XP e incentivar prática diária.
+3. **Notificações In-App**: Sistema de alertas visuais para novas missões atribuídas ou avisos do professor.
+4. **SFX de Buddy**: Adicionar efeitos sonoros leves para as reações do mascote (comemoração e erro).
 
 ---
 

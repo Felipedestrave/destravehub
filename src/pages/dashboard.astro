@@ -3,6 +3,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 import StudentList from '../components/dashboard/StudentList';
 import RecentActivity from '../components/dashboard/RecentActivity';
 import MissionList from '../components/student/MissionList';
+import { AgendaView } from '../components/student/AgendaView';
 import { User } from 'lucide-react';
 ---
 
@@ -25,11 +26,11 @@ import { User } from 'lucide-react';
     const studentView = document.getElementById('student-view');
 
     if (profile?.role === 'student') {
-      teacherView?.classList.add('hidden');
+      teacherView?.remove(); // More efficient than hidden
       studentView?.classList.remove('hidden');
     } else {
       teacherView?.classList.remove('hidden');
-      studentView?.classList.add('hidden');
+      studentView?.remove();
     }
   }
 </script>
@@ -56,7 +57,17 @@ import { User } from 'lucide-react';
       <StudentList client:load />
     </div>
   </div>
+
   <div id="student-view" class="hidden">
-    <MissionList client:load />
+    <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div class="lg:col-span-3">
+          <MissionList client:load />
+        </div>
+        <div class="lg:col-span-1">
+          <AgendaView client:load />
+        </div>
+      </div>
+    </div>
   </div>
 </DashboardLayout>

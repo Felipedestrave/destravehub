@@ -118,6 +118,11 @@ export const POST: APIRoute = async ({ request }) => {
         return new Response(JSON.stringify({ audioBase64: audioData, cached: false }), { status: 200 });
     } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Erro desconhecido';
+        const apiKey = import.meta.env.GEMINI_API_KEY;
+        // Diagnóstico: mostra os primeiros 8 chars da chave (seguro) e o erro completo
+        console.error('[generate-audio] ERRO COMPLETO:', err);
+        console.error('[generate-audio] Chave em uso (8 chars):', apiKey ? apiKey.substring(0, 8) + '...' : 'NÃO ENCONTRADA');
+        console.error('[generate-audio] Mensagem do erro:', message);
         return new Response(JSON.stringify({ error: message }), { status: 500 });
     }
 };

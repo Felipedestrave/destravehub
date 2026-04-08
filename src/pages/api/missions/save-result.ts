@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { supabase } from '../../../lib/supabase';
 import { supabaseAdmin } from '../../../lib/supabase-admin';
+import { calculateMissionRewards } from '../../../lib/gamification';
 import type { HistoryItem } from '../../../types/escuta';
 
 export const POST: APIRoute = async ({ request }) => {
@@ -18,13 +19,15 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         const body = await request.json();
-        const { studentId, assignmentId, score, totalQuestions, history, title } = body as {
+        const { studentId, assignmentId, score, totalQuestions, history, title, timeSpent, targetTime } = body as {
             studentId?: string;
             assignmentId?: string;
             score: number;
             totalQuestions: number;
             history: HistoryItem[];
             title?: string;
+            timeSpent?: number;
+            targetTime?: number;
         };
 
         // Case A: This is an existing assignment being completed by a student
@@ -42,15 +45,57 @@ export const POST: APIRoute = async ({ request }) => {
 
             const now = new Date().toISOString();
             let finalResultData: any;
+            let rewards = null;
+            const isReplay = !!(current && current.status === 'completed');
 
-            if (current && current.status === 'completed' && current.result_data) {
+            // 2. Calculate Gamification Rewards (XP/Coins)
+            // But only if we have a registered student (with an official profile)
+            let profileId: string | null = null;
+            if (studentId) {
+                const { data: studentRecord } = await supabaseAdmin
+                    .from('students')
+                    .select('student_id')
+                    .eq('id', studentId)
+                    .single();
+                profileId = studentRecord?.student_id || null;
+            }
+
+            if (profileId) {
+                rewards = calculateMissionRewards({
+                    score,
+                    totalQuestions,
+                    timeSpent,
+                    targetTime,
+                    isReplay
+                });
+
+                // Update Profile with new XP and Coins
+                const { error: profileError } = await supabaseAdmin.rpc(
+                    'increment_gamification',
+                    { 
+                        user_id: profileId, 
+                        xp_gain: rewards.xpGain, 
+                        coins_gain: rewards.coinsGain 
+                    }
+                );
+
+                if (profileError) {
+                    console.error(`[Gamification] Error updating profile ${profileId}:`, profileError);
+                    // We don't block the save if gamification fails, but we log it
+                } else {
+                    console.log(`[Gamification] Awarded ${rewards.coinsGain} DC and ${rewards.xpGain} XP to profile ${profileId}.`);
+                }
+            }
+
+            if (isReplay) {
                 // Preserving First Attempt Logic
                 const old = current.result_data as any;
                 const newReplay = {
                     score,
                     totalQuestions,
                     history,
-                    completed_at: now
+                    completed_at: now,
+                    rewards // Log rewards in the replay record too
                 };
 
                 finalResultData = {
@@ -71,7 +116,8 @@ export const POST: APIRoute = async ({ request }) => {
                     title,
                     completed_at: now,
                     first_attempt_at: now,
-                    practice_count: 1
+                    practice_count: 1,
+                    rewards // Primary rewards
                 };
                 console.log(`[Save Result] Student ${studentId || 'unknown'} completed mission ${assignmentId} for the first time.`);
             }
@@ -89,7 +135,7 @@ export const POST: APIRoute = async ({ request }) => {
                 return new Response(JSON.stringify({ error: `Erro ao atualizar missão: ${updateError.message}` }), { status: 500 });
             }
 
-            return new Response(JSON.stringify({ success: true, assignmentId }), { status: 200 });
+            return new Response(JSON.stringify({ success: true, assignmentId, rewards }), { status: 200 });
         }
 
         // Case B: This is a new activity being created (e.g., from PDF upload)

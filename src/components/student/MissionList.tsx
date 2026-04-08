@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import type { Tables } from '../../types/supabase';
+import { STORE_ITEMS } from '../../lib/store';
 
 type AssignmentWithActivity = Tables<'assignments'> & {
   activities: Tables<'activities'>;
@@ -97,19 +98,34 @@ export default function MissionList() {
   return (
     <div className="missions-container">
       <div className="header-section">
-        <h1 className="title">Minhas Missões</h1>
-        <p className="subtitle">Mergulhe no japonês com as tarefas preparadas pelo seu professor.</p>
+        <div className="flex items-baseline gap-2 mb-1">
+           <h1 className="title" style={{ margin: 0 }}>Minhas Missões</h1>
+           {profile?.equipped?.title && (
+             <span className="equipped-title-tag">
+               {STORE_ITEMS.find(i => i.id === profile.equipped.title)?.name || ''}
+             </span>
+           )}
+        </div>
+        <p className="subtitle">Olá, <strong>{profile?.full_name?.split(' ')[0] || 'Aluno'}</strong>! Mergulhe no japonês com as tarefas preparadas pelo seu professor.</p>
       </div>
 
       <div className="stats-row">
-        <div className="stat-card">
-          <p className="stat-label">Pendentes</p>
-          <p className="stat-value">{missions.filter(m => m.status !== 'completed').length}</p>
+        <div className="stat-card balance-card">
+          <div className="flex items-center gap-2 mb-1">
+             <span style={{ fontSize: '1rem' }}>🪙</span>
+             <p className="stat-label" style={{ margin: 0 }}>Meus Coins</p>
+          </div>
+          <p className="stat-value" style={{ color: '#d97706' }}>
+            {profile?.coins || 0} <span className="dc-label">DC</span>
+          </p>
         </div>
-        <div className="stat-card">
-          <p className="stat-label">Concluídas</p>
-          <p className="stat-value" style={{ color: 'var(--color-brand)' }}>
-            {missions.filter(m => m.status === 'completed').length}
+        <div className="stat-card balance-card">
+          <div className="flex items-center gap-2 mb-1">
+             <span style={{ fontSize: '1rem' }}>⚡</span>
+             <p className="stat-label" style={{ margin: 0 }}>Nível XP</p>
+          </div>
+          <p className="stat-value" style={{ color: '#4f46e5' }}>
+            {profile?.xp || 0} <span className="dc-label">XP</span>
           </p>
         </div>
       </div>
@@ -178,6 +194,20 @@ export default function MissionList() {
           font-size: 1rem;
         }
 
+        .equipped-title-tag {
+          background: var(--color-ice);
+          color: var(--color-brand);
+          font-family: var(--font-outfit);
+          font-weight: 900;
+          font-size: 0.7rem;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          padding: 0.25rem 0.75rem;
+          border-radius: 99px;
+          border: 1.5px solid rgba(88,49,126,0.1);
+          animation: fade-in 0.5s ease;
+        }
+
         .stats-row {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -201,10 +231,26 @@ export default function MissionList() {
         }
         .stat-value {
           font-family: var(--font-outfit);
-          font-size: 2rem;
+          font-size: 1.75rem;
           font-weight: 800;
           margin: 0;
           color: var(--color-slate-dark);
+          display: flex;
+          align-items: baseline;
+          gap: 0.25rem;
+        }
+        .dc-label {
+          font-size: 0.75rem;
+          opacity: 0.6;
+        }
+
+        .balance-card {
+           border-bottom: 4px solid var(--color-slate-border);
+           transition: all 0.3s ease;
+        }
+        .balance-card:hover {
+           transform: translateY(-4px);
+           border-bottom-color: var(--color-brand);
         }
 
         .mission-grid {

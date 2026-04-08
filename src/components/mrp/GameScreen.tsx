@@ -1,18 +1,20 @@
 import React, { useState, useMemo } from 'react';
 import { Lightbulb, ChevronRight, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { QuizMode, type MrpQuestion, type MrpUserAnswer } from '../../types/mrp';
+import type { BuddyState } from '../buddy/BuddyView';
 
 interface GameScreenProps {
     questions: MrpQuestion[];
     mode: QuizMode;
     onComplete: (answers: MrpUserAnswer[]) => void;
+    onTriggerBuddy?: (newState: BuddyState, type?: 'success' | 'error') => void;
 }
 
 function normalizeForComparison(str: string): string {
     return str.replace(/[\s\u3000\u3001\u3002,.?!！？]/g, '').trim();
 }
 
-export const GameScreen: React.FC<GameScreenProps> = ({ questions, mode, onComplete }) => {
+export const GameScreen: React.FC<GameScreenProps> = ({ questions, mode, onComplete, onTriggerBuddy }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [score, setScore] = useState(0);
     const [userAnswers, setUserAnswers] = useState<MrpUserAnswer[]>([]);
@@ -55,9 +57,11 @@ export const GameScreen: React.FC<GameScreenProps> = ({ questions, mode, onCompl
             feedbackText = isCorrect
                 ? `✓ Correto! ${currentQuestion.explanation}`
                 : `Incorreto. A resposta era: ${currentQuestion.correctAnswer}. ${currentQuestion.explanation}`;
-            pointsEarned = isCorrect ? pointsThisQuestion : 0;
             setScore((p) => p + pointsEarned);
             setFeedback({ isCorrect, text: feedbackText });
+            if (onTriggerBuddy) {
+                onTriggerBuddy(isCorrect ? 'success' : 'error', isCorrect ? 'success' : 'error');
+            }
             setUserAnswers((prev) => [
                 ...prev,
                 { questionId: currentQuestion.id, answer, usedHint: showHint, isCorrect, scoreEarned: pointsEarned },
@@ -75,9 +79,11 @@ export const GameScreen: React.FC<GameScreenProps> = ({ questions, mode, onCompl
                 feedbackText = isCorrect
                     ? `✓ Correto! ${validation.feedback}`
                     : `Incorreto. ${validation.feedback}\n\nResposta de referência: ${currentQuestion.correctAnswer}`;
-                pointsEarned = isCorrect ? pointsThisQuestion : 0;
                 setScore((p) => p + pointsEarned);
                 setFeedback({ isCorrect, text: feedbackText });
+                if (onTriggerBuddy) {
+                    onTriggerBuddy(isCorrect ? 'success' : 'error', isCorrect ? 'success' : 'error');
+                }
                 setUserAnswers((prev) => [
                     ...prev,
                     { questionId: currentQuestion.id, answer, usedHint: showHint, isCorrect, scoreEarned: pointsEarned, feedback: validation.feedback },

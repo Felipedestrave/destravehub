@@ -1,6 +1,7 @@
 import React from 'react';
-import { Trophy, RotateCcw, Star, CheckCircle, XCircle, Save } from 'lucide-react';
+import { Trophy, RotateCcw, Star, CheckCircle, XCircle, Save, Coins, Zap } from 'lucide-react';
 import type { GameResult } from '../../types/escuta';
+import type { RewardResult } from '../../lib/gamification';
 
 interface ResultScreenProps {
     result: GameResult;
@@ -8,9 +9,11 @@ interface ResultScreenProps {
     onSave?: (title?: string) => void;
     isSaving?: boolean;
     hideActions?: boolean;
+    rewards?: RewardResult | null;
+    senseiWhatsapp?: string | null;
 }
 
-export const ResultScreen: React.FC<ResultScreenProps> = ({ result, onRestart, onSave, isSaving, hideActions }) => {
+export const ResultScreen: React.FC<ResultScreenProps> = ({ result, onRestart, onSave, isSaving, hideActions, rewards, senseiWhatsapp }) => {
 
     const { score, total, history } = result;
     const correctCount = history.filter((h) => h.correct).length;
@@ -51,19 +54,39 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ result, onRestart, o
                     Você acertou <strong className="text-slate-dark">{correctCount} de {total}</strong> questões
                 </p>
 
-                <div className="mt-6 grid grid-cols-3 gap-4 text-center">
-                    <div className="bg-ice rounded-2xl p-4">
-                        <p className="font-outfit font-extrabold text-3xl text-brand">{score}</p>
-                        <p className="text-xs font-outfit uppercase tracking-wider text-slate-mid mt-1">Pontos</p>
+                <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 text-center">
+                    <div className="bg-ice rounded-2xl p-4 border border-slate-border/50">
+                        <p className="font-outfit font-extrabold text-2xl text-brand">{score}</p>
+                        <p className="text-[10px] font-outfit uppercase tracking-wider text-slate-mid mt-1">Pontos</p>
                     </div>
-                    <div className="bg-ice rounded-2xl p-4">
-                        <p className="font-outfit font-extrabold text-3xl text-emerald-600">{accuracy}%</p>
-                        <p className="text-xs font-outfit uppercase tracking-wider text-slate-mid mt-1">Precisão</p>
+                    <div className="bg-ice rounded-2xl p-4 border border-slate-border/50">
+                        <p className="font-outfit font-extrabold text-2xl text-emerald-600">{accuracy}%</p>
+                        <p className="text-[10px] font-outfit uppercase tracking-wider text-slate-mid mt-1">Precisão</p>
                     </div>
-                    <div className="bg-ice rounded-2xl p-4">
-                        <p className="font-outfit font-extrabold text-3xl text-action">{hintCount}</p>
-                        <p className="text-xs font-outfit uppercase tracking-wider text-slate-mid mt-1">Dicas usadas</p>
+                    <div className="bg-ice rounded-2xl p-4 border border-slate-border/50">
+                        <p className="font-outfit font-extrabold text-2xl text-action">{hintCount}</p>
+                        <p className="text-[10px] font-outfit uppercase tracking-wider text-slate-mid mt-1">Dicas</p>
                     </div>
+
+                    {/* Ganho de Gamificação */}
+                    {rewards && (
+                        <>
+                            <div className="bg-amber-50 rounded-2xl p-4 border border-amber-200 animate-bounce-subtle">
+                                <div className="flex justify-center mb-1">
+                                    <Coins size={16} className="text-amber-500" />
+                                </div>
+                                <p className="font-outfit font-extrabold text-2xl text-amber-600">+{rewards.coinsGain}</p>
+                                <p className="text-[10px] font-outfit uppercase tracking-wider text-amber-700 mt-1">Destrave Coins</p>
+                            </div>
+                            <div className="bg-indigo-50 rounded-2xl p-4 border border-indigo-200">
+                                <div className="flex justify-center mb-1">
+                                    <Zap size={16} className="text-indigo-500" />
+                                </div>
+                                <p className="font-outfit font-extrabold text-2xl text-indigo-600">+{rewards.xpGain}</p>
+                                <p className="text-[10px] font-outfit uppercase tracking-wider text-indigo-700 mt-1">XP Ganhos</p>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -115,17 +138,30 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ result, onRestart, o
                     )}
                 </div>
             ) : (
-                <div className="bg-white/60 backdrop-blur-sm rounded-3xl border-2 border-slate-border p-8 text-center shadow-lg animate-fade-in">
+                <div className="bg-white rounded-3xl border border-slate-border p-8 text-center shadow-lg" style={{ marginTop: '1rem' }}>
                     <div className="w-16 h-16 bg-brand/10 rounded-full flex items-center justify-center mx-auto mb-4">
                         <CheckCircle size={32} className="text-brand" />
                     </div>
-                   <h1 className="font-outfit text-2xl font-extrabold text-slate-dark mb-2">Missão Concluída! 🚀</h1>
-                   <p className="text-slate-mid mb-6 px-4">Parabéns pelo seu esforço! Seus resultados foram registrados e seu professor poderá analisá-los em breve.</p>
-                   <div className="flex justify-center">
-                       <a href="/dashboard" className="px-8 py-3 bg-brand text-white rounded-xl font-outfit font-bold hover:scale-105 transition-transform shadow-md">
-                           Voltar para o Dashboard
-                       </a>
-                   </div>
+                    <h1 className="font-outfit text-2xl font-extrabold text-slate-dark mb-2">Missão Concluída! 🚀</h1>
+                    <p className="text-slate-mid mb-2 px-4">
+                        Você acertou <strong className="text-slate-dark">{correctCount} de {total}</strong> questões com <strong className="text-slate-dark">{accuracy}%</strong> de precisão.
+                    </p>
+                    {senseiWhatsapp ? (
+                        <>
+                            <p className="text-slate-mid mb-5 px-4 text-sm">Gostou da experiência? Clique abaixo para contar como foi para o Sensei!</p>
+                            <a
+                                href={`/api/contact/sensei?teacherId=${senseiWhatsapp}&text=${encodeURIComponent(`Oi Sensei! Acabei de completar a missão de Escuta e acertei ${correctCount} de ${total} questões (${accuracy}%). Quero saber mais sobre as aulas! 🎧`)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl font-outfit font-bold text-white text-base transition-all hover:-translate-y-0.5"
+                                style={{ background: '#25D366', boxShadow: '0 4px 14px rgba(37,211,102,0.35)', textDecoration: 'none' }}
+                            >
+                                💬 Falar com o Sensei no WhatsApp
+                            </a>
+                        </>
+                    ) : (
+                        <p className="text-slate-mid mt-4 px-4 text-sm">Seus resultados foram registrados. O Sensei entrará em contato em breve!</p>
+                    )}
                 </div>
             )}
 

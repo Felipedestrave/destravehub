@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
 import type { Tables } from '../../types/supabase';
+import { MoreVertical, Edit2, Trash2, Link as LinkIcon, X, CheckCircle2 } from 'lucide-react';
 
 type Student = Tables<'students'>;
 
@@ -11,6 +12,30 @@ export default function StudentList() {
     const [students, setStudents] = useState<Student[]>([]);
     const [teacherId, setTeacherId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+
+    // Dropdown state
+    const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+    const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+    // Modal state
+    const [studentToEdit, setStudentToEdit] = useState<Student | null>(null);
+    const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
+
+    // Form states (Edit)
+    const [editName, setEditName] = useState('');
+    const [editLanguage, setEditLanguage] = useState('');
+    const [editLevel, setEditLevel] = useState('');
+
+    // Handle clicking outside dropdown
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setActiveDropdown(null);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const fetchStudents = useCallback(async (tid: string) => {
         const { data } = await supabase
@@ -31,6 +56,67 @@ export default function StudentList() {
 
     const handleStudentAdded = (student: Student) => {
         setStudents((prev) => [student, ...prev]);
+    };
+
+    const openEditModal = (student: Student) => {
+        setStudentToEdit(student);
+        setEditName(student.name);
+        setEditLanguage(student.language ?? 'Japonês');
+        setEditLevel(student.level ?? 'Iniciante');
+        setActiveDropdown(null);
+    };
+
+    const handleUpdateStudent = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!studentToEdit) return;
+
+        const { data, error } = await supabase
+            .from('students')
+            .update({ name: editName, language: editLanguage, level: editLevel })
+            .eq('id', studentToEdit.id)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Erro ao atualizar aluno:', error);
+            alert('Não foi possível atualizar o aluno.');
+            return;
+        }
+
+        setStudents(prev => prev.map(s => s.id === data.id ? data : s));
+        setStudentToEdit(null);
+    };
+
+    const openDeleteModal = (student: Student) => {
+        setStudentToDelete(student);
+        setActiveDropdown(null);
+    };
+
+    const handleDeleteStudent = async () => {
+        if (!studentToDelete) return;
+
+        // Na prática, deleta os assignments vinculados primeiro ou o cascade faz isso
+        const { error } = await supabase
+            .from('students')
+            .delete()
+            .eq('id', studentToDelete.id);
+
+        if (error) {
+            console.error('Erro ao excluir aluno:', error);
+            alert('Não foi possível excluir. O aluno pode estar vinculado a atividades.');
+            return;
+        }
+
+        setStudents(prev => prev.filter(s => s.id !== studentToDelete.id));
+        setStudentToDelete(null);
+    };
+
+    const copyLink = (uuid: string | null) => {
+        if (!uuid) return;
+        const url = `${window.location.origin}/play/experimental/${uuid}`;
+        navigator.clipboard.writeText(url);
+        alert('Link copiado para a área de transferência!');
+        setActiveDropdown(null);
     };
 
     const levelColor: Record<string, string> = {
@@ -113,7 +199,7 @@ export default function StudentList() {
                     </a>
                 </div>
             ) : (
-                <div className="students-grid">
+                <div className="students-grid" ref={dropdownRef}>
                     {students.map((student) => (
                         <div key={student.id} className="student-card">
                             <div className="student-avatar">
@@ -121,19 +207,130 @@ export default function StudentList() {
                             </div>
                             <div className="student-info">
                                 <p className="student-name">{student.name}</p>
-                                <p className="student-meta">
+                                <p className="student-meta flex items-center gap-1">
                                     {student.student_id ? '✅ Conta oficial' : '🔗 Link único'}
                                     {student.language && ` • 🗣️ ${student.language}`}
                                 </p>
                             </div>
                             <span
-                                className="student-level"
+                                className="student-level hidden sm:inline-flex"
                                 style={{ borderColor: levelColor[student.level ?? 'Iniciante'] ?? '#64748B', color: levelColor[student.level ?? 'Iniciante'] ?? '#64748B' }}
                             >
                                 {student.level ?? 'Iniciante'}
                             </span>
+                            
+                            {/* Kebab Menu */}
+                            <div className="action-menu-container">
+                                <button 
+                                    className="kebab-btn"
+                                    onClick={() => setActiveDropdown(activeDropdown === student.id ? null : student.id)}
+                                >
+                                    <MoreVertical size={20} className="text-slate-400 hover:text-brand" />
+                                </button>
+                                
+                                {activeDropdown === student.id && (
+                                    <div className="dropdown-panel animation-fade-in shadow-xl">
+                                        <button onClick={() => openEditModal(student)} className="dropdown-item">
+                                            <Edit2 size={16} /> Editar Aluno
+                                        </button>
+                                        {!student.student_id && student.experimental_uuid && (
+                                            <button onClick={() => copyLink(student.experimental_uuid)} className="dropdown-item">
+                                                <LinkIcon size={16} /> Copiar Link
+                                            </button>
+                                        )}
+                                        <div className="dropdown-divider" />
+                                        <button onClick={() => openDeleteModal(student)} className="dropdown-item danger">
+                                            <Trash2 size={16} /> Excluir
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     ))}
+                </div>
+            )}
+
+            {/* MODAIS DE CRUD */}
+            {studentToEdit && (
+                <div className="modal-overlay">
+                    <div className="modal-content animation-bounce-in max-w-md w-full">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="font-outfit text-2xl font-black text-slate-dark">Editar Aluno</h2>
+                            <button onClick={() => setStudentToEdit(null)} className="text-slate-400 hover:text-slate-dark">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <form onSubmit={handleUpdateStudent} className="flex flex-col gap-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-mid uppercase mb-2">Nome do Aluno</label>
+                                <input 
+                                    type="text" 
+                                    value={editName}
+                                    onChange={(e) => setEditName(e.target.value)}
+                                    className="w-full border-2 border-slate-200 rounded-xl p-3 font-outfit font-bold outline-none focus:border-brand"
+                                    required
+                                />
+                            </div>
+                            <div className="flex gap-4">
+                                <div className="flex-1">
+                                    <label className="block text-xs font-bold text-slate-mid uppercase mb-2">Foco/Idioma</label>
+                                    <select 
+                                        value={editLanguage}
+                                        onChange={(e) => setEditLanguage(e.target.value)}
+                                        className="w-full border-2 border-slate-200 rounded-xl p-3 font-outfit font-bold outline-none focus:border-brand"
+                                    >
+                                        <option value="Japonês">Japonês</option>
+                                        <option value="Inglês">Inglês</option>
+                                        <option value="Espanhol">Espanhol</option>
+                                    </select>
+                                </div>
+                                <div className="flex-1">
+                                    <label className="block text-xs font-bold text-slate-mid uppercase mb-2">Nível</label>
+                                    <select 
+                                        value={editLevel}
+                                        onChange={(e) => setEditLevel(e.target.value)}
+                                        className="w-full border-2 border-slate-200 rounded-xl p-3 font-outfit font-bold outline-none focus:border-brand"
+                                    >
+                                        <option value="Iniciante">Iniciante</option>
+                                        <option value="Básico">Básico</option>
+                                        <option value="Intermediário">Intermediário</option>
+                                        <option value="Avançado">Avançado</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="submit" className="mt-4 w-full bg-brand text-white font-outfit font-black py-4 rounded-xl flex justify-center items-center gap-2 hover:opacity-90 transition-all">
+                                <CheckCircle2 size={20} /> Salvar Alterações
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {studentToDelete && (
+                <div className="modal-overlay">
+                    <div className="modal-content animation-bounce-in max-w-sm w-full text-center">
+                        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Trash2 size={32} className="text-red-500" />
+                        </div>
+                        <h2 className="font-outfit text-2xl font-black text-slate-dark mb-2">Excluir Aluno?</h2>
+                        <p className="text-slate-mid text-sm mb-6">
+                            Você tem certeza que deseja excluir <b>{studentToDelete.name}</b>? O histórico de missões deste aluno não poderá ser recuperado.
+                        </p>
+                        <div className="flex gap-3">
+                            <button 
+                                onClick={() => setStudentToDelete(null)}
+                                className="flex-1 border-2 border-slate-200 text-slate-dark font-outfit font-bold py-3 rounded-xl hover:bg-slate-50 transition-all"
+                            >
+                                Cancelar
+                            </button>
+                            <button 
+                                onClick={handleDeleteStudent}
+                                className="flex-1 bg-red-500 text-white font-outfit font-bold py-3 rounded-xl hover:bg-red-600 transition-all"
+                            >
+                                Sim, Excluir
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 
@@ -293,6 +490,95 @@ export default function StudentList() {
                     max-width: 360px;
                     margin: 0;
                 }
+                
+                /* Kebab Menu & Dropdown */
+                .action-menu-container {
+                    position: relative;
+                    margin-left: 0.5rem;
+                }
+                .kebab-btn {
+                    background: transparent;
+                    border: none;
+                    cursor: pointer;
+                    padding: 0.5rem;
+                    border-radius: 0.5rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: all 0.2s;
+                }
+                .kebab-btn:hover {
+                    background: rgba(88, 49, 126, 0.05);
+                }
+                .dropdown-panel {
+                    position: absolute;
+                    right: 0;
+                    top: calc(100% + 5px);
+                    background: white;
+                    border: 1px solid var(--color-slate-border);
+                    border-radius: 1rem;
+                    padding: 0.5rem;
+                    min-width: 180px;
+                    z-index: 50;
+                    transform-origin: top right;
+                }
+                .dropdown-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                    width: 100%;
+                    padding: 0.75rem 1rem;
+                    border: none;
+                    background: transparent;
+                    font-family: var(--font-inter);
+                    font-weight: 600;
+                    font-size: 0.85rem;
+                    color: var(--color-slate-dark);
+                    cursor: pointer;
+                    border-radius: 0.5rem;
+                    text-align: left;
+                    transition: all 0.15s;
+                }
+                .dropdown-item:hover {
+                    background: rgba(88, 49, 126, 0.05);
+                    color: var(--color-brand);
+                }
+                .dropdown-item.danger {
+                    color: #ef4444;
+                }
+                .dropdown-item.danger:hover {
+                    background: #fef2f2;
+                }
+                .dropdown-divider {
+                    height: 1px;
+                    background: var(--color-slate-border);
+                    margin: 0.25rem 0;
+                }
+
+                /* Modais */
+                .modal-overlay {
+                    position: fixed;
+                    inset: 0;
+                    background: rgba(15, 23, 42, 0.4);
+                    backdrop-filter: blur(4px);
+                    z-index: 100;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 1rem;
+                }
+                .modal-content {
+                    background: white;
+                    border-radius: 2rem;
+                    padding: 2.5rem;
+                    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+                }
+                
+                .animation-fade-in { animation: fade-in 0.2s ease forwards; }
+                @keyframes fade-in { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+                
+                .animation-bounce-in { animation: bounce-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+                @keyframes bounce-in { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
                 @media (prefers-reduced-motion: reduce) {
                     .students-spinner { animation: none; }
