@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertCircle, CheckCircle, Theater, Users, MessageSquare } from 'lucide-react';
+import { AlertCircle, CheckCircle, Theater, Users, MessageSquare, ArrowLeft } from 'lucide-react';
 import { BuddyView, type BuddyState } from '../buddy/BuddyView';
 import { STORE_ITEMS } from '../../lib/store';
 import { getBuddyPhrase } from '../../lib/buddy-phrases';
@@ -10,6 +10,8 @@ import { GameScreen } from './GameScreen';
 import { ResultScreen } from './ResultScreen';
 import { RoleGuard } from '../shared/RoleGuard';
 import { AdvancedLoading } from '../shared/AdvancedLoading';
+import { MaterialsDrawer } from '../materials/MaterialsDrawer';
+import { BookOpen } from 'lucide-react';
 import type { MrpConfig, MrpQuestion, MrpUserAnswer, MrpStatus } from '../../types/mrp';
 interface MrpAppProps {
     userToken?: string;
@@ -19,11 +21,12 @@ interface MrpAppProps {
     initialQuestions?: MrpQuestion[];
     initialTitle?: string;
     publicAccess?: boolean;
+    activityId?: string;
     senseiWhatsapp?: string | null;
 }
 
 
-export const MrpApp: React.FC<MrpAppProps> = ({ userToken, assignmentId, editingId, initialConfig, initialQuestions, initialTitle, publicAccess, senseiWhatsapp }) => {
+export const MrpApp: React.FC<MrpAppProps> = ({ userToken, assignmentId, editingId, initialConfig, initialQuestions, initialTitle, publicAccess, activityId, senseiWhatsapp }) => {
 
     const [status, setStatus] = useState<MrpStatus>(initialQuestions ? (editingId ? 'REVIEW' : 'PLAYING') : 'CONFIG');
     const [config, setConfig] = useState<MrpConfig | null>(initialConfig || null);
@@ -33,12 +36,16 @@ export const MrpApp: React.FC<MrpAppProps> = ({ userToken, assignmentId, editing
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [rewards, setRewards] = useState<any>(null);
+    const [isMaterialsOpen, setIsMaterialsOpen] = useState(false);
 
     // BUDDY COMPANION
     const [buddyState, setBuddyState] = useState<BuddyState>('idle');
     const [buddyMessage, setBuddyMessage] = useState<string | null>(null);
     const [buddyAvatarUrl, setBuddyAvatarUrl] = useState<string>('/assets/avatars/tanuki-novato.png');
     const [buddyAvatarId, setBuddyAvatarId] = useState<string | null>(null);
+
+    // SENSEI PROFILE
+    const [senseiProfile, setSenseiProfile] = useState<{ full_name: string | null; avatar_url: string | null } | null>(null);
 
     React.useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -52,7 +59,14 @@ export const MrpApp: React.FC<MrpAppProps> = ({ userToken, assignmentId, editing
                 }
             });
         });
-    }, []);
+
+        // Load Teacher Profile
+        if (senseiWhatsapp) {
+            supabase.from('profiles').select('full_name, avatar_url').eq('id', senseiWhatsapp).single().then(({ data }) => {
+                if (data) setSenseiProfile(data);
+            });
+        }
+    }, [senseiWhatsapp]);
 
     const triggerBuddy = (newState: BuddyState, type?: 'success' | 'error') => {
         setBuddyState(newState);
@@ -238,8 +252,35 @@ export const MrpApp: React.FC<MrpAppProps> = ({ userToken, assignmentId, editing
 
                 {status === 'PLAYING' && config && (
                     <>
-                        <GameScreen questions={questions} mode={config.mode} onComplete={handleComplete} onTriggerBuddy={triggerBuddy} />
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 px-4">
+                            <a 
+                                href="/dashboard" 
+                                className="inline-flex items-center gap-2 text-slate-mid hover:text-brand transition-colors font-outfit font-bold group"
+                            >
+                                <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                                Sair da Missão
+                            </a>
+                            <button 
+                                onClick={() => setIsMaterialsOpen(true)}
+                                className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-border rounded-xl font-outfit font-bold text-slate-dark hover:bg-ice transition-all shadow-sm group"
+                            >
+                                <BookOpen size={18} className="text-brand group-hover:scale-110 transition-transform" />
+                                <span>Materiais</span>
+                            </button>
+                        </div>
+                        <GameScreen 
+                            questions={questions} 
+                            mode={config.mode} 
+                            onComplete={handleComplete} 
+                            onTriggerBuddy={triggerBuddy}
+                            senseiProfile={senseiProfile}
+                        />
                         <BuddyView avatarUrl={buddyAvatarUrl} avatarId={buddyAvatarId} state={buddyState} message={buddyMessage} />
+                        <MaterialsDrawer 
+                            isOpen={isMaterialsOpen} 
+                            onClose={() => setIsMaterialsOpen(false)} 
+                            activityId={activityId}
+                        />
                     </>
                 )}
                 

@@ -5,10 +5,11 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 ---
 
 - [x] **Segurança e Acesso:** Logout de professor corrigido e `RoleGuard` implementado (Geradores restritos).
-- [x] CRUD Completo na Central (Deletar, Duplicar, Renomear, Editar Conteúdo)
-- [x] **Padronização de PDF IA:** MRP e Flashcards agora leem PDFs diretamente através do Gemini Sensei API.
-- **Status:** Ecossistema de Aluno (Agenda + Inventário), Buddy Reativo e Loja Completa.
-- **Última Atualização:** 29/03/2026 (10:00h)
+- [x] **Perfil do Sensei 2.0:** Cadastro completo (Bio, Especialidade, Nome de Exibição) e Upload de Foto com Cropper.
+- [x] **Conexão Imersiva:** Aluno agora vê foto e nome do professor no topo do dashboard.
+- [x] **Correção RLS:** Permissões de banco ajustadas para compartilhamento de perfil seguro.
+- **Status:** Perfil do Sensei concluído | Vozes do Buddy (81/90).
+- **Última Atualização:** 11/04/2026 (14:38h)
 - **GitHub:** `https://github.com/Felipedestrave/destravehub.git` (Branch `main`)
 
 ---
@@ -122,7 +123,18 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 
 ---
 
-- [x] **Gamificação Fase 1 (Motor) 🪙:**
+- [x] **Inversão de Lógica de Materiais (Contextualização) 🔄:**
+    - [x] **Infraestrutura N:N:** Criada tabela `activity_materials` para permitir que um material pertença a várias missões.
+    - [x] **Vínculo pela Missão:** Adicionado botão "Vincular Materiais" na Central de Atividades.
+    - [x] **Link Modal:** Popup de busca e seleção múltipla para vinculação rápida.
+    - [x] **Contador Visual:** Cards de missão agora exibem o ícone `📎` com a quantidade de arquivos vinculados.
+    - [x] **Refatoração Drawer:** O componente de exibição do aluno agora lê os vínculos da tabela de junção.
+- [x] **Explorador de Arquivos "Destrave Drive" (Organização) 📁:**
+    - [x] **Pastas & Subpastas:** Suporte completo a hierarquia de pastas (Recursive Folders).
+    - [x] **Navegação por Breadcrumbs:** Trilha de navegação no topo para movimentação rápida entre níveis.
+    - [x] **Drag & Drop (Arraste e Solte):** Movimentação de arquivos para pastas (no grid ou na trilha) via arrasto nativo.
+    - [x] **Upload Contextual:** Arquivos subidos dentro de uma pasta herdam o vínculo automaticamente.
+    - [x] **Design Premium:** Pasta com ícones pixel-perfect, animações de entrada e gerenciamento simplificado.
     - [x] **RPC `increment_gamification`:** Função atômica no banco para atualizar XP, Coins e Inventário em uma única transação.
     - [x] **Integração de Recompensas:** Flashcards e Escuta agora geram 20 DC base + bônus de assertividade e tempo.
 - [x] **Gamificação Fase 2 (Loja - Mercado Destrave) 🛒:**
@@ -150,8 +162,27 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - **Sistema de Inventário**: Criado `InventoryManager.tsx` e página `/dashboard/inventory`. Alunos podem gerenciar e equipar Avatares, Temas e Títulos.
 - **Títulos 3D Integrados**: Todas as artes dos 7 títulos (Turista, Senpai, etc.) já estão configuradas no `store.ts` e prontas para uso.
 - **Correções Linguísticas**: Revisão do vocabulário do Buddy para japonês natural (**Seikou** vs Seika).
-- **Fix de Áudio (Buddy)**: Refatorado `BuddyView.tsx` para sincronia à prova de cliques rápidos e adição de telemetria no console (`console.warn`).
-- **⚠️ Bloqueador de Áudio (Para Próxima Sessão)**: Descoberto que os arquivos de áudio em `/assets/buddy-voices/...` foram gerados como PCM bruto sem cabeçalho (causando `NotSupportedError`). **Ação pendente:** Re-gerar as vozes garantindo um encoder para MP3 verdadeiro, para que o navegador consiga tocar.
+- [x] **Fix de Áudio (Buddy)**: O problema de áudio mudo (`NotSupportedError`) foi resolvido. 
+  - **Causa**: O Gemini TTS envia PCM bruto (L16) sem cabeçalho.
+  - **Solução**: Implementada função `createWavHeader` no script de geração que injeta o cabeçalho WAV de 44 bytes.
+  - **Status**: 65 de 90 arquivos gerados. 25 pendentes devido ao limite de cota diária (100 requisições/dia).
+  - **Ação futura**: Rodar `npx tsx scripts/generate-buddy-voices.ts` após o reset da cota (aprox. 6h) para completar a biblioteca.
+
+### Fase 6: Central do Sensei & Identidade Sincronizada (10/04/2026) ✅
+- **Perfil Profissional do Professor**: Reconstrução da página de configurações (`SettingsPanel.tsx`) com suporte a Biografia, Especialidade e Nome de Exibição.
+- **Upload de Avatar com Magic Cropper**:
+  - Integração com **Supabase Storage** (bucket `avatars`).
+  - Implementação de um **Editor de Recorte (Cropper)** nativo de alto desempenho.
+  - Processamento via **Canvas API** para garantir imagens leves e perfeitamente circulares.
+  - Suporte a arraste, zoom e prévia em tempo real.
+- **Imersão Aluno-Professor**:
+  - **Selo do Mestre**: Adicionado o componente "Meu Sensei" no cabeçalho do aluno, mostrando foto e nome do professor responsável.
+  - **Saudação Inteligente**: Lógica para evitar prefixos duplicados (Ex: Não exibe "Sensei Sensei [Nome]").
+  - **Refatoração do DashboardLayout**: Centralização da lógica de carregamento de perfil baseada no papel (Role).
+- **Ajustes de Infraestrutura e Segurança**:
+  - **Fix de RLS**: Implementadas políticas de segurança no SQL para permitir que alunos visualizem os perfis dos professores.
+  - **Sincronização de Tipos**: Atualizado `src/types/supabase.ts` para incluir as novas colunas de perfil, garantindo 0 erros de TypeScript.
+  - **Ajuste Flashcards**: Escondido o cabeçalho administrativo da página Astro quando acessada como missão de aluno.
 
 ---
 
@@ -163,9 +194,11 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
    - Rotina API `api/leads/capture` para salvar leads via JSONB na tabela de `students` (campo `metadata: { is_lead: true, whatsapp, email }`).
    - Propagação de botão "Chamar o Sensei no Zap" (usando prop `senseiWhatsapp`) no sumário das 3 atividades experimentais concluídas.
    - Aba "Leads Capturados" adicionada ao Dashboard do professor para listar e contactar vendas.
-2. **Mecânica de Streaks (Fogo)**: Implementar visual de sequência de dias para bônus de XP e incentivar prática diária.
-3. **Notificações In-App**: Sistema de alertas visuais para novas missões atribuídas ou avisos do professor.
-4. **SFX de Buddy**: Adicionar efeitos sonoros leves para as reações do mascote (comemoração e erro).
+4. **Finalizar Vozes do Buddy**: Rodar o script de geração para os 25 arquivos restantes assim que a cota da API Gemini resetar.
+5. **Mecânica de Streaks (Fogo)**: Implementar visual de sequência de dias para bônus de XP e incentivar prática diária.
+6. **Notificações In-App**: Sistema de alertas visuais para novas missões atribuídas ou avisos do professor.
+7. **SFX de Buddy**: Adicionar efeitos sonoros leves para as reações do mascote (comemoração e erro).
+8. **Mecânica de Streaks (Backlog)**: Planejada a lógica de "Fogo" por dias consecutivos, multiplicador de recompensas e item "Freeze" na loja. (Arquivado para implementação futura).
 
 ---
 

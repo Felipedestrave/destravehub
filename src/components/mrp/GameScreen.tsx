@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Lightbulb, ChevronRight, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { Lightbulb, ChevronRight, CheckCircle2, XCircle, Loader2, Eye, ShieldAlert } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { QuizMode, type MrpQuestion, type MrpUserAnswer } from '../../types/mrp';
 import type { BuddyState } from '../buddy/BuddyView';
 
@@ -8,13 +9,38 @@ interface GameScreenProps {
     mode: QuizMode;
     onComplete: (answers: MrpUserAnswer[]) => void;
     onTriggerBuddy?: (newState: BuddyState, type?: 'success' | 'error') => void;
+    senseiProfile?: { full_name: string; avatar_url: string | null } | null;
 }
+
+const SENSEI_PHRASES = [
+    "Hum... estou de olho, hein? 😉",
+    "Tem certeza, Senpai? Me parece um pouco diferente... 🤔",
+    "Essa resposta está meio suspeita! Mas vou confiar... desta vez. 👁️",
+    "Estudei muito japonês para saber que isso não bate! Mas você que sabe... 😂",
+    "Não tente enganar o Sensei! O fogo da honestidade deve queimar! 🔥"
+];
 
 function normalizeForComparison(str: string): string {
-    return str.replace(/[\s\u3000\u3001\u3002,.?!！？]/g, '').trim();
+    // Remove parênteses e o conteúdo dentro (Romaji) para comparar apenas o japonês se necessário
+    const clean = str.replace(/\(.*?\)/g, '');
+    return clean.replace(/[\s\u3000\u3001\u3002,.?!！？]/g, '').toLowerCase().trim();
 }
 
-export const GameScreen: React.FC<GameScreenProps> = ({ questions, mode, onComplete, onTriggerBuddy }) => {
+function calculateSimilarity(s1: string, s2: string): number {
+    const n1 = normalizeForComparison(s1);
+    const n2 = normalizeForComparison(s2);
+    if (!n1 || !n2) return 0;
+    if (n1 === n2) return 1;
+    
+    // Simples Jaccard ou Dice de bigramas ou apenas interseção de caracteres
+    const set1 = new Set(n1.split(''));
+    const set2 = new Set(n2.split(''));
+    const intersection = new Set([...set1].filter(x => set2.has(x)));
+    const union = new Set([...set1, ...set2]);
+    return intersection.size / union.size;
+}
+
+export const GameScreen: React.FC<GameScreenProps> = ({ questions, mode, onComplete, onTriggerBuddy, senseiProfile }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [score, setScore] = useState(0);
     const [userAnswers, setUserAnswers] = useState<MrpUserAnswer[]>([]);
@@ -22,6 +48,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({ questions, mode, onCompl
     const [currentInput, setCurrentInput] = useState('');
     const [isVerifying, setIsVerifying] = useState(false);
     const [feedback, setFeedback] = useState<{ isCorrect: boolean; text: string } | null>(null);
+    const [discursiveStep, setDiscursiveStep] = useState<'typing' | 'comparing'>('typing');
+    const [senseiWarning, setSenseiWarning] = useState<string | null>(null);
 
     const currentQuestion = questions[currentIndex];
     const maxScore = useMemo(() => questions.reduce((acc, q) => acc + q.points, 0), [questions]);
@@ -52,11 +80,13 @@ export const GameScreen: React.FC<GameScreenProps> = ({ questions, mode, onCompl
         let feedbackText = '';
         let pointsEarned = 0;
 
-        if (mode === QuizMode.MULTIPLE_CHOICE) {
+         if (mode === QuizMode.MULTIPLE_CHOICE) {
             isCorrect = normalizeForComparison(answer) === normalizeForComparison(currentQuestion.correctAnswer);
             feedbackText = isCorrect
                 ? `✓ Correto! ${currentQuestion.explanation}`
                 : `Incorreto. A resposta era: ${currentQuestion.correctAnswer}. ${currentQuestion.explanation}`;
+            
+            const pointsEarned = isCorrect ? pointsThisQuestion : 0;
             setScore((p) => p + pointsEarned);
             setFeedback({ isCorrect, text: feedbackText });
             if (onTriggerBuddy) {
@@ -68,31 +98,39 @@ export const GameScreen: React.FC<GameScreenProps> = ({ questions, mode, onCompl
             ]);
             setIsVerifying(false);
         } else {
-            try {
-                const res = await fetch('/api/mrp/validate-answer', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ question: currentQuestion, userAnswer: answer }),
-                });
-                const validation = await res.json();
-                isCorrect = validation.isCorrect;
-                feedbackText = isCorrect
-                    ? `✓ Correto! ${validation.feedback}`
-                    : `Incorreto. ${validation.feedback}\n\nResposta de referência: ${currentQuestion.correctAnswer}`;
-                setScore((p) => p + pointsEarned);
-                setFeedback({ isCorrect, text: feedbackText });
-                if (onTriggerBuddy) {
-                    onTriggerBuddy(isCorrect ? 'success' : 'error', isCorrect ? 'success' : 'error');
-                }
-                setUserAnswers((prev) => [
-                    ...prev,
-                    { questionId: currentQuestion.id, answer, usedHint: showHint, isCorrect, scoreEarned: pointsEarned, feedback: validation.feedback },
-                ]);
-            } catch {
-                setFeedback({ isCorrect: false, text: 'Erro ao avaliar resposta. Tente novamente.' });
-            }
+            // Discursive mode: Just transition to comparison
+            setDiscursiveStep('comparing');
             setIsVerifying(false);
         }
+    };
+
+    const confirmDiscursiveAnswer = (isCorrect: boolean) => {
+        const similarity = calculateSimilarity(currentInput, currentQuestion.correctAnswer);
+        
+        // Anti-cheat warning
+        if (isCorrect && similarity < 0.3) {
+            const randomPhrase = SENSEI_PHRASES[Math.floor(Math.random() * SENSEI_PHRASES.length)];
+            setSenseiWarning(randomPhrase);
+            // Don't block completion, just show the warning for 3 seconds
+            setTimeout(() => setSenseiWarning(null), 4000);
+        }
+
+        const feedbackText = isCorrect 
+            ? `✓ Você se avaliou positivamente! ${currentQuestion.explanation}`
+            : `Sem problemas! A prática leva à perfeição. A resposta correta é: ${currentQuestion.correctAnswer}. ${currentQuestion.explanation}`;
+        
+        const pointsEarned = isCorrect ? pointsThisQuestion : 0;
+        setScore((p) => p + pointsEarned);
+        setFeedback({ isCorrect, text: feedbackText });
+        
+        if (onTriggerBuddy) {
+            onTriggerBuddy(isCorrect ? 'success' : 'error', isCorrect ? 'success' : 'error');
+        }
+
+        setUserAnswers((prev) => [
+            ...prev,
+            { questionId: currentQuestion.id, answer: currentInput, usedHint: showHint, isCorrect, scoreEarned: pointsEarned },
+        ]);
     };
 
     return (
@@ -169,25 +207,52 @@ export const GameScreen: React.FC<GameScreenProps> = ({ questions, mode, onCompl
                             </div>
                         ) : (
                             <div className="mrp-discursive-zone">
-                                <textarea
-                                    value={currentInput}
-                                    onChange={(e) => setCurrentInput(e.target.value)}
-                                    disabled={isVerifying}
-                                    placeholder="Digite sua resposta em japonês..."
-                                    className="mrp-disc-textarea"
-                                    rows={3}
-                                />
-                                <button
-                                    onClick={() => submitAnswer(currentInput)}
-                                    disabled={isVerifying || !currentInput.trim()}
-                                    className="mrp-disc-btn"
-                                >
-                                    {isVerifying ? (
-                                        <><Loader2 size={16} className="mrp-spin-inline" /> Avaliando...</>
-                                    ) : (
-                                        <>Enviar Resposta <ChevronRight size={16} /></>
-                                    )}
-                                </button>
+                                {discursiveStep === 'typing' ? (
+                                    <>
+                                        <textarea
+                                            value={currentInput}
+                                            onChange={(e) => setCurrentInput(e.target.value)}
+                                            disabled={isVerifying}
+                                            placeholder="Digite sua resposta em japonês..."
+                                            className="mrp-disc-textarea"
+                                            rows={3}
+                                        />
+                                        <button
+                                            onClick={() => submitAnswer(currentInput)}
+                                            disabled={isVerifying || !currentInput.trim()}
+                                            className="mrp-disc-btn"
+                                        >
+                                            {isVerifying ? (
+                                                <><Loader2 size={16} className="mrp-spin-inline" /> Processando...</>
+                                            ) : (
+                                                <>Verificar Resposta <Eye size={16} /></>
+                                            )}
+                                        </button>
+                                    </>
+                                ) : (
+                                    <div className="mrp-comparison-view">
+                                        <div className="mrp-comparison-row">
+                                            <span className="mrp-comp-label">Sua resposta:</span>
+                                            <p className="mrp-comp-val student">{currentInput}</p>
+                                        </div>
+                                        <div className="mrp-comparison-row">
+                                            <span className="mrp-comp-label">Resposta esperada:</span>
+                                            <p className="mrp-comp-val sensei">{currentQuestion.correctAnswer}</p>
+                                        </div>
+                                        
+                                        <div className="mrp-self-assess-actions">
+                                            <p className="mrp-self-assess-invite">Como foi? Honestidade vale XP!</p>
+                                            <div className="mrp-self-assess-btns">
+                                                <button onClick={() => confirmDiscursiveAnswer(false)} className="mrp-assess-btn red">
+                                                    <XCircle size={18} /> Errei / Quero repetir
+                                                </button>
+                                                <button onClick={() => confirmDiscursiveAnswer(true)} className="mrp-assess-btn green">
+                                                    <CheckCircle2 size={18} /> Acertei!
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -209,26 +274,40 @@ export const GameScreen: React.FC<GameScreenProps> = ({ questions, mode, onCompl
                 )}
 
                 {/* Feedback */}
-                {feedback && (
-                    <div className={`mrp-feedback-block ${feedback.isCorrect ? 'correct' : 'incorrect'}`}>
-                        <div className="mrp-feedback-header">
-                            {feedback.isCorrect
-                                ? <CheckCircle2 size={20} className="mrp-feedback-icon correct" />
-                                : <XCircle size={20} className="mrp-feedback-icon incorrect" />}
-                            <span className={`mrp-feedback-label ${feedback.isCorrect ? 'correct' : 'incorrect'}`}>
-                                {feedback.isCorrect ? 'Correto!' : 'Incorreto'}
-                            </span>
-                            <span className="mrp-feedback-points">
-                                {feedback.isCorrect ? `+${pointsThisQuestion} pts` : '0 pts'}
-                            </span>
-                        </div>
-                        <p className="mrp-feedback-text">{feedback.text}</p>
-                        <button onClick={handleNext} className="mrp-next-btn">
-                            {currentIndex + 1 < questions.length ? 'Próxima Questão →' : 'Ver Resultado →'}
-                        </button>
                     </div>
                 )}
             </div>
+
+            {/* Sensei Warning Overlay */}
+            <AnimatePresence>
+                {senseiWarning && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 50, scale: 0.9 }}
+                        className="mrp-sensei-alert-overlay"
+                    >
+                        <div className="mrp-sensei-alert-card">
+                            <div className="mrp-sensei-alert-header">
+                                <div className="mrp-sensei-avatar-ring">
+                                    <img 
+                                        src={senseiProfile?.avatar_url || '/assets/avatars/default-sensei.png'} 
+                                        alt="Sensei" 
+                                        className="mrp-sensei-alert-img"
+                                    />
+                                    <div className="mrp-sensei-alert-badge">
+                                        <ShieldAlert size={14} />
+                                    </div>
+                                </div>
+                                <div className="mrp-sensei-alert-bubble">
+                                    <span className="mrp-sensei-alert-name">{senseiProfile?.full_name || 'Sensei'} diz:</span>
+                                    <p className="mrp-sensei-alert-text">{senseiWarning}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Footer meta */}
             <div className="mrp-game-footer">
@@ -408,6 +487,48 @@ export const GameScreen: React.FC<GameScreenProps> = ({ questions, mode, onCompl
           padding: 0 0.25rem;
         }
         .mrp-game-footer strong { color: var(--color-slate-dark); }
+
+        .mrp-comparison-view { display: flex; flex-direction: column; gap: 1rem; animation: fade-in 0.3s ease; }
+        .mrp-comparison-row { display: flex; flex-direction: column; gap: 0.4rem; }
+        .mrp-comp-label { font-size: 0.75rem; font-weight: 700; color: var(--color-slate-mid); text-transform: uppercase; letter-spacing: 0.05em; }
+        .mrp-comp-val { margin: 0; padding: 0.875rem; border-radius: 0.875rem; font-family: var(--font-inter); font-size: 1rem; line-height: 1.5; }
+        .mrp-comp-val.student { background: var(--color-ice); border: 1.5px solid var(--color-slate-border); color: var(--color-slate-dark); }
+        .mrp-comp-val.sensei { background: rgba(88,49,126,0.05); border: 1.5px dashed var(--color-brand); color: var(--color-brand); font-weight: 600; }
+        
+        .mrp-self-assess-actions { 
+            margin-top: 1rem; padding-top: 1.25rem; border-top: 1px solid var(--color-slate-border);
+            display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
+        }
+        .mrp-self-assess-invite { font-family: var(--font-outfit); font-size: 0.95rem; font-weight: 700; color: var(--color-slate-dark); margin: 0; }
+        .mrp-self-assess-btns { display: flex; gap: 0.75rem; width: 100%; }
+        .mrp-assess-btn {
+            flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+            padding: 0.8rem; border-radius: 0.75rem; border: none; font-family: var(--font-outfit); font-weight: 700; cursor: pointer; transition: transform 0.2s, filter 0.2s;
+        }
+        .mrp-assess-btn.red { background: #fee2e2; color: #dc2626; border: 1.5px solid #fecaca; }
+        .mrp-assess-btn.green { background: #dcfce7; color: #16a34a; border: 1.5px solid #bbf7d0; }
+        .mrp-assess-btn:hover { transform: scale(1.02); filter: brightness(1.05); }
+
+        .mrp-sensei-alert-overlay {
+            position: fixed; bottom: 2rem; right: 2rem; z-index: 1000;
+            max-width: 320px; width: calc(100% - 4rem);
+        }
+        .mrp-sensei-alert-card {
+            background: white; padding: 1rem; border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15); border: 2px solid var(--color-brand);
+        }
+        .mrp-sensei-alert-header { display: flex; align-items: center; gap: 1rem; }
+        .mrp-sensei-avatar-ring { position: relative; width: 60px; height: 60px; flex-shrink: 0; }
+        .mrp-sensei-alert-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--color-brand); }
+        .mrp-sensei-alert-badge {
+            position: absolute; bottom: 0; right: 0; 
+            background: #ef4444; color: white; width: 22px; height: 22px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            border: 2px solid white;
+        }
+        .mrp-sensei-alert-bubble { flex: 1; }
+        .mrp-sensei-alert-name { display: block; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: var(--color-slate-mid); margin-bottom: 0.1rem; }
+        .mrp-sensei-alert-text { margin: 0; font-family: var(--font-inter); font-size: 0.8rem; color: var(--color-slate-dark); line-height: 1.4; font-weight: 600; }
       `}</style>
         </div>
     );

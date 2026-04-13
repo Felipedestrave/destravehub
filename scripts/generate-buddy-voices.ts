@@ -1,7 +1,7 @@
 import { readFileSync, mkdirSync, writeFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { GoogleGenAI, Modality } from '@google/genai';
+import { GoogleGenAI, Modality, HarmCategory, HarmBlockThreshold } from '@google/genai';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -72,6 +72,35 @@ const VOICE_CONFIG: Record<string, string> = {
 
 const OUTPUT_DIR = join(__dirname, '..', 'public', 'assets', 'buddy-voices');
 
+/**
+ * Cria um cabeçalho WAV de 44 bytes para áudio PCM L16 (16-bit, Mono, 24kHz)
+ */
+function createWavHeader(dataLength: number): Buffer {
+    const sampleRate = 24000;
+    const header = Buffer.alloc(44);
+    
+    // RIFF header
+    header.write('RIFF', 0);
+    header.writeUInt32LE(dataLength + 36, 4);
+    header.write('WAVE', 8);
+    
+    // fmt chunk
+    header.write('fmt ', 12);
+    header.writeUInt32LE(16, 16); // Chunk size
+    header.writeUInt16LE(1, 20);  // Format: PCM
+    header.writeUInt16LE(1, 22);  // Channels: Mono
+    header.writeUInt32LE(sampleRate, 24);
+    header.writeUInt32LE(sampleRate * 2, 28); // Byte Rate
+    header.writeUInt16LE(2, 32);  // Block Align
+    header.writeUInt16LE(16, 34); // Bits per Sample
+    
+    // data chunk
+    header.write('data', 36);
+    header.writeUInt32LE(dataLength, 40);
+    
+    return header;
+}
+
 async function generateAudio(text: string, voiceName: string): Promise<Buffer> {
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-preview-tts',
@@ -86,9 +115,13 @@ async function generateAudio(text: string, voiceName: string): Promise<Buffer> {
         },
     });
 
-    const audioData = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+    const candidate = response.candidates?.[0];
+    const audioData = candidate?.content?.parts?.[0]?.inlineData?.data;
+    
     if (!audioData) {
-        throw new Error('No audio data returned');
+        const reason = candidate?.finishReason || 'UNKNOWN';
+        const feedback = response.promptFeedback?.blockReason || 'NONE';
+        throw new Error(`Gemini rejected the audio. Reason: ${reason}, Blocked: ${feedback}`);
     }
 
     return Buffer.from(audioData, 'base64');
@@ -102,7 +135,7 @@ function sanitizeFilename(text: string): string {
 }
 
 async function main() {
-    console.log('🎵 Starting Buddy Voice Generation...\n');
+    console.log('🎵 Starting Buddy Voice Generation (with WAV Header)...\n');
 
     mkdirSync(OUTPUT_DIR, { recursive: true });
 
@@ -110,9 +143,8 @@ async function main() {
     let totalGenerated = 0;
 
     for (const avatarId of avatars) {
-        console.log(`\n👤 Processing: ${avatarId}`);
+        console.log(`\n👤 Processing Avatar: ${avatarId}`);
         const voiceName = VOICE_CONFIG[avatarId] || 'Puck';
-        console.log(`   🎤 Voice: ${voiceName}`);
 
         const avatarDir = join(OUTPUT_DIR, avatarId);
         mkdirSync(join(avatarDir, 'success'), { recursive: true });
@@ -126,33 +158,36 @@ async function main() {
         ];
 
         for (const phrase of allPhrases) {
-            const filename = `${sanitizeFilename(phrase.text)}.mp3`;
+            const filename = `${sanitizeFilename(phrase.text)}.wav`;
             const outputPath = join(avatarDir, phrase.type, filename);
 
-            // Skip if already exists
             if (existsSync(outputPath)) {
-                console.log(`   ⏭️  Skipping (exists): ${filename}`);
+                console.log(`   ⏭️  Skipping existing: ${filename}`);
                 totalGenerated++;
                 continue;
             }
 
-            console.log(`   📝 Generating: ${phrase.text} (${phrase.type})`);
+            console.log(`   📝 Generating: ${phrase.text}`);
 
             try {
-                const audioData = await generateAudio(phrase.text, voiceName);
-                writeFileSync(outputPath, audioData);
+                const rawAudio = await generateAudio(phrase.text, voiceName);
+                const header = createWavHeader(rawAudio.length);
+                const finalAudio = Buffer.concat([header, rawAudio]);
+                
+                writeFileSync(outputPath, finalAudio);
                 totalGenerated++;
                 console.log(`   ✅ Saved: ${filename}`);
-                // Delay to avoid rate limit
+                
+                // Delay para evitar rate limit da API (6 segundos por áudio)
                 await new Promise(r => setTimeout(r, 6000));
             } catch (error) {
-                console.error(`   ❌ Failed: ${error}`);
+                console.error(`   ❌ Failed to generate "${phrase.text}": ${error}`);
             }
         }
     }
 
-    console.log(`\n🎉 Done! Generated ${totalGenerated} audio files.`);
-    console.log(`📁 Output directory: ${OUTPUT_DIR}`);
+    console.log(`\n🎉 Process Complete! Successfully generated ${totalGenerated} audio files.`);
+    console.log(`📁 Files are located in: ${OUTPUT_DIR}`);
 }
 
 main().catch(console.error);

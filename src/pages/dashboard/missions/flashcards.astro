@@ -33,19 +33,21 @@ if (editingId) {
 ---
 
 <DashboardLayout title="Destrave Cards" activeNav="flashcards">
-  <div class="page-header">
-    <div class="breadcrumb">
-      <a href="/dashboard">Dashboard</a>
-      <span class="separator">/</span>
-      <span class="current">Destrave Cards</span>
+  {!assignmentId && (
+    <div class="page-header">
+      <div class="breadcrumb">
+        <a href="/dashboard">Dashboard</a>
+        <span class="separator">/</span>
+        <span class="current">Destrave Cards</span>
+      </div>
+      <div class="title-section">
+        <h1 class="page-title">Destrave Cards 🃏</h1>
+        <p class="page-subtitle">
+          Gere decks personalizados com IA e aprove cada card antes de enviar ao seu aluno.
+        </p>
+      </div>
     </div>
-    <div class="title-section">
-      <h1 class="page-title">Destrave Cards 🃏</h1>
-      <p class="page-subtitle">
-        Gere decks personalizados com IA e aprove cada card antes de enviar ao seu aluno.
-      </p>
-    </div>
-  </div>
+  )}
 
   <FlashcardsApp 
     client:only="react" 

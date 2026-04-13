@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
+import { MaterialLinkModal } from '../materials/MaterialLinkModal';
 
 interface Activity {
     id: string;
@@ -7,6 +8,7 @@ interface Activity {
     type: 'flashcards' | 'escuta' | 'mrp';
     created_at: string;
     config: Record<string, any>;
+    material_count?: { count: number }[];
 }
 
 interface Student {
@@ -33,6 +35,7 @@ export default function ActivitiesPanel() {
     const [shareTab, setShareTab] = useState<'platform' | 'experimental' | 'public'>('platform');
     const [experimentalLink, setExperimentalLink] = useState<string | null>(null);
     const [generatingLink, setGeneratingLink] = useState(false);
+    const [linkingActivity, setLinkingActivity] = useState<Activity | null>(null);
 
     const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
         setToast({ msg, type });
@@ -258,19 +261,23 @@ export default function ActivitiesPanel() {
     const getSubtitle = (a: Activity) => {
         const cfg = a.config;
         if (!cfg) return '0 itens';
+        
+        let baseSub = '';
         if (a.type === 'flashcards') {
             const count = cfg.cards?.length || cfg.cardCount || 0;
-            return `${count} card${count !== 1 ? 's' : ''} • Nível ${cfg.level ?? '—'}`;
-        }
-        if (a.type === 'escuta') {
+            baseSub = `${count} card${count !== 1 ? 's' : ''} • Nível ${cfg.level ?? '—'}`;
+        } else if (a.type === 'escuta') {
             const count = cfg.questions?.length || 0;
-            return `${count} questão${count !== 1 ? 'ões' : 'ão'}`;
-        }
-        if (a.type === 'mrp') {
+            baseSub = `${count} questão${count !== 1 ? 'ões' : 'ão'}`;
+        } else if (a.type === 'mrp') {
             const count = cfg.questions?.length || 0;
-            return `${count} questão${count !== 1 ? 'ões' : 'ão'} • Nível ${cfg.level ?? '—'}`;
+            baseSub = `${count} questão${count !== 1 ? 'ões' : 'ão'} • Nível ${cfg.level ?? '—'}`;
         }
-        return '';
+        
+        const matCount = a.material_count?.[0]?.count || 0;
+        const matSuffix = matCount > 0 ? ` • 📎 ${matCount}` : '';
+        
+        return `${baseSub}${matSuffix}`;
     };
 
     if (loading) {
@@ -337,6 +344,10 @@ export default function ActivitiesPanel() {
                                                     <button onClick={() => { handleDuplicate(a.id); setActiveMenuId(null); }}>
                                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                                                         Duplicar
+                                                    </button>
+                                                    <button onClick={() => { setLinkingActivity(a); setActiveMenuId(null); }}>
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                                                        Vincular Materiais
                                                     </button>
                                                     <button onClick={() => { handleRename(a.id, a.title); setActiveMenuId(null); }}>
                                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
@@ -493,6 +504,16 @@ export default function ActivitiesPanel() {
                         </div>
                     </div>
                 </div>
+            )}
+
+
+            {/* MATERIAL LINK MODAL */}
+            {linkingActivity && (
+                <MaterialLinkModal 
+                    activityId={linkingActivity.id}
+                    activityTitle={linkingActivity.title}
+                    onClose={() => setLinkingActivity(null)}
+                />
             )}
 
 

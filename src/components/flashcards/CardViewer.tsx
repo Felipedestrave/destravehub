@@ -5,6 +5,7 @@ import { BuddyView, type BuddyState } from '../buddy/BuddyView';
 import { supabase } from '../../lib/supabase';
 import { STORE_ITEMS } from '../../lib/store';
 import { getBuddyPhrase } from '../../lib/buddy-phrases';
+import { MaterialsDrawer } from '../materials/MaterialsDrawer';
 
 interface CardViewerProps {
     cards: Flashcard[];
@@ -16,9 +17,10 @@ interface CardViewerProps {
         targetTime: number 
     }) => void;
     senseiWhatsapp?: string | null;
+    activityId?: string;
 }
 
-export const CardViewer: React.FC<CardViewerProps> = ({ cards, onFinish, senseiWhatsapp }) => {
+export const CardViewer: React.FC<CardViewerProps> = ({ cards, onFinish, senseiWhatsapp, activityId }) => {
     // ESTADOS
     const [status, setStatus] = useState<'SETUP' | 'PLAYING' | 'SUMMARY'>('SETUP');
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -26,6 +28,7 @@ export const CardViewer: React.FC<CardViewerProps> = ({ cards, onFinish, senseiW
     const [correctCount, setCorrectCount] = useState(0);
     const [seconds, setSeconds] = useState(0);
     const [history, setHistory] = useState<any[]>([]);
+    const [isMaterialsOpen, setIsMaterialsOpen] = useState(false);
     
     // BUDDY COMPANION
     const [buddyState, setBuddyState] = useState<BuddyState>('idle');
@@ -272,9 +275,17 @@ export const CardViewer: React.FC<CardViewerProps> = ({ cards, onFinish, senseiW
                 <div className="viewer-progress-header">
                     <div className="flex justify-between items-center mb-1">
                         <span className="p-text">Card {currentIndex + 1} de {cards.length}</span>
-                        <div className={`timer-badge ${seconds > targetTimeInSeconds() ? 'timer-over' : ''}`}>
-                            <Clock size={14} />
-                            <span>{formatTime(seconds)}</span>
+                        <div className="flex items-center gap-2">
+                             <button 
+                                onClick={() => setIsMaterialsOpen(true)}
+                                className="flex items-center gap-2 px-3 py-1 bg-white border border-slate-border rounded-lg font-outfit font-bold text-slate-dark hover:bg-ice transition-all text-xs"
+                            >
+                                📖 Materiais
+                            </button>
+                            <div className={`timer-badge ${seconds > targetTimeInSeconds() ? 'timer-over' : ''}`}>
+                                <Clock size={14} />
+                                <span>{formatTime(seconds)}</span>
+                            </div>
                         </div>
                     </div>
                     <div className="p-track">
@@ -334,7 +345,16 @@ export const CardViewer: React.FC<CardViewerProps> = ({ cards, onFinish, senseiW
             </div>
 
             {/* BUDDY COMPANION — visível apenas durante o jogo */}
-            {status === 'PLAYING' && <BuddyView avatarUrl={buddyAvatarUrl} avatarId={buddyAvatarId} state={buddyState} message={buddyMessage} />}
+            {status === 'PLAYING' && (
+                <>
+                    <MaterialsDrawer 
+                        isOpen={isMaterialsOpen} 
+                        onClose={() => setIsMaterialsOpen(false)} 
+                        activityId={activityId}
+                    />
+                    <BuddyView avatarUrl={buddyAvatarUrl} avatarId={buddyAvatarId} state={buddyState} message={buddyMessage} />
+                </>
+            )}
 
             <style>{`
         .card-viewer-host {

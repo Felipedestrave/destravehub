@@ -49,7 +49,7 @@ export const POST: APIRoute = async ({ request }) => {
        - 'scenario': Descreva a situação social em português.
        - 'task': O que o aluno deve dizer (ex: "Diga que você quer este café, por favor").
        - 'hint': Uma dica gramática ou de vocabulário em português.
-    3. OPÇÕES: Forneça exatamente 4 opções de resposta em japonês. NUNCA use prefixos como "A)", "1)".
+    3. OPÇÕES: Forneça exatamente 4 opções de resposta. Cada opção DEVE conter a frase em japonês seguida da transcrição em letras romanas (Romaji) entre parênteses. Exemplo: "これをください (Kore o kudasai)". NUNCA use prefixos como "A)", "1)".
     4. NÍVEL ${level}: Respeite rigorosamente a gramática deste nível JLPT.
     5. EXPLICAÇÃO: Explique brevemente por que a resposta correta é a mais adequada socialmente na cultura japonesa.
     

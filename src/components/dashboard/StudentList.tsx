@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
 import type { Tables } from '../../types/supabase';
-import { MoreVertical, Edit2, Trash2, Link as LinkIcon, X, CheckCircle2 } from 'lucide-react';
+import { MoreVertical, Edit2, Trash2, Link as LinkIcon, X, CheckCircle2, TrendingUp } from 'lucide-react';
 
 type Student = Tables<'students'>;
 
@@ -230,6 +230,9 @@ export default function StudentList() {
                                 
                                 {activeDropdown === student.id && (
                                     <div className="dropdown-panel animation-fade-in shadow-xl">
+                                        <a href={`/dashboard/students/${student.id}`} className="dropdown-item">
+                                            <TrendingUp size={16} /> Ver Perfil
+                                        </a>
                                         <button onClick={() => openEditModal(student)} className="dropdown-item">
                                             <Edit2 size={16} /> Editar Aluno
                                         </button>

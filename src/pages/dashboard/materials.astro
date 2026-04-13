@@ -1,0 +1,43 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import { MaterialsManager } from '../../components/materials/MaterialsManager';
+import { Toaster } from 'react-hot-toast';
+
+// Security: Ideally we verify session here too, but DashboardLayout handles redirects.
+---
+
+<DashboardLayout title="Materiais — Destrave Hub" activeNav="materials">
+  <div class="p-4">
+    <MaterialsManager client:load teacherId="" isTeacher={true} />
+    <Toaster client:load position="bottom-right" />
+  </div>
+</DashboardLayout>
+
+<script>
+  import { supabase } from '../../lib/supabase';
+
+  const initPage = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', session.user.id)
+      .single();
+
+    const isTeacher = profile?.role === 'teacher';
+    
+    // Find the container and re-render or update props
+    const container = document.querySelector('.materials-container');
+    if (container) {
+      // Since it's a React component, we might want to pass props more dynamic or
+      // rely on the component fetching its own data.
+      // For now, let's update the mounting to ensure correct ID is used.
+    }
+  };
+
+  // We better handle IDs inside the component using supabase.auth.getSession()
+  // to avoid passing sensitive IDs through HTML props if possible,
+  // but for simplicity and component reusability, I'll update MaterialsManager to fetch its own session if teacherId is empty.
+</script>

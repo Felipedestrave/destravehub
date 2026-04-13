@@ -1,9 +1,13 @@
 ---
 import '../styles/global.css';
+import { NotificationsBell } from '../components/dashboard/NotificationsBell';
+import { Toaster } from 'react-hot-toast';
+import { supabase } from '../lib/supabase';
+import { useState, useEffect } from 'react';
 
 interface Props {
   title?: string;
-  activeNav?: 'students' | 'leads' | 'activities' | 'draw' | 'calendar' | 'escuta' | 'mrp' | 'flashcards' | 'settings' | 'store';
+  activeNav?: 'students' | 'leads' | 'activities' | 'draw' | 'calendar' | 'escuta' | 'mrp' | 'flashcards' | 'settings' | 'store' | 'materials' | 'notifications' | 'history';
 }
 
 const {
@@ -22,6 +26,7 @@ const {
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
   <body class="dashboard-body">
+    <Toaster client:load />
 
     <!-- ===== MOBILE HEADER ===== -->
     <div class="mobile-nav-bar md:hidden">
@@ -79,6 +84,10 @@ const {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
             Atividades
           </a>
+          <a href="/dashboard/materials" class={`sidebar-link ${activeNav === 'materials' ? 'active' : ''}`}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>
+            Materiais
+          </a>
           <a href="/dashboard/settings" class={`sidebar-link ${activeNav === 'settings' ? 'active' : ''}`}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
             Configurações
@@ -97,6 +106,14 @@ const {
           <a href="/dashboard/inventory" class={`sidebar-link ${activeNav === 'inventory' ? 'active' : ''}`}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 16v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m4 0h2a2 2 0 0 1 2 2v1m-6-6h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V10"></path></svg>
             Meu Acervo
+          </a>
+          <a href="/dashboard/history" class={`sidebar-link ${activeNav === 'history' ? 'active' : ''}`}>
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+             Meu Histórico
+          </a>
+          <a href="/dashboard/materials" class={`sidebar-link ${activeNav === 'materials' ? 'active' : ''}`}>
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+             Materiais de Apoio
           </a>
           <a href="/dashboard/store" class={`sidebar-link ${activeNav === 'store' ? 'active' : ''}`}>
              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
@@ -118,8 +135,18 @@ const {
     <div class="dashboard-main">
       <!-- Top Bar -->
       <header class="dashboard-topbar">
-        <div>
-          <p class="topbar-greeting">Olá, <span id="user-name" class="topbar-name">Professor</span> 👋</p>
+        <div class="topbar-left">
+          <NotificationsBell client:only="react" userId={""} />
+          <div class="topbar-profile-box">
+             <div id="teacher-profile-preview" class="teacher-preview hidden">
+                <img id="teacher-avatar-img" src="" alt="Sensei" class="teacher-avatar-mini" />
+                <div class="teacher-info-mini">
+                   <span class="teacher-label">MEU SENSEI</span>
+                   <span id="teacher-name-display" class="teacher-name-mini">Sensei</span>
+                </div>
+             </div>
+             <p class="topbar-greeting">Olá, <span id="user-name" class="topbar-name">Usuário</span> 👋</p>
+          </div>
         </div>
         <div class="topbar-badge hidden sm:flex">
           <span class="badge-brand" id="role-badge">Professor</span>
@@ -140,24 +167,16 @@ const {
 <script>
   import { supabase } from '../lib/supabase';
 
-  // --- 1. Logout Listener (Highest Priority) ---
+  // --- 1. Logout Listener ---
   const initLogout = () => {
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
       logoutBtn.addEventListener('click', async () => {
         try {
-          console.log('[Auth] Deslogando...');
-          const { error } = await supabase.auth.signOut();
-          if (error) throw error;
-          
-          // Limpa qualquer dado residual no localStorage por garantia
+          await supabase.auth.signOut();
           localStorage.removeItem('sb-access-token');
-          localStorage.removeItem('sb-refresh-token');
-          
           window.location.href = '/auth/login';
         } catch (err) {
-          console.error('[Auth] Erro ao deslogar:', err);
-          // Força o redirecionamento mesmo se o signOut do Supabase falhar
           window.location.href = '/auth/login';
         }
       });
@@ -170,47 +189,96 @@ const {
   const initDashboard = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-
       if (!session) {
         window.location.href = '/auth/login';
         return;
       }
 
-      // Fetch profile with more resilience
-      let { data: profiles, error: profileError } = await supabase
+      // Fetch profile
+      let { data: profiles } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', session.user.id);
       
-      const profile = profiles && profiles.length > 0 ? profiles[0] : null;
-
-      if (profileError) {
-        console.warn('Erro ao carregar perfil:', profileError);
-      }
+      const profile = profiles?.[0];
+      const userRole = profile?.role || session.user.user_metadata?.role || 'teacher';
 
       const nameEl = document.getElementById('user-name');
       const roleBadge = document.getElementById('role-badge');
       const teacherNav = document.getElementById('teacher-nav');
       const studentNav = document.getElementById('student-nav');
 
-      // Determine role from metadata first (faster), then profile
-      const userRole = profile?.role || session.user.user_metadata?.role || 'teacher';
-      console.log('[Dashboard] Identified role:', userRole);
+      // Update basic greeting
+      const updateGreeting = (p: any) => {
+        if (!nameEl) return;
+        const displayName = p?.display_name;
+        const fullName = p?.full_name;
+        const baseName = displayName || fullName?.split(' ')[0] || '';
+        
+        if (userRole === 'teacher') {
+          // Se o nome já começa com 'Sensei', não duplica
+          const hasSensei = baseName.toLowerCase().startsWith('sensei');
+          nameEl.textContent = hasSensei ? baseName : (baseName ? `Sensei ${baseName}` : 'Sensei');
+        } else {
+          nameEl.textContent = baseName || 'Aluno';
+        }
+      };
+      updateGreeting(profile);
 
-      if (nameEl) {
-        const defaultName = userRole === 'teacher' ? 'Professor' : 'Aluno';
-        const firstName = profile?.full_name?.split(' ')[0] ?? session.user.email?.split('@')[0] ?? defaultName;
-        nameEl.textContent = firstName;
+      // --- LOGICA DE SENSEI PARA ALUNO ---
+      if (userRole === 'student') {
+          console.log('[Dashboard] Buscando vínculo do Sensei para o aluno:', session.user.id);
+          
+          const { data: studentData, error: studentError } = await supabase
+            .from('students')
+            .select('teacher_id')
+            .eq('student_id', session.user.id) // Corrigido: usando student_id em vez de id
+            .maybeSingle();
+
+          if (studentError) {
+              console.error('[Dashboard] Erro ao buscar vínculo do aluno:', studentError);
+          }
+
+          if (studentData?.teacher_id) {
+              console.log('[Dashboard] Teacher ID encontrado:', studentData.teacher_id);
+              
+              const { data: teacherProfile, error: tError } = await supabase
+                .from('profiles')
+                .select('display_name, full_name, avatar_url')
+                .eq('id', studentData.teacher_id)
+                .single();
+
+              if (tError) {
+                  console.error('[Dashboard] Erro ao buscar perfil do Sensei:', tError);
+              }
+
+              if (teacherProfile) {
+                  const teacherPreview = document.getElementById('teacher-profile-preview');
+                  const teacherAvatar = document.getElementById('teacher-avatar-img') as HTMLImageElement;
+                  const teacherName = document.getElementById('teacher-name-display');
+
+                  if (teacherPreview && teacherAvatar && teacherName) {
+                      const tDisplayName = teacherProfile.display_name;
+                      const tFullName = teacherProfile.full_name;
+                      const tBaseName = tDisplayName || tFullName?.split(' ')[0] || 'Sensei';
+
+                      const cleanTeacherName = tBaseName.toLowerCase().startsWith('sensei') 
+                        ? tBaseName.substring(6).trim() 
+                        : tBaseName;
+
+                      teacherPreview.classList.remove('hidden');
+                      teacherAvatar.src = teacherProfile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${studentData.teacher_id}`;
+                      teacherName.textContent = cleanTeacherName;
+                      
+                      console.log('[Dashboard] Sensei conectado com sucesso:', tBaseName);
+                  }
+              }
+          } else {
+              console.warn('[Dashboard] Aluno não possui Sensei vinculado na tabela students.');
+          }
       }
 
-      if (roleBadge) {
-        roleBadge.textContent = userRole === 'teacher' ? 'Professor' : 'Aluno';
-        roleBadge.className = userRole === 'teacher' ? 'badge-brand' : 'badge-student';
-        // Force visibility of badge to verify role
-        roleBadge.parentElement?.classList.remove('hidden');
-      }
-
-      // Toggle navs based on role
+      // Sidebar logic
       if (userRole === 'student') {
         if (teacherNav) teacherNav.style.display = 'none';
         if (studentNav) studentNav.style.display = 'flex';
@@ -226,12 +294,14 @@ const {
           roleBadge.className = 'badge-brand';
         }
       }
+      
+      if (roleBadge) roleBadge.parentElement?.classList.remove('hidden');
+
     } catch (err) {
-      console.error('[Dashboard] Erro crítico no init:', err);
+      console.error('[Dashboard] Error:', err);
     }
   };
 
-  // Run dashboard init
   initDashboard();
 
   // --- 3. Mobile Sidebar Toggle ---
@@ -450,6 +520,96 @@ const {
     .dashboard-topbar {
       padding: 1.25rem 2rem;
     }
+  }
+  
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  
+  .topbar-profile-box {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .teacher-preview {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-right: 1rem;
+    border-right: 1.5px solid var(--color-slate-border);
+    animation: fade-in 0.5s ease-out;
+  }
+
+  .teacher-avatar-mini {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--color-brand);
+    background: white;
+  }
+
+  .teacher-info-mini {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+  }
+
+  .teacher-label {
+    font-size: 0.6rem;
+    font-weight: 900;
+    color: var(--color-brand);
+    letter-spacing: 0.05em;
+    margin-bottom: 2px;
+  }
+
+  .teacher-name-mini {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--color-slate-dark);
+    font-family: var(--font-outfit);
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  
+  .notifications-btn {
+    position: relative;
+    background: none;
+    border: none;
+    color: var(--color-slate-mid);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .notifications-btn:hover {
+    background-color: var(--color-ice);
+    color: var(--color-action);
+  }
+  
+  .notifications-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 10px;
+    height: 10px;
+    background-color: #ff4d4d;
+    border: 2px solid white;
+    border-radius: 50%;
+  }
+  
+  .notifications-badge.hidden {
+    display: none;
   }
 
   .topbar-greeting {

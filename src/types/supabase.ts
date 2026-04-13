@@ -49,6 +49,42 @@ export type Database = {
                     },
                 ]
             }
+            activity_materials: {
+                Row: {
+                    id: string
+                    activity_id: string
+                    material_id: string
+                    created_at: string | null
+                }
+                Insert: {
+                    id?: string
+                    activity_id: string
+                    material_id: string
+                    created_at?: string | null
+                }
+                Update: {
+                    id?: string
+                    activity_id?: string
+                    material_id?: string
+                    created_at?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "activity_materials_activity_id_fkey"
+                        columns: ["activity_id"]
+                        isOneToOne: false
+                        referencedRelation: "activities"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "activity_materials_material_id_fkey"
+                        columns: ["material_id"]
+                        isOneToOne: false
+                        referencedRelation: "materials"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            }
             assignments: {
                 Row: {
                     activity_id: string
@@ -108,6 +144,9 @@ export type Database = {
                     attendance_streak: number | null
                     equipped: Json | null
                     whatsapp: string | null
+                    display_name: string | null
+                    specialty: string | null
+                    bio: string | null
                 }
                 Insert: {
                     avatar_url?: string | null
@@ -122,6 +161,9 @@ export type Database = {
                     attendance_streak?: number | null
                     equipped?: Json | null
                     whatsapp?: string | null
+                    display_name?: string | null
+                    specialty?: string | null
+                    bio?: string | null
                 }
                 Update: {
                     avatar_url?: string | null
@@ -136,6 +178,9 @@ export type Database = {
                     attendance_streak?: number | null
                     equipped?: Json | null
                     whatsapp?: string | null
+                    display_name?: string | null
+                    specialty?: string | null
+                    bio?: string | null
                 }
                 Relationships: []
             }
@@ -237,6 +282,193 @@ export type Database = {
                         columns: ["student_id"]
                         isOneToOne: false
                         referencedRelation: "students"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            }
+            materials: {
+                Row: {
+                    id: string
+                    created_at: string | null
+                    name: string
+                    file_path: string
+                    type: string
+                    teacher_id: string
+                    student_id: string | null
+                    activity_id: string | null
+                    folder_id: string | null
+                }
+                Insert: {
+                    id?: string
+                    created_at?: string | null
+                    name: string
+                    file_path: string
+                    type: string
+                    teacher_id: string
+                    student_id?: string | null
+                    activity_id?: string | null
+                    folder_id?: string | null
+                }
+                Update: {
+                    id?: string
+                    created_at?: string | null
+                    name?: string
+                    file_path?: string
+                    type?: string
+                    teacher_id?: string
+                    student_id?: string | null
+                    activity_id?: string | null
+                    folder_id?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "materials_activity_id_fkey"
+                        columns: ["activity_id"]
+                        isOneToOne: false
+                        referencedRelation: "activities"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "materials_folder_id_fkey"
+                        columns: ["folder_id"]
+                        isOneToOne: false
+                        referencedRelation: "materials_folders"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "materials_teacher_id_fkey"
+                        columns: ["teacher_id"]
+                        isOneToOne: false
+                        referencedRelation: "profiles"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "materials_student_id_fkey"
+                        columns: ["student_id"]
+                        isOneToOne: false
+                        referencedRelation: "students"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            }
+            materials_folders: {
+                Row: {
+                    id: string
+                    name: string
+                    teacher_id: string
+                    parent_id: string | null
+                    created_at: string | null
+                }
+                Insert: {
+                    id?: string
+                    name: string
+                    teacher_id: string
+                    parent_id?: string | null
+                    created_at?: string | null
+                }
+                Update: {
+                    id?: string
+                    name?: string
+                    teacher_id?: string
+                    parent_id?: string | null
+                    created_at?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "materials_folders_parent_id_fkey"
+                        columns: ["parent_id"]
+                        isOneToOne: false
+                        referencedRelation: "materials_folders"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "materials_folders_teacher_id_fkey"
+                        columns: ["teacher_id"]
+                        isOneToOne: false
+                        referencedRelation: "profiles"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            }
+            lesson_logs: {
+                Row: {
+                    id: string
+                    created_at: string | null
+                    student_id: string
+                    teacher_id: string
+                    topics: string
+                    notes: string | null
+                }
+                Insert: {
+                    id?: string
+                    created_at?: string | null
+                    student_id: string
+                    teacher_id: string
+                    topics: string
+                    notes?: string | null
+                }
+                Update: {
+                    id?: string
+                    created_at?: string | null
+                    student_id?: string
+                    teacher_id?: string
+                    topics?: string
+                    notes?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "lesson_logs_student_id_fkey"
+                        columns: ["student_id"]
+                        isOneToOne: false
+                        referencedRelation: "students"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "lesson_logs_teacher_id_fkey"
+                        columns: ["teacher_id"]
+                        isOneToOne: false
+                        referencedRelation: "profiles"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            }
+            notifications: {
+                Row: {
+                    id: string
+                    created_at: string | null
+                    user_id: string
+                    title: string
+                    message: string
+                    type: string | null
+                    read: boolean | null
+                    link: string | null
+                }
+                Insert: {
+                    id?: string
+                    created_at?: string | null
+                    user_id: string
+                    title: string
+                    message: string
+                    type?: string | null
+                    read?: boolean | null
+                    link?: string | null
+                }
+                Update: {
+                    id?: string
+                    created_at?: string | null
+                    user_id?: string
+                    title?: string
+                    message?: string
+                    type?: string | null
+                    read?: boolean | null
+                    link?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "notifications_user_id_fkey"
+                        columns: ["user_id"]
+                        isOneToOne: false
+                        referencedRelation: "profiles"
                         referencedColumns: ["id"]
                     }
                 ]

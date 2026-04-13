@@ -18,7 +18,14 @@ export const GET: APIRoute = async ({ request }) => {
 
     const { data: activities, error: dbError } = await supabaseAdmin
         .from('activities')
-        .select('id, title, type, created_at, config')
+        .select(`
+            id, 
+            title, 
+            type, 
+            created_at, 
+            config,
+            material_count:activity_materials(count)
+        `)
         .eq('teacher_id', user.id)
         .order('created_at', { ascending: false });
 

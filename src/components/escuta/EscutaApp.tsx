@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { UploadScreen } from './UploadScreen';
 import { EscutaReview } from './EscutaReview';
@@ -11,6 +11,8 @@ import { Volume2, Mic2 } from 'lucide-react';
 import { BuddyView, type BuddyState } from '../buddy/BuddyView';
 import { STORE_ITEMS } from '../../lib/store';
 import { getBuddyPhrase } from '../../lib/buddy-phrases';
+import { MaterialsDrawer } from '../materials/MaterialsDrawer';
+import { BookOpen } from 'lucide-react';
 import {
     Difficulty,
     POINTS_CONFIG,
@@ -71,6 +73,7 @@ export const EscutaApp: React.FC<EscutaAppProps> = ({
     const [buddyMessage, setBuddyMessage] = useState<string | null>(null);
     const [buddyAvatarUrl, setBuddyAvatarUrl] = useState<string>('/assets/avatars/tanuki-novato.png');
     const [buddyAvatarId, setBuddyAvatarId] = useState<string | null>(null);
+    const [isMaterialsOpen, setIsMaterialsOpen] = useState(false);
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -364,6 +367,16 @@ export const EscutaApp: React.FC<EscutaAppProps> = ({
 
             {status === 'PLAYING' && currentData && (
                 <div className="max-w-4xl mx-auto py-8 px-4 animation-fade-in">
+                    <div className="mb-6">
+                        <a 
+                            href="/dashboard" 
+                            className="inline-flex items-center gap-2 text-slate-mid hover:text-brand transition-colors font-outfit font-bold group"
+                        >
+                            <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                            Sair da Missão
+                        </a>
+                    </div>
+
                     <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 bg-white rounded-xl border-2 border-slate-border flex items-center justify-center shadow-sm">
@@ -374,13 +387,22 @@ export const EscutaApp: React.FC<EscutaAppProps> = ({
                                 <p className="text-sm font-bold text-slate-mid">Pontuação: <span className="text-brand">{score} pts</span></p>
                             </div>
                         </div>
-                        <div className="w-full sm:w-48 h-3 bg-slate-border rounded-full overflow-hidden shadow-inner border border-white">
-                            <div
-                                className="h-full bg-brand transition-all duration-500 ease-out"
-                                style={{
-                                    width: `${Math.round(((history.length + (isAnswered ? 1 : 0)) / (history.length + questionsQueue.length + 1)) * 100)}%`,
-                                }}
-                            />
+                        <div className="flex items-center gap-3">
+                            <button 
+                                onClick={() => setIsMaterialsOpen(true)}
+                                className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-border rounded-xl font-outfit font-bold text-slate-dark hover:bg-ice transition-all shadow-sm group"
+                            >
+                                <BookOpen size={18} className="text-brand group-hover:scale-110 transition-transform" />
+                                <span className="hidden sm:inline">Materiais</span>
+                            </button>
+                            <div className="w-full sm:w-48 h-3 bg-slate-border rounded-full overflow-hidden shadow-inner border border-white">
+                                <div
+                                    className="h-full bg-brand transition-all duration-500 ease-out"
+                                    style={{
+                                        width: `${Math.round(((history.length + (isAnswered ? 1 : 0)) / (history.length + questionsQueue.length + 1)) * 100)}%`,
+                                    }}
+                                />
+                            </div>
                         </div>
                     </div>
 
@@ -421,7 +443,16 @@ export const EscutaApp: React.FC<EscutaAppProps> = ({
                     </div>
                 </div>
             )}
-            {status === 'PLAYING' && <BuddyView avatarUrl={buddyAvatarUrl} avatarId={buddyAvatarId} state={buddyState} message={buddyMessage} />}
+            {status === 'PLAYING' && (
+                <>
+                    <MaterialsDrawer 
+                        isOpen={isMaterialsOpen} 
+                        onClose={() => setIsMaterialsOpen(false)} 
+                        activityId={activityId}
+                    />
+                    <BuddyView avatarUrl={buddyAvatarUrl} avatarId={buddyAvatarId} state={buddyState} message={buddyMessage} />
+                </>
+            )}
         </div>
     );
 

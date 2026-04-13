@@ -19,7 +19,7 @@ function getAudioPath(avatarId: string | null | undefined, message: string | nul
         .replace(/-+/g, '-')
         .replace(/^-|-$/g, '');
     
-    return `/assets/buddy-voices/${avatar}/${type}/${sanitizedMsg}.mp3`;
+    return `/assets/buddy-voices/${avatar}/${type}/${sanitizedMsg}.wav`;
 }
 
 export const BuddyView: React.FC<BuddyViewProps> = ({

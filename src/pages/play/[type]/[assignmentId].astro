@@ -56,7 +56,8 @@ if (type === 'escuta' || type === 'mrp') {
     initialConfig = {
         difficulty: rawConfig?.difficulty || 'Fácil',
         count: initialQuestions.length,
-        focus: rawConfig?.focus || 'Tradução Fiel'
+        focus: rawConfig?.focus || 'Tradução Fiel',
+        mode: rawConfig?.mode || (type === 'mrp' ? 'Múltipla Escolha' : undefined)
     };
 } else if (type === 'flashcards') {
     // No Destrave Cards, os cards estão dentro da config
@@ -64,6 +65,19 @@ if (type === 'escuta' || type === 'mrp') {
 }
 
 const teacherId = assignment.activities.teacher_id;
+
+// Busca perfil do professor para a "Intervenção do Sensei"
+const { data: teacherProfile } = await supabaseAdmin
+    .from('profiles')
+    .select('display_name, full_name, avatar_url, whatsapp')
+    .eq('id', teacherId)
+    .single();
+
+const senseiData = teacherProfile ? {
+    name: teacherProfile.display_name || teacherProfile.full_name || 'Sensei',
+    avatar: teacherProfile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${teacherId}`,
+    whatsapp: teacherProfile.whatsapp
+} : null;
 ---
 
 <Layout title={`Missão: ${assignment.activities.title}`}>
@@ -77,22 +91,28 @@ const teacherId = assignment.activities.teacher_id;
                     initialQuestions={initialQuestions} 
                     initialConfig={initialConfig} 
                     publicAccess={true}
-                    senseiWhatsapp={teacherId}
+                    senseiData={senseiData}
                 />
             )}
             {type === 'mrp' && (
                 <MrpApp 
                     client:only="react" 
                     assignmentId={isTest ? undefined : assignment.id} 
+                    activityId={assignment.activities.id} 
                     initialQuestions={initialQuestions} 
                     initialConfig={initialConfig}
                     publicAccess={true}
-                    senseiWhatsapp={teacherId}
+                    senseiData={senseiData}
                 />
             )}
             {type === 'flashcards' && (
                 <div class="max-w-xl mx-auto py-12">
-                    <CardViewer client:only="react" cards={flashcardsCards} senseiWhatsapp={teacherId} />
+                    <CardViewer 
+                        client:only="react" 
+                        cards={flashcardsCards} 
+                        senseiData={senseiData}
+                        activityId={assignment.activities.id} 
+                    />
                 </div>
             )}
         </div>

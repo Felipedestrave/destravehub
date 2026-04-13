@@ -7,6 +7,8 @@ import { ReviewStudio } from './ReviewStudio';
 import { RoleGuard } from '../shared/RoleGuard';
 import { CardViewer } from './CardViewer';
 import { ResultScreen } from '../escuta/ResultScreen';
+import { MaterialsDrawer } from '../materials/MaterialsDrawer';
+import { BookOpen } from 'lucide-react';
 import type { FlashcardStatus, FlashDeck, DeckConfig } from '../../types/flashcards';
 
 interface FlashcardsAppProps {
@@ -29,6 +31,7 @@ export const FlashcardsApp: React.FC<FlashcardsAppProps> = ({ userToken, assignm
     const [error, setError] = useState<string | null>(null);
     const [rewards, setRewards] = useState<any>(null);
     const [gameResult, setGameResult] = useState<any>(null);
+    const [isMaterialsOpen, setIsMaterialsOpen] = useState(false);
 
     const handleGenerate = async (config: DeckConfig) => {
         setIsGenerating(true);
@@ -185,10 +188,29 @@ export const FlashcardsApp: React.FC<FlashcardsAppProps> = ({ userToken, assignm
                 )}
 
                 {status === 'PLAYING' && deck && (
-                    <CardViewer 
-                        cards={deck.cards} 
-                        onFinish={handleFinishGame}
-                    />
+                    <>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 px-4 max-w-4xl mx-auto">
+                            <a 
+                                href="/dashboard" 
+                                className="inline-flex items-center gap-2 text-slate-mid hover:text-brand transition-colors font-outfit font-bold group"
+                            >
+                                <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                                Sair da Missão
+                            </a>
+                            <button 
+                                onClick={() => setIsMaterialsOpen(true)}
+                                className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-border rounded-xl font-outfit font-bold text-slate-dark hover:bg-ice transition-all shadow-sm group"
+                            >
+                                <BookOpen size={18} className="text-brand group-hover:scale-110 transition-transform" />
+                                <span>Materiais</span>
+                            </button>
+                        </div>
+                        <CardViewer 
+                            cards={deck.cards} 
+                            onFinish={handleFinishGame}
+                        />
+                        <MaterialsDrawer isOpen={isMaterialsOpen} onClose={() => setIsMaterialsOpen(false)} />
+                    </>
                 )}
 
                 {status === 'RESULT' && gameResult && (
