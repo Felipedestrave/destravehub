@@ -8,9 +8,20 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - [x] **Perfil do Sensei 2.0:** Cadastro completo (Bio, Especialidade, Nome de Exibição) e Upload de Foto com Cropper.
 - [x] **Conexão Imersiva:** Aluno agora vê foto e nome do professor no topo do dashboard.
 - [x] **Correção RLS:** Permissões de banco ajustadas para compartilhamento de perfil seguro.
-- **Status:** Perfil do Sensei concluído | Vozes do Buddy (81/90).
-- **Última Atualização:** 11/04/2026 (14:38h)
+- [x] **Infraestrutura SSR:** Adaptador Vercel configurado e deploy em produção realizado com sucesso.
+- **Status:** Deploy Vercel (OK) | Perfil do Sensei concluído | Vozes do Buddy (81/90).
+- **Última Atualização:** 14/04/2026 (15:05h)
 - **GitHub:** `https://github.com/Felipedestrave/destravehub.git` (Branch `main`)
+
+---
+
+### Fase 7: Infraestrutura & Produção (Vercel SSR) (14/04/2026) ✅
+- **Adaptação para Vercel**: Instalação e configuração do `@astrojs/vercel` (v10) para suporte total a SSR.
+- **Astro 6 Compatibility**: Atualização de dependências críticas para garantir compatibilidade entre Astro 6, React 19 e Vite 7.
+- **Pipeline de Deploy**: Sincronização via GitHub Action (Vercel Integration) com build e deploy automáticos.
+- **Configuração de Ambiente**: Validadas variáveis de ambiente (Supabase) no painel da Vercel para operação em produção.
+- **Build Server-Side**: O sistema agora opera 100% em modo `server`, permitindo rotas dinâmicas e maior segurança em operações de API.
+
 
 ---
 
