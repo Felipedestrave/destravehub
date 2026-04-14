@@ -9,7 +9,7 @@ interface GameScreenProps {
     mode: QuizMode;
     onComplete: (answers: MrpUserAnswer[]) => void;
     onTriggerBuddy?: (newState: BuddyState, type?: 'success' | 'error') => void;
-    senseiProfile?: { full_name: string; avatar_url: string | null } | null;
+    senseiProfile?: { full_name: string | null; avatar_url: string | null } | null;
 }
 
 const SENSEI_PHRASES = [
@@ -21,7 +21,6 @@ const SENSEI_PHRASES = [
 ];
 
 function normalizeForComparison(str: string): string {
-    // Remove parênteses e o conteúdo dentro (Romaji) para comparar apenas o japonês se necessário
     const clean = str.replace(/\(.*?\)/g, '');
     return clean.replace(/[\s\u3000\u3001\u3002,.?!！？]/g, '').toLowerCase().trim();
 }
@@ -32,7 +31,6 @@ function calculateSimilarity(s1: string, s2: string): number {
     if (!n1 || !n2) return 0;
     if (n1 === n2) return 1;
     
-    // Simples Jaccard ou Dice de bigramas ou apenas interseção de caracteres
     const set1 = new Set(n1.split(''));
     const set2 = new Set(n2.split(''));
     const intersection = new Set([...set1].filter(x => set2.has(x)));
@@ -67,6 +65,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ questions, mode, onCompl
             setShowHint(false);
             setCurrentInput('');
             setFeedback(null);
+            setDiscursiveStep('typing');
         } else {
             onComplete(userAnswers);
         }
@@ -80,25 +79,26 @@ export const GameScreen: React.FC<GameScreenProps> = ({ questions, mode, onCompl
         let feedbackText = '';
         let pointsEarned = 0;
 
-         if (mode === QuizMode.MULTIPLE_CHOICE) {
+        if (mode === QuizMode.MULTIPLE_CHOICE) {
             isCorrect = normalizeForComparison(answer) === normalizeForComparison(currentQuestion.correctAnswer);
             feedbackText = isCorrect
                 ? `✓ Correto! ${currentQuestion.explanation}`
                 : `Incorreto. A resposta era: ${currentQuestion.correctAnswer}. ${currentQuestion.explanation}`;
             
-            const pointsEarned = isCorrect ? pointsThisQuestion : 0;
+            pointsEarned = isCorrect ? pointsThisQuestion : 0;
             setScore((p) => p + pointsEarned);
             setFeedback({ isCorrect, text: feedbackText });
+            
             if (onTriggerBuddy) {
                 onTriggerBuddy(isCorrect ? 'success' : 'error', isCorrect ? 'success' : 'error');
             }
+            
             setUserAnswers((prev) => [
                 ...prev,
                 { questionId: currentQuestion.id, answer, usedHint: showHint, isCorrect, scoreEarned: pointsEarned },
             ]);
             setIsVerifying(false);
         } else {
-            // Discursive mode: Just transition to comparison
             setDiscursiveStep('comparing');
             setIsVerifying(false);
         }
@@ -107,11 +107,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({ questions, mode, onCompl
     const confirmDiscursiveAnswer = (isCorrect: boolean) => {
         const similarity = calculateSimilarity(currentInput, currentQuestion.correctAnswer);
         
-        // Anti-cheat warning
         if (isCorrect && similarity < 0.3) {
             const randomPhrase = SENSEI_PHRASES[Math.floor(Math.random() * SENSEI_PHRASES.length)];
             setSenseiWarning(randomPhrase);
-            // Don't block completion, just show the warning for 3 seconds
             setTimeout(() => setSenseiWarning(null), 4000);
         }
 
@@ -274,6 +272,32 @@ export const GameScreen: React.FC<GameScreenProps> = ({ questions, mode, onCompl
                 )}
 
                 {/* Feedback */}
+                {feedback && (
+                    <div className={`mrp-feedback-block ${feedback.isCorrect ? 'correct' : 'incorrect'}`}>
+                        <div className="mrp-feedback-header">
+                            {feedback.isCorrect ? (
+                                <CheckCircle2 size={24} className="mrp-feedback-icon correct" />
+                            ) : (
+                                <XCircle size={24} className="mrp-feedback-icon incorrect" />
+                            )}
+                            <span className={`mrp-feedback-label ${feedback.isCorrect ? 'correct' : 'incorrect'}`}>
+                                {feedback.isCorrect ? 'Excelente!' : 'Sem problemas!'}
+                            </span>
+                            {feedback.isCorrect && (
+                                <span className="mrp-feedback-points">+{pointsThisQuestion} pts</span>
+                            )}
+                        </div>
+                        <p className="mrp-feedback-text">{feedback.text}</p>
+                        
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+                            <button 
+                                onClick={handleNext}
+                                className="mrp-next-btn"
+                                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                            >
+                                Próxima <ChevronRight size={18} />
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>

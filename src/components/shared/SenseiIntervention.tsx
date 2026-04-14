@@ -92,7 +92,7 @@ export const SenseiIntervention: React.FC<SenseiInterventionProps> = ({
             {/* Detalhe Decorativo de Mangá */}
             <div className="absolute -bottom-2 -left-2 w-16 h-16 bg-brand/5 rounded-full blur-2xl -z-10"></div>
           </div>
-        </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );
