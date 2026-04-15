@@ -9,8 +9,8 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - [x] **Conexão Imersiva:** Aluno agora vê foto e nome do professor no topo do dashboard.
 - [x] **Correção RLS:** Permissões de banco ajustadas para compartilhamento de perfil seguro.
 - [x] **Infraestrutura SSR:** Adaptador Vercel configurado e deploy em produção realizado com sucesso.
-- **Status:** Deploy Vercel (OK) | Perfil do Sensei concluído | Vozes do Buddy (81/90).
-- **Última Atualização:** 14/04/2026 (15:05h)
+- **Status:** Deploy Vercel (OK) | Perfil do Sensei concluído | Vozes do Buddy (87/90) | Fix Navegação Global.
+- **Última Atualização:** 15/04/2026 (11:35h)
 - **GitHub:** `https://github.com/Felipedestrave/destravehub.git` (Branch `main`)
 
 ---
@@ -194,6 +194,18 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
   - **Fix de RLS**: Implementadas políticas de segurança no SQL para permitir que alunos visualizem os perfis dos professores.
   - **Sincronização de Tipos**: Atualizado `src/types/supabase.ts` para incluir as novas colunas de perfil, garantindo 0 erros de TypeScript.
   - **Ajuste Flashcards**: Escondido o cabeçalho administrativo da página Astro quando acessada como missão de aluno.
+
+
+  - **Fix Tipográfico**: Corrigido erro de pluralização "questãoões" para "questões" na Central de Atividades.
+  - **Navegação Inteligente**: Adicionado botão "Início/Dashboard" na TopBar global (DashboardLayout) para facilitar o retorno à página principal.
+  - **Audit de Vozes**: Verificados 87/90 áudios do Buddy gerados.
+  - **Upgrade Flashcards (UX & Metas)** (15/04/2026):
+    - **Fix de Layout**: Implementado `font-size` dinâmico (`clamp`) para evitar estouro de texto em cards com significados longos.
+    - **Confetes Epic**: Aumentada a intensidade da celebração (120 partículas) para cumprimento de alvos.
+    - **Metas do Professor**: Adicionada interface no "Review Studio" para o professor estabelecer Alvos de Acertos e Tempo antes de compartilhar.
+  - **Refinamento Central de Atividades** (15/04/2026):
+    - **Fix Z-Index**: Corrigido problema onde o menu de opções do card ficava atrás de outros cards.
+    - **Upload Direto**: Integrado botão de Upload no modal "Vincular Materiais", permitindo subir arquivos e vinculá-los instantaneamente à atividade sem trocar de página (Fix: Mapeamento de coluna `file_path`).
 
 ---
 

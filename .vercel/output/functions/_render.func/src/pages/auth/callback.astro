@@ -1,0 +1,81 @@
+---
+// Página de callback pós-confirmação de e-mail do Supabase.
+// O Supabase redireciona aqui com o token na URL (hash fragment).
+// Usamos o client-side para completar o processo de auth.
+---
+
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Confirmando acesso… — Destrave Hub</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: system-ui, sans-serif;
+        background: #F3F7FA;
+        color: #1E293B;
+      }
+      .box {
+        text-align: center;
+        padding: 2rem;
+      }
+      .spinner {
+        width: 48px; height: 48px;
+        border: 4px solid #E2E8F0;
+        border-top-color: #58317E;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin: 0 auto 1.5rem;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      h2 { margin: 0 0 0.5rem; font-size: 1.25rem; }
+      p  { margin: 0; color: #64748B; font-size: 0.9rem; }
+    </style>
+  </head>
+  <body>
+    <div class="box">
+      <div class="spinner"></div>
+      <h2>Confirmando sua conta…</h2>
+      <p>Aguarde, você será redirecionado em instantes.</p>
+    </div>
+
+    <script>
+      import { supabase } from '../../lib/supabase';
+
+      // Supabase Auth v2 coloca o token no hash da URL como #access_token=...
+      // O método exchangeCodeForSession trata automaticamente o PKCE também.
+      async function handleCallback() {
+        // Tenta recuperar a sessão a partir do token na URL
+        const { data, error } = await supabase.auth.getSession();
+
+        if (error) {
+          console.error('Callback auth error:', error.message);
+          window.location.href = '/auth/login?error=callback_failed';
+          return;
+        }
+
+        if (data.session) {
+          // Sessão já estabelecida via hash redirect — vai para o dashboard
+          window.location.href = '/dashboard';
+        } else {
+          // Fallback: aguarda um tick e tenta novamente (race condition rara)
+          setTimeout(async () => {
+            const { data: retryData } = await supabase.auth.getSession();
+            if (retryData.session) {
+              window.location.href = '/dashboard';
+            } else {
+              window.location.href = '/auth/login?message=email_confirmed';
+            }
+          }, 1500);
+        }
+      }
+
+      handleCallback();
+    </script>
+  </body>
+</html>

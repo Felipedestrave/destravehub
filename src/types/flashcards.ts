@@ -22,6 +22,8 @@ export interface FlashDeck {
     title: string;
     level: JLPTCardLevel;
     cards: Flashcard[];
+    targetScore?: number;
+    targetTime?: string; // Formato mm:ss
 }
 
 export interface DeckConfig {

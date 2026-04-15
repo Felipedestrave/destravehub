@@ -18,9 +18,11 @@ interface CardViewerProps {
     }) => void;
     senseiWhatsapp?: string | null;
     activityId?: string;
+    targetScore?: number;
+    targetTime?: string;
 }
 
-export const CardViewer: React.FC<CardViewerProps> = ({ cards, onFinish, senseiWhatsapp, activityId }) => {
+export const CardViewer: React.FC<CardViewerProps> = ({ cards, onFinish, senseiWhatsapp, activityId, targetScore: initialTargetScore, targetTime: initialTargetTime }) => {
     // ESTADOS
     const [status, setStatus] = useState<'SETUP' | 'PLAYING' | 'SUMMARY'>('SETUP');
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -60,8 +62,8 @@ export const CardViewer: React.FC<CardViewerProps> = ({ cards, onFinish, senseiW
         }, 2000);
     };
 
-    const [targetScore, setTargetScore] = useState(Math.ceil(cards.length * 0.75)); 
-    const [targetTimeStr, setTargetTimeStr] = useState('02:00');
+    const [targetScore, setTargetScore] = useState(initialTargetScore || Math.ceil(cards.length * 0.75)); 
+    const [targetTimeStr, setTargetTimeStr] = useState(initialTargetTime || '02:00');
 
     const currentCard = cards[currentIndex];
 
@@ -204,7 +206,7 @@ export const CardViewer: React.FC<CardViewerProps> = ({ cards, onFinish, senseiW
             <div className={`summary-card animation-bounce-in shadow-2xl bg-white border-2 rounded-[2.5rem] p-10 text-center max-w-lg mx-auto relative overflow-hidden ${isSuccess ? 'border-green-500/30 glow-success' : 'border-amber-500/30'}`}>
                 {isSuccess && (
                      <div className="confetti-container">
-                        {[...Array(30)].map((_, i) => <div key={i} className="confetti" />)}
+                        {[...Array(120)].map((_, i) => <div key={i} className="confetti" />)}
                      </div>
                 )}
 
@@ -314,7 +316,7 @@ export const CardViewer: React.FC<CardViewerProps> = ({ cards, onFinish, senseiW
 
                         <div className="card-back-main">
                             <div className="back-reading-white">{currentCard.reading}</div>
-                            <h2 className="back-meaning-white">{currentCard.back}</h2>
+                            <h2 className={`back-meaning-white ${currentCard.back.length > 30 ? 'text-small' : currentCard.back.length > 15 ? 'text-medium' : ''}`}>{currentCard.back}</h2>
 
                             <div className="example-box-dark">
                                 <span className="ex-label-white">Exemplo:</span>
@@ -408,19 +410,22 @@ export const CardViewer: React.FC<CardViewerProps> = ({ cards, onFinish, senseiW
             border-color: #4c2b6d;
         }
 
-        .kanji-text { font-family: 'Noto Sans JP', sans-serif; font-size: 5rem; font-weight: 900; margin: 0; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.05)); }
+        .kanji-text { font-family: 'Noto Sans JP', sans-serif; font-size: clamp(2rem, 12vw, 5rem); font-weight: 900; margin: 0; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.05)); word-break: break-all; }
         .reading-text { font-size: 1.1rem; color: var(--color-slate-mid); margin-top: 2rem; font-weight: 600; font-family: var(--font-outfit); opacity: 0.7; }
 
-        .back-reading-white { font-family: var(--font-inter); font-size: 1.4rem; color: rgba(255,255,255,0.7); margin-bottom: 0.5rem; letter-spacing: 0.05em; }
-        .back-meaning-white { font-family: var(--font-outfit); font-size: 3.5rem; font-weight: 900; color: white; margin: 0 0 1.5rem; filter: drop-shadow(0 5px 20px rgba(0,0,0,0.3)); }
+        .back-reading-white { font-family: var(--font-inter); font-size: 1.2rem; color: rgba(255,255,255,0.7); margin-bottom: 0.5rem; letter-spacing: 0.05em; }
+        .back-meaning-white { font-family: var(--font-outfit); font-size: clamp(1.5rem, 8vw, 3.5rem); font-weight: 900; color: white; margin: 0 0 1.5rem; filter: drop-shadow(0 5px 20px rgba(0,0,0,0.3)); line-height: 1.1; overflow-wrap: break-word; }
+        .back-meaning-white.text-medium { font-size: clamp(1.2rem, 6vw, 2.2rem); }
+        .back-meaning-white.text-small { font-size: clamp(1rem, 5vw, 1.5rem); }
 
         .example-box-dark {
-          background: rgba(255,255,255,0.07); border-radius: 2rem; padding: 2rem; text-align: left; width: 100%;
+          background: rgba(255,255,255,0.07); border-radius: 2rem; padding: 1.5rem; text-align: left; width: 100%;
           border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(15px);
+          max-height: 180px; overflow-y: auto;
         }
-        .ex-label-white { font-size: 0.75rem; font-weight: 900; color: #c4b5fd; text-transform: uppercase; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
-        .ex-jp-white { font-size: 1.2rem; color: white; margin: 0; line-height: 1.6; font-weight: 500; font-family: 'Noto Sans JP', sans-serif; }
-        .ex-pt-white { font-size: 1rem; color: rgba(255,255,255,0.5); margin: 0.75rem 0 0; font-family: var(--font-inter); }
+        .ex-label-white { font-size: 0.7rem; font-weight: 900; color: #c4b5fd; text-transform: uppercase; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem; }
+        .ex-jp-white { font-size: 1rem; color: white; margin: 0; line-height: 1.5; font-weight: 500; font-family: 'Noto Sans JP', sans-serif; }
+        .ex-pt-white { font-size: 0.85rem; color: rgba(255,255,255,0.5); margin: 0.5rem 0 0; font-family: var(--font-inter); }
         .card-instruction-white { position: absolute; bottom: 2rem; color: rgba(255,255,255,0.3); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
 
         /* SRS ACTIONS */
@@ -511,12 +516,12 @@ export const CardViewer: React.FC<CardViewerProps> = ({ cards, onFinish, senseiW
             0% { transform: translateY(0) rotate(0deg); opacity: 1; left: var(--left, 50%); }
             100% { transform: translateY(500px) rotate(720deg); opacity: 0; left: var(--left-end, 50%); }
         }
-        ${[...Array(30)].map((_, i) => `
+        ${[...Array(120)].map((_, i) => `
             .confetti:nth-child(${i+1}) { 
                 --left: ${Math.random() * 100}%; 
                 --left-end: ${Math.random() * 100 + (Math.random() - 0.5) * 20}%; 
-                animation-delay: ${Math.random() * 2}s;
-                animation-duration: ${2 + Math.random() * 2}s;
+                animation-delay: ${Math.random() * 2.5}s;
+                animation-duration: ${2.5 + Math.random() * 2}s;
             }
         `).join('')}
 

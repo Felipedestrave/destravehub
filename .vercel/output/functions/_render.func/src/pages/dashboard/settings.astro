@@ -1,0 +1,40 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import { SettingsPanel } from '../../components/dashboard/SettingsPanel';
+---
+
+<script>
+  import { supabase } from '../../lib/supabase';
+
+  // --- Auth logic ---
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    window.location.href = '/auth/login';
+  } else {
+    // Only teachers should see this page
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', session.user.id)
+      .single();
+
+    if (profile?.role === 'student') {
+      window.location.href = '/dashboard';
+    } else {
+      document.getElementById('teacher-view')?.classList.remove('hidden');
+    }
+  }
+</script>
+
+<DashboardLayout title="Configurações | Destrave Hub" activeNav="settings">
+    <div id="teacher-view" class="hidden">
+        <div class="px-8 py-10 max-w-7xl mx-auto">
+            <header class="mb-8">
+                <h1 class="font-outfit text-3xl font-extrabold text-slate-dark mb-2">Configurações Gerais ⚙️</h1>
+                <p class="text-slate-mid font-medium mb-8 font-inter">Gerencie as informações do seu perfil e configurações de contato.</p>
+            </header>
+
+            <SettingsPanel client:load />
+        </div>
+    </div>
+</DashboardLayout>

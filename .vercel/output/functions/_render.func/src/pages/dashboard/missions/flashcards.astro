@@ -1,0 +1,86 @@
+---
+import DashboardLayout from '../../../layouts/DashboardLayout.astro';
+import { FlashcardsApp } from '../../../components/flashcards/FlashcardsApp.tsx';
+import { supabaseAdmin } from '../../../lib/supabase-admin';
+
+const assignmentId = Astro.url.searchParams.get('assignment');
+const editingId = Astro.url.searchParams.get('edit');
+let initialDeck = undefined;
+let initialTitle = 'Missão de Flashcards';
+
+if (assignmentId) {
+    const { data: assignment } = await supabaseAdmin
+        .from('assignments')
+        .select('*, activities(*)')
+        .eq('id', assignmentId)
+        .single();
+    if (assignment && assignment.activities) {
+        initialDeck = assignment.activities.config as any;
+        initialTitle = assignment.activities.title;
+    }
+}
+
+if (editingId) {
+    const { data: activity } = await supabaseAdmin
+        .from('activities')
+        .select('*')
+        .eq('id', editingId)
+        .single();
+    if (activity) {
+        initialDeck = activity.config as any;
+    }
+}
+---
+
+<DashboardLayout title="Destrave Cards" activeNav="flashcards">
+  {!assignmentId && (
+    <div class="page-header">
+      <div class="breadcrumb">
+        <a href="/dashboard">Dashboard</a>
+        <span class="separator">/</span>
+        <span class="current">Destrave Cards</span>
+      </div>
+      <div class="title-section">
+        <h1 class="page-title">Destrave Cards 🃏</h1>
+        <p class="page-subtitle">
+          Gere decks personalizados com IA e aprove cada card antes de enviar ao seu aluno.
+        </p>
+      </div>
+    </div>
+  )}
+
+  <FlashcardsApp 
+    client:only="react" 
+    assignmentId={assignmentId || undefined} 
+    editingId={editingId || undefined} 
+    initialDeck={initialDeck} 
+    initialTitle={initialTitle}
+  />
+</DashboardLayout>
+
+<style>
+  .page-header { margin-bottom: 2rem; }
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-slate-mid);
+    margin-bottom: 1rem;
+  }
+  .breadcrumb a { color: var(--color-slate-mid); text-decoration: none; transition: color 150ms ease; }
+  .breadcrumb a:hover { color: var(--color-brand); }
+  .breadcrumb .separator { color: var(--color-slate-border); }
+  .breadcrumb .current { color: var(--color-slate-dark); }
+  .title-section { display: flex; flex-direction: column; gap: 0.25rem; }
+  .page-title {
+    font-family: var(--font-outfit);
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: var(--color-slate-dark);
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+  .page-subtitle { font-size: 1.1rem; color: var(--color-slate-mid); margin: 0; font-weight: 400; }
+</style>

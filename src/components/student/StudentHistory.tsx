@@ -27,20 +27,43 @@ export const StudentHistory: React.FC = () => {
       setProfile(profileData);
 
       // 2. Find student record to get ID
-      const { data: studentRecord } = await supabase
+      const { data: studentRecord, error: studentError } = await supabase
         .from('students')
         .select('id')
         .eq('student_id', session.user.id)
         .single();
 
+      if (studentError) {
+        console.warn('Student record not found for this user:', studentError);
+        return;
+      }
+
       if (studentRecord) {
         const logData = await lessonLogService.listForStudent(studentRecord.id);
+        console.log('Logs found for student:', logData.length);
         setLogs(logData);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching history:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const parseNotes = (notes: string | null) => {
+    if (!notes) return { summary: '', engagement: '', plan: '' };
+    try {
+      if (notes.startsWith('{')) {
+        const parsed = JSON.parse(notes);
+        return {
+          summary: parsed.general_notes || '',
+          engagement: parsed.engagement || '',
+          plan: parsed.next_class_plan || ''
+        };
+      }
+      return { summary: notes, engagement: '', plan: '' };
+    } catch {
+      return { summary: notes, engagement: '', plan: '' };
     }
   };
 
@@ -82,35 +105,53 @@ export const StudentHistory: React.FC = () => {
             <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-slate-100 hidden sm:block" />
             
             <div className="space-y-8">
-              {logs.map(log => (
-                <div key={log.id} className="relative sm:pl-20">
-                  {/* Timeline dot */}
-                  <div className="absolute left-[29px] top-2 w-3 h-3 rounded-full bg-brand border-4 border-white shadow-sm z-10 hidden sm:block" />
-                  
-                  <div className="bg-white rounded-2xl border-2 border-slate-border p-6 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex items-center gap-2 text-slate-mid text-xs font-bold mb-4">
-                        <Calendar size={14} />
-                        {new Date(log.date).toLocaleDateString('pt-BR')}
-                    </div>
-
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {log.topics.map((t, idx) => (
-                        <span key={idx} className="bg-brand/5 text-brand text-[10px] uppercase font-black px-2 py-1 rounded border border-brand/10">
-                          {t}
-                        </span>
-                      ))}
-                    </div>
-
-                    {log.notes && (
-                      <div className="p-4 bg-ice rounded-xl border border-slate-border/50">
-                        <p className="text-slate-dark text-sm leading-relaxed">
-                          {log.notes}
-                        </p>
+              {logs.map(log => {
+                const { summary, engagement, plan } = parseNotes(log.notes);
+                return (
+                  <div key={log.id} className="relative sm:pl-20">
+                    {/* Timeline dot */}
+                    <div className="absolute left-[29px] top-2 w-3 h-3 rounded-full bg-brand border-4 border-white shadow-sm z-10 hidden sm:block" />
+                    
+                    <div className="bg-white rounded-3xl border-2 border-slate-border p-6 shadow-sm hover:shadow-md transition-all">
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex items-center gap-2 text-slate-mid text-xs font-bold">
+                            <Calendar size={14} />
+                            {new Date(log.created_at).toLocaleDateString('pt-BR')}
+                        </div>
+                        {engagement && (
+                          <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-full ${
+                             engagement === 'alto' ? 'bg-green-100 text-green-700' :
+                             engagement === 'médio' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
+                          }`}>
+                            Engajamento {engagement}
+                          </span>
+                        )}
                       </div>
-                    )}
+
+                      <h3 className="font-outfit text-xl font-black text-slate-dark mb-2">{log.topics}</h3>
+
+                      {summary && (
+                        <div className="p-4 bg-ice rounded-2xl border border-slate-border/50 mb-4">
+                          <p className="text-slate-dark text-sm leading-relaxed whitespace-pre-line">
+                            {summary}
+                          </p>
+                        </div>
+                      )}
+
+                      {plan && (
+                        <div className="p-4 bg-brand/5 rounded-2xl border border-brand/20">
+                          <h4 className="text-brand font-black text-[10px] uppercase mb-2 flex items-center gap-1">
+                            <Target size={12} /> Plano para a próxima aula
+                          </h4>
+                          <p className="text-slate-dark text-sm leading-relaxed italic">
+                            {plan}
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

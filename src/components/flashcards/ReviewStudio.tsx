@@ -12,6 +12,8 @@ interface ReviewStudioProps {
 export const ReviewStudio: React.FC<ReviewStudioProps> = ({ deck, onApprove, onCancel, isSaving }) => {
     const [cards, setCards] = useState<Flashcard[]>(deck.cards);
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [targetScore, setTargetScore] = useState(deck.targetScore || Math.ceil(deck.cards.length * 0.75));
+    const [targetTime, setTargetTime] = useState(deck.targetTime || '02:00');
 
     const handleUpdateCard = (id: string, updates: Partial<Flashcard>) => {
         setCards(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
@@ -46,14 +48,34 @@ export const ReviewStudio: React.FC<ReviewStudioProps> = ({ deck, onApprove, onC
                 <div className="review-actions">
                     <button onClick={onCancel} className="btn-cancel">Descartar</button>
                     <button
-                        onClick={() => onApprove({ ...deck, cards })}
+                        onClick={() => onApprove({ ...deck, cards, targetScore, targetTime })}
                         disabled={isSaving || cards.length === 0}
                         className="btn-approve"
                     >
-                        {isSaving ? <div className="flash-spinner" /> : <><CheckCircle2 size={18} /> Aprovar e Salvar</>}
+                        {isSaving ? <div className="flash-spinner sm" /> : <><CheckCircle2 size={18} /> Aprovar e Salvar</>}
                     </button>
                 </div>
             </header>
+
+            <div className="review-targets-box">
+                <div className="target-field">
+                    <label>Alvo de Acertos</label>
+                    <div className="target-input-wrap">
+                        <input type="number" value={targetScore} onChange={e => setTargetScore(Number(e.target.value))} />
+                        <span>/ {cards.length}</span>
+                    </div>
+                </div>
+                <div className="target-field">
+                    <label>Tempo Alvo</label>
+                    <div className="target-input-wrap">
+                        <input type="text" value={targetTime} onChange={e => setTargetTime(e.target.value)} placeholder="mm:ss" />
+                    </div>
+                </div>
+                <div className="target-info">
+                    <AlertCircle size={16} />
+                    <span>Estas metas serão exibidas para o aluno no início da missão.</span>
+                </div>
+            </div>
 
             <div className="review-grid">
                 <button className="add-card-dash" onClick={handleAddCard}>
@@ -200,6 +222,23 @@ export const ReviewStudio: React.FC<ReviewStudioProps> = ({ deck, onApprove, onC
           cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
         }
         
+        /* TARGETS */
+        .review-targets-box {
+            background: white; border: 1.5px solid var(--color-slate-border); border-radius: 1.5rem;
+            padding: 1.5rem 2rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 3rem; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        }
+        .target-field { display: flex; flex-direction: column; gap: 0.5rem; }
+        .target-field label { font-family: var(--font-outfit); font-weight: 800; font-size: 0.75rem; color: var(--color-slate-mid); text-transform: uppercase; letter-spacing: 0.05em; }
+        .target-input-wrap { display: flex; align-items: center; gap: 0.5rem; }
+        .target-input-wrap input { width: 80px; border: 2px solid var(--color-slate-border); border-radius: 0.75rem; padding: 0.5rem; font-family: var(--font-outfit); font-weight: 800; font-size: 1rem; color: var(--color-brand); text-align: center; outline: none; transition: border-color 0.2s; }
+        .target-input-wrap input:focus { border-color: var(--color-brand); }
+        .target-input-wrap span { font-weight: 700; color: var(--color-slate-mid); font-size: 0.9rem; }
+        .target-info { margin-left: auto; display: flex; align-items: center; gap: 0.5rem; color: var(--color-slate-mid); font-size: 0.85rem; font-weight: 500; font-style: italic; max-width: 200px; line-height: 1.3; }
+
+        .flash-spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: f-spin 0.6s linear infinite; }
+        @keyframes f-spin { to { transform: rotate(360deg); } }
+
         @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
         </div>

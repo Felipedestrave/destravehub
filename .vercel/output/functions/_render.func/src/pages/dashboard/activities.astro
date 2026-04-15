@@ -1,0 +1,32 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import ActivitiesPanel from '../../components/activities/ActivitiesPanel.tsx';
+---
+
+<DashboardLayout title="Central de Atividades — Destrave Hub" activeNav="activities">
+  <div class="page-header">
+    <div class="breadcrumb">
+      <a href="/dashboard">Dashboard</a>
+      <span class="separator">/</span>
+      <span class="current">Central de Atividades</span>
+    </div>
+  </div>
+  <ActivitiesPanel client:load />
+</DashboardLayout>
+
+<style>
+  .page-header { margin-bottom: 0.5rem; }
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-slate-mid);
+    margin-bottom: 1.5rem;
+  }
+  .breadcrumb a { color: var(--color-slate-mid); text-decoration: none; transition: color 150ms ease; }
+  .breadcrumb a:hover { color: var(--color-brand); }
+  .breadcrumb .separator { color: var(--color-slate-border); }
+  .breadcrumb .current { color: var(--color-slate-dark); }
+</style>

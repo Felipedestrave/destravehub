@@ -1,0 +1,73 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+import StudentList from '../components/dashboard/StudentList';
+import RecentActivity from '../components/dashboard/RecentActivity';
+import MissionList from '../components/student/MissionList';
+import { AgendaView } from '../components/student/AgendaView';
+import { User } from 'lucide-react';
+---
+
+<script>
+  import { supabase } from '../lib/supabase';
+
+  // --- Auth logic ---
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    window.location.href = '/auth/login';
+  } else {
+    // Fetch profile
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', session.user.id)
+      .single();
+
+    const teacherView = document.getElementById('teacher-view');
+    const studentView = document.getElementById('student-view');
+
+    if (profile?.role === 'student') {
+      teacherView?.remove(); // More efficient than hidden
+      studentView?.classList.remove('hidden');
+    } else {
+      teacherView?.classList.remove('hidden');
+      studentView?.remove();
+    }
+  }
+</script>
+
+<DashboardLayout title="Dashboard — Destrave Hub" activeNav="students">
+  <div id="teacher-view" class="hidden">
+    <div class="max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <header class="mb-8">
+        <h1 class="font-outfit text-3xl font-black text-slate-dark tracking-tight">Painel do Professor 🍎</h1>
+        <p class="text-slate-mid mt-1 font-medium leading-relaxed">Gerencie seus alunos e acompanhe o progresso das missões em tempo real.</p>
+      </header>
+
+      <RecentActivity client:load />
+
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-10 h-10 bg-brand rounded-xl flex items-center justify-center shadow-lg shadow-brand/20">
+          <User className="text-white" size={20} />
+        </div>
+        <div>
+          <h2 class="font-outfit font-bold text-slate-dark text-xl leading-none">Meus Alunos</h2>
+          <p class="text-slate-mid text-xs font-bold uppercase tracking-wider mt-1">Lista Completa</p>
+        </div>
+      </div>
+      <StudentList client:load />
+    </div>
+  </div>
+
+  <div id="student-view" class="hidden">
+    <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div class="lg:col-span-3">
+          <MissionList client:load />
+        </div>
+        <div class="lg:col-span-1">
+          <AgendaView client:load />
+        </div>
+      </div>
+    </div>
+  </div>
+</DashboardLayout>

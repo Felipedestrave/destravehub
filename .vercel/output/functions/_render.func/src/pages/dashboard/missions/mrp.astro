@@ -1,0 +1,119 @@
+---
+import DashboardLayout from '../../../layouts/DashboardLayout.astro';
+import { MrpApp } from '../../../components/mrp/MrpApp.tsx';
+import { supabaseAdmin } from '../../../lib/supabase-admin';
+
+const assignmentId = Astro.url.searchParams.get('assignment');
+const editingId = Astro.url.searchParams.get('edit');
+let initialQuestions = undefined;
+let initialConfig = undefined;
+let initialTitle = undefined;
+
+if (assignmentId) {
+    console.log('[MRP Mission] Loading assignment:', assignmentId);
+    const { data: assignment, error } = await supabaseAdmin
+        .from('assignments')
+        .select('*, activities(*)')
+        .eq('id', assignmentId)
+        .single();
+    
+    if (error) {
+        console.error('[MRP Mission] DB Fetch Error:', error);
+    }
+
+    if (assignment && assignment.activities) {
+        console.log('[MRP Mission] Found activity:', assignment.activities.title);
+        const rawConfig = assignment.activities.config as any;
+        initialTitle = assignment.activities.title;
+        
+        // Handle both old (just questions array) and new (object with fields) formats
+        const questions = Array.isArray(rawConfig) ? rawConfig : (rawConfig?.questions || []);
+        console.log('[MRP Mission] Questions found:', questions.length);
+
+        if (Array.isArray(questions) && questions.length > 0) {
+            initialQuestions = questions;
+            initialConfig = {
+               context: rawConfig.context || (typeof rawConfig.context === 'string' ? rawConfig.context : ''),
+               quantity: questions.length,
+               level: rawConfig.level || 'N5',
+               mode: rawConfig.mode || 'Múltipla Escolha'
+            };
+        } else {
+            console.error('[MRP Mission] CRITICAL: No questions in config!', rawConfig);
+        }
+    } else {
+        console.error('[MRP Mission] Assignment or Activity not found!');
+    }
+}
+
+if (editingId) {
+    const { data: activity } = await supabaseAdmin
+        .from('activities')
+        .select('*')
+        .eq('id', editingId)
+        .single();
+    
+    if (activity) {
+        const rawConfig = activity.config as any;
+        initialTitle = activity.title;
+        initialQuestions = Array.isArray(rawConfig) ? rawConfig : (rawConfig?.questions || []);
+        initialConfig = {
+            context: rawConfig.context || '',
+            quantity: initialQuestions.length,
+            level: rawConfig.level || 'N5',
+            mode: rawConfig.mode || 'Múltipla Escolha'
+        };
+    }
+}
+---
+
+<DashboardLayout title="Destrave MRP — Mini Role Play" activeNav="mrp">
+  <div class="page-header">
+    <div class="breadcrumb">
+      <a href="/dashboard">Dashboard</a>
+      <span class="separator">/</span>
+      <span class="current">Destrave MRP</span>
+    </div>
+    <div class="title-section">
+      <h1 class="page-title">Destrave MRP 🎭</h1>
+      <p class="page-subtitle">
+        Transforme qualquer texto em cenários de Mini Role Play com avaliação de polidez via IA.
+      </p>
+    </div>
+  </div>
+
+  <MrpApp 
+    client:only="react" 
+    initialConfig={initialConfig as any} 
+    initialQuestions={initialQuestions} 
+    editingId={editingId || undefined}
+    assignmentId={assignmentId || undefined}
+    initialTitle={initialTitle}
+  />
+</DashboardLayout>
+
+<style>
+  .page-header { margin-bottom: 1.5rem; }
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-slate-mid);
+    margin-bottom: 1rem;
+  }
+  .breadcrumb a { color: var(--color-slate-mid); text-decoration: none; transition: color 150ms ease; }
+  .breadcrumb a:hover { color: var(--color-brand); }
+  .breadcrumb .separator { color: var(--color-slate-border); }
+  .breadcrumb .current { color: var(--color-slate-dark); }
+  .title-section { display: flex; flex-direction: column; gap: 0.25rem; }
+  .page-title {
+    font-family: var(--font-outfit);
+    font-size: 1.875rem;
+    font-weight: 800;
+    color: var(--color-slate-dark);
+    margin: 0;
+  }
+  .page-subtitle { font-size: 1rem; color: var(--color-slate-mid); margin: 0; }
+</style>

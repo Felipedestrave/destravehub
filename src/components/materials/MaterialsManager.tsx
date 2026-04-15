@@ -49,7 +49,7 @@ export const MaterialsManager: React.FC = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState<string>('all');
+  const [selectedStudent, setSelectedStudent] = useState<string>('private');
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -123,7 +123,34 @@ export const MaterialsManager: React.FC = () => {
           .single();
 
         if (studentInfo) {
-          query = query.or(`student_id.eq.${studentInfo.id},student_id.is.null`)
+          // 1. Get IDs of activities assigned to this student
+          const { data: assignments } = await supabase
+            .from('assignments')
+            .select('activity_id')
+            .eq('student_id', studentInfo.id);
+          
+          const assignedIds = assignments?.map(a => a.activity_id) || [];
+
+          // 2. Get IDs of materials linked via junction table
+          let linkedIds: string[] = [];
+          if (assignedIds.length > 0) {
+            const { data: links } = await supabase
+              .from('activity_materials')
+              .select('material_id')
+              .in('activity_id', assignedIds);
+            linkedIds = links?.map(l => l.material_id) || [];
+          }
+
+          // 3. Build OR filter: Direct share OR Linked to activity OR Assigned in junction
+          let orConditions = [`student_id.eq.${studentInfo.id}`];
+          if (assignedIds.length > 0) {
+            orConditions.push(`activity_id.in.(${assignedIds.join(',')})`);
+          }
+          if (linkedIds.length > 0) {
+            orConditions.push(`id.in.(${linkedIds.map(id => `"${id}"`).join(',')})`);
+          }
+
+          query = query.or(orConditions.join(','))
                        .eq('teacher_id', actualTeacherId);
         }
       }
@@ -179,7 +206,7 @@ export const MaterialsManager: React.FC = () => {
           name: file.name,
           file_path: filePath,
           teacher_id: user.id,
-          student_id: selectedStudent === 'all' ? null : selectedStudent,
+          student_id: selectedStudent === 'private' ? null : selectedStudent,
           folder_id: currentFolderId,
           type: fileExt?.toLowerCase() === 'pdf' ? 'pdf' : 'image'
         });
@@ -342,9 +369,9 @@ export const MaterialsManager: React.FC = () => {
               onChange={(e) => setSelectedStudent(e.target.value)}
               className="student-select"
             >
-              <option value="all">Para todos os alunos</option>
+              <option value="private">🔒 Apenas Eu (Privado)</option>
               {students.map(s => (
-                <option key={s.id} value={s.id}>Exclusivo: {s.name}</option>
+                <option key={s.id} value={s.id}>👤 Para: {s.name}</option>
               ))}
             </select>
             
@@ -447,8 +474,10 @@ export const MaterialsManager: React.FC = () => {
                   {material.activities?.title && (
                     <span className="mission-badge">📎 {material.activities.title}</span>
                   )}
-                  {material.student_id && (
-                    <span className="student-badge">👤 Privado</span>
+                  {material.student_id ? (
+                    <span className="student-badge shared">👤 Compartilhado</span>
+                  ) : (
+                    <span className="student-badge private">🔒 Privado</span>
                   )}
                 </div>
               </div>

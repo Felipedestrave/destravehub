@@ -75,14 +75,14 @@ export const MaterialsDrawer: React.FC<Props> = ({ isOpen, onClose, activityId }
         .eq('teacher_id', actualTeacherId)
         .order('created_at', { ascending: false });
 
-      // Filtro de Aluno (se não for professor)
-      if (!isTeacher && studentInternalId) {
-        query = query.or(`student_id.eq.${studentInternalId},student_id.is.null`);
+      // Filtro de Aluno (se não for professor e não houver atividade específica)
+      if (!isTeacher && studentInternalId && !activityId) {
+        query = query.eq('student_id', studentInternalId);
       }
 
       // NOVO: Filtro de Atividade (Contexto)
       if (activityId) {
-        const orConditions = [`activity_id.eq.${activityId}`, `activity_id.is.null`];
+        const orConditions = [`activity_id.eq.${activityId}`];
         if (linkedIds.length > 0) {
             orConditions.push(`id.in.(${linkedIds.map(id => `"${id}"`).join(',')})`);
         }

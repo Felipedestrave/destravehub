@@ -1,0 +1,240 @@
+{
+	"version": 3,
+	"routes": [
+		{
+			"handle": "filesystem"
+		},
+		{
+			"src": "^/_astro/(.*)$",
+			"headers": {
+				"cache-control": "public, max-age=31536000, immutable"
+			},
+			"continue": true
+		},
+		{
+			"src": "^/_server-islands/([^/]+?)/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/_image/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/activities/assign/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/activities/delete/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/activities/duplicate/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/activities/list/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/activities/save/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/activities/share-experimental/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/activities/update/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/create-student/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/ai/dictionary/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/ai/tts/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/contact/sensei/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/debug/profile/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/flashcards/generate-deck/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/flashcards/save-deck/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/leads/capture/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/missions/generate-audio/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/missions/generate-questions/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/missions/save-result/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/mrp/generate-questions/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/mrp/save-result/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/mrp/validate-answer/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/store/equip/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/store/purchase/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/student/missions/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/teacher/recent-activity/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/auth/callback/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/auth/login/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/auth/register/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/convite/([^/]+?)/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/dashboard/activities/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/dashboard/buddy-test/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/dashboard/calendar/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/dashboard/history/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/dashboard/inventory/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/dashboard/leads/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/dashboard/materials/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/dashboard/missions/escuta/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/dashboard/missions/flashcards/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/dashboard/missions/mrp/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/dashboard/settings/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/dashboard/store/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/dashboard/students/new/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/dashboard/students/success/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/dashboard/students/([^/]+?)/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/dashboard/themes-test/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/dashboard/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/draw/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/play/([^/]+?)/([^/]+?)/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/share/completed/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/share/expired/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/share/([^/]+?)/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/404/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/.*$",
+			"dest": "_render",
+			"status": 404
+		}
+	]
+}

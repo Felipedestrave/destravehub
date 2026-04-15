@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Search, FileText, Check, X, Loader2, BookOpen } from 'lucide-react';
+import { Search, FileText, Check, X, Loader2, BookOpen, Upload, Plus } from 'lucide-react';
 
 interface Material {
     id: string;
@@ -20,6 +20,8 @@ export const MaterialLinkModal: React.FC<MaterialLinkModalProps> = ({ activityId
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [search, setSearch] = useState('');
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         const fetchMaterials = async () => {
@@ -86,11 +88,61 @@ export const MaterialLinkModal: React.FC<MaterialLinkModalProps> = ({ activityId
             }
 
             onClose();
-        } catch (err) {
-            console.error('Error saving links:', err);
-            alert('Erro ao salvar vínculos.');
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleUploadClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploading(true);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error("Sessão expirada");
+
+            // 1. Storage Upload
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+            const filePath = `${session.user.id}/${fileName}`;
+
+            const { error: upErr } = await supabase.storage
+                .from('materials')
+                .upload(filePath, file);
+
+            if (upErr) throw upErr;
+
+            // 2. Database Record
+            const { data: newMat, error: dbErr } = await supabase
+                .from('materials')
+                .insert({
+                    name: file.name,
+                    type: fileExt || 'doc',
+                    file_path: filePath,
+                    teacher_id: session.user.id
+                })
+                .select()
+                .single();
+
+            if (dbErr) throw dbErr;
+
+            // 3. UI Update
+            setMaterials(prev => [newMat, ...prev]);
+            setSelectedIds(prev => new Set([...prev, newMat.id]));
+            
+            // Limpa o input para novos uploads do mesmo arquivo (se necessário)
+            if (fileInputRef.current) fileInputRef.current.value = '';
+
+        } catch (err: any) {
+            console.error('[Upload Error]', err);
+            alert('Falha ao subir arquivo: ' + (err.message || 'Erro desconhecido'));
+        } finally {
+            setUploading(false);
         }
     };
 
@@ -109,14 +161,33 @@ export const MaterialLinkModal: React.FC<MaterialLinkModalProps> = ({ activityId
                     <button className="mlm-close" onClick={onClose}><X size={20} /></button>
                 </header>
 
-                <div className="mlm-search-container">
-                    <Search className="mlm-search-icon" size={18} />
+                <div className="mlm-top-actions">
+                    <div className="mlm-search-container">
+                        <Search className="mlm-search-icon" size={18} />
+                        <input 
+                            type="text" 
+                            placeholder="Buscar material..." 
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            className="mlm-search-input"
+                        />
+                    </div>
+                    
+                    <button 
+                        className="mlm-btn-upload" 
+                        onClick={handleUploadClick}
+                        disabled={uploading}
+                    >
+                        {uploading ? <Loader2 size={16} className="mlm-spinner" /> : <Upload size={16} />}
+                        <span>Upload</span>
+                    </button>
+                    
                     <input 
-                        type="text" 
-                        placeholder="Buscar material..." 
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        className="mlm-search-input"
+                        type="file" 
+                        ref={fileInputRef} 
+                        onChange={onFileChange} 
+                        style={{ display: 'none' }} 
+                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.mp3"
                     />
                 </div>
 
@@ -180,10 +251,20 @@ export const MaterialLinkModal: React.FC<MaterialLinkModalProps> = ({ activityId
                     .mlm-close { background: var(--color-ice); border: none; border-radius: 0.75rem; width: 36px; height: 36px; cursor: pointer; color: var(--color-slate-mid); display: flex; align-items: center; justify-content: center; transition: 0.2s; }
                     .mlm-close:hover { background: #e2e8f0; color: var(--color-slate-dark); }
                     
-                    .mlm-search-container { padding: 1rem 1.75rem; position: relative; }
-                    .mlm-search-icon { position: absolute; left: 2.5rem; top: 50%; transform: translateY(-50%); color: var(--color-slate-mid); }
+                    .mlm-search-container { flex: 1; position: relative; }
+                    .mlm-search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--color-slate-mid); }
                     .mlm-search-input { width: 100%; padding: 0.75rem 1rem 0.75rem 2.75rem; border: 1.5px solid var(--color-slate-border); border-radius: 1rem; font-family: var(--font-inter); font-size: 0.9rem; outline: none; transition: 0.2s; }
                     .mlm-search-input:focus { border-color: var(--color-brand); box-shadow: 0 0 0 3px rgba(88,49,126,0.1); }
+
+                    .mlm-top-actions { padding: 1rem 1.75rem; display: flex; gap: 0.75rem; align-items: center; border-bottom: 1px solid #f1f5f9; }
+                    .mlm-btn-upload {
+                        display: flex; align-items: center; gap: 0.6rem; padding: 0.75rem 1.25rem;
+                        background: var(--color-ice); border: 1.5px solid var(--color-slate-border);
+                        border-radius: 1rem; color: var(--color-brand); font-family: var(--font-outfit);
+                        font-weight: 800; font-size: 0.85rem; cursor: pointer; transition: 0.2s;
+                    }
+                    .mlm-btn-upload:hover { background: white; border-color: var(--color-brand); transform: translateY(-1px); }
+                    .mlm-btn-upload:disabled { opacity: 0.6; cursor: not-allowed; }
                     
                     .mlm-content { flex: 1; overflow-y: auto; padding: 0 1.75rem 1.5rem; min-height: 200px; }
                     .mlm-loading, .mlm-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 3rem 1rem; text-align: center; }

@@ -268,10 +268,10 @@ export default function ActivitiesPanel() {
             baseSub = `${count} card${count !== 1 ? 's' : ''} • Nível ${cfg.level ?? '—'}`;
         } else if (a.type === 'escuta') {
             const count = cfg.questions?.length || 0;
-            baseSub = `${count} questão${count !== 1 ? 'ões' : 'ão'}`;
+            baseSub = `${count} ${count !== 1 ? 'questões' : 'questão'}`;
         } else if (a.type === 'mrp') {
             const count = cfg.questions?.length || 0;
-            baseSub = `${count} questão${count !== 1 ? 'ões' : 'ão'} • Nível ${cfg.level ?? '—'}`;
+            baseSub = `${count} ${count !== 1 ? 'questões' : 'questão'} • Nível ${cfg.level ?? '—'}`;
         }
         
         const matCount = a.material_count?.[0]?.count || 0;
@@ -316,7 +316,11 @@ export default function ActivitiesPanel() {
                     {activities.map((a) => {
                         const meta = TYPE_LABELS[a.type] ?? { icon: '📄', label: a.type, color: '#64748b' };
                         return (
-                            <div className="ap-card" key={a.id}>
+                            <div 
+                                className="ap-card" 
+                                key={a.id}
+                                style={{ zIndex: activeMenuId === a.id ? 101 : 1 }}
+                            >
                                 <div className="ap-card-top">
                                     <span className="ap-type-pill" style={{ background: `${meta.color}18`, color: meta.color }}>
                                         {meta.icon} {meta.label}

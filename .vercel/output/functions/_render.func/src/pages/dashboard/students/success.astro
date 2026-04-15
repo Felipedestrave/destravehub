@@ -1,0 +1,176 @@
+---
+import DashboardLayout from '../../../layouts/DashboardLayout.astro';
+
+// Get credentials from URL params for display only
+const url = new URL(Astro.request.url);
+const name = url.searchParams.get('name') || 'Aluno';
+const email = url.searchParams.get('email') || '';
+const password = url.searchParams.get('password') || '';
+---
+
+<DashboardLayout title="Aluno Cadastrado! — Destrave Hub" activeNav="students">
+  <div class="success-container">
+    <div class="success-card">
+      <div class="success-icon">🎉</div>
+      <h1 class="success-title">Conta Criada!</h1>
+      <p class="success-message">Você acabou de cadastrar <strong>{name}</strong> como seu aluno oficial.</p>
+      
+      <div class="credentials-box">
+        <p class="credentials-label">Dados de Acesso para o Aluno:</p>
+        
+        <div class="credential-row">
+          <span class="row-label">E-mail:</span>
+          <code class="row-value">{email}</code>
+        </div>
+        
+        <div class="credential-row">
+          <span class="row-label">Senha Inicial:</span>
+          <code class="row-value">{password}</code>
+        </div>
+        
+        <button id="copy-btn" class="copy-btn" data-email={email} data-password={password}>
+          Copiar Dados para o WhatsApp
+        </button>
+      </div>
+
+      <div class="success-actions">
+        <a href="/dashboard" class="btn-primary">Ir para Dashboard</a>
+        <a href="/dashboard/students/new" class="btn-ghost">+ Cadastrar Outro</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const copyBtn = document.getElementById('copy-btn');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', () => {
+        const email = copyBtn.getAttribute('data-email');
+        const password = copyBtn.getAttribute('data-password');
+        const text = `🎉 Olá! Sua conta no Destrave Hub está pronta.\n\nAcesse: https://destravehub.com.br/auth/login\nE-mail: ${email}\nSenha: ${password}\n\nBons estudos! 🚀`;
+        
+        navigator.clipboard.writeText(text).then(() => {
+          const originalText = copyBtn.textContent;
+          copyBtn.textContent = '✅ Copiado!';
+          copyBtn.classList.add('success');
+          setTimeout(() => {
+            copyBtn.textContent = originalText;
+            copyBtn.classList.remove('success');
+          }, 2000);
+        });
+      });
+    }
+  </script>
+
+  <style>
+    .success-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: calc(100vh - 200px);
+      padding: 2rem;
+    }
+    .success-card {
+      background: white;
+      border: 1px solid var(--color-slate-border);
+      border-radius: 2rem;
+      padding: 3rem;
+      text-align: center;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: var(--shadow-hover);
+    }
+    .success-icon {
+      font-size: 4rem;
+      margin-bottom: 1.5rem;
+      display: inline-block;
+      animation: bounce 0.5s ease infinite alternate;
+    }
+    @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+    
+    .success-title {
+      font-family: var(--font-outfit);
+      font-size: 2.25rem;
+      font-weight: 800;
+      color: var(--color-slate-dark);
+      margin: 0 0 1rem;
+    }
+    .success-message {
+      color: var(--color-slate-mid);
+      font-size: 1.125rem;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+    .credentials-box {
+      background: var(--color-ice);
+      border: 1px dashed var(--color-brand);
+      border-radius: 1.25rem;
+      padding: 1.5rem;
+      margin-bottom: 2.5rem;
+      text-align: left;
+    }
+    .credentials-label {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--color-brand);
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .credential-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+      border-bottom: 1px solid rgba(88,49,126,0.1);
+      padding-bottom: 0.5rem;
+    }
+    .row-label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--color-slate-dark);
+    }
+    .row-value {
+      font-family: 'Courier New', monospace;
+      font-weight: 700;
+      color: var(--color-brand);
+      background: rgba(88,49,126,0.05);
+      padding: 0.125rem 0.375rem;
+      border-radius: 4px;
+    }
+    .copy-btn {
+      width: 100%;
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background: var(--color-brand);
+      color: white;
+      border: none;
+      border-radius: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover {
+      box-shadow: 0 4px 12px rgba(88,49,126,0.2);
+      transform: translateY(-2px);
+    }
+    .copy-btn.success {
+      background: #22C55E;
+    }
+
+    .success-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .success-actions .btn-primary,
+    .success-actions .btn-ghost {
+      width: 100%;
+      text-decoration: none;
+    }
+
+    @media (max-width: 480px) {
+      .success-card { padding: 2rem 1.5rem; }
+      .success-title { font-size: 1.75rem; }
+      .success-message { font-size: 1rem; }
+    }
+  </style>
+</DashboardLayout>

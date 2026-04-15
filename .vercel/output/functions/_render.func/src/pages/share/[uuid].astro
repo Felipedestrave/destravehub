@@ -1,0 +1,46 @@
+---
+import { supabaseAdmin } from '@/lib/supabase-admin';
+
+const { uuid } = Astro.params;
+
+if (!uuid) {
+    return Astro.redirect('/404');
+}
+
+// Find student by experimental_uuid
+const { data: student, error: studentError } = await supabaseAdmin
+    .from('students')
+    .select('id, name')
+    .eq('experimental_uuid', uuid)
+    .single();
+
+if (studentError || !student) {
+    return Astro.redirect('/404?error=invalid_link');
+}
+
+// Find the assignment for this student
+const { data: assignment, error: assignError } = await supabaseAdmin
+    .from('assignments')
+    .select('*, activities(type)')
+    .eq('student_id', student.id)
+    .single();
+
+if (assignError || !assignment) {
+    return Astro.redirect('/404?error=no_assignment');
+}
+
+// If already completed, don't allow re-play (One-time use)
+if (assignment.status === 'completed') {
+    return Astro.redirect('/share/completed');
+}
+
+// Check 48h expiration for leads
+if (assignment.expires_at && new Date(assignment.expires_at) < new Date()) {
+    return Astro.redirect('/share/expired');
+}
+
+// Redirect to the actual mission player
+// We use a special /play route that doesn't require login
+const missionType = assignment.activities.type;
+return Astro.redirect(`/play/${missionType}/${assignment.id}?u=${uuid}`);
+---

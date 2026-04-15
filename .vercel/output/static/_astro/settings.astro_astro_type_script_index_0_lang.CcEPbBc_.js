@@ -1,0 +1,1 @@
+import{s}from"./materials.astro_astro_type_script_index_0_lang.CbpkQ25P.js";const{data:{session:e}}=await s.auth.getSession();if(!e)window.location.href="/auth/login";else{const{data:o}=await s.from("profiles").select("role").eq("id",e.user.id).single();o?.role==="student"?window.location.href="/dashboard":document.getElementById("teacher-view")?.classList.remove("hidden")}

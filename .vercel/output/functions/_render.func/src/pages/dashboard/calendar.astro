@@ -1,0 +1,66 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import AgencyCalendar from '../../components/dashboard/AgencyCalendar';
+---
+
+<DashboardLayout title="Agenda — Destrave Hub" activeNav="calendar">
+  <div class="calendar-page-header">
+    <div class="breadcrumb">
+      <a href="/dashboard">Dashboard</a>
+      <span class="separator">/</span>
+      <span class="current">Agenda da Semana</span>
+    </div>
+    <div class="title-section">
+      <h1 class="page-title">Minha Agenda</h1>
+      <p class="page-subtitle">Organize suas aulas e horários com seus alunos.</p>
+    </div>
+  </div>
+
+  <AgencyCalendar client:load />
+
+  <style>
+    .calendar-page-header {
+      margin-bottom: 2rem;
+    }
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--color-slate-mid);
+      margin-bottom: 1rem;
+    }
+    .breadcrumb a {
+      color: var(--color-slate-mid);
+      text-decoration: none;
+      transition: color 150ms ease;
+    }
+    .breadcrumb a:hover {
+      color: var(--color-brand);
+    }
+    .breadcrumb .separator {
+      color: var(--color-slate-border);
+    }
+    .breadcrumb .current {
+      color: var(--color-slate-dark);
+    }
+    .title-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .page-title {
+      font-family: var(--font-outfit);
+      font-size: 1.875rem;
+      font-weight: 800;
+      color: var(--color-slate-dark);
+      margin: 0;
+    }
+    .page-subtitle {
+      font-size: 1rem;
+      color: var(--color-slate-mid);
+      margin: 0;
+    }
+  </style>
+</DashboardLayout>

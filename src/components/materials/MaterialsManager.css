@@ -204,9 +204,14 @@
   color: #2B6CB0;
 }
 
-.student-badge {
+.student-badge.private {
   background: #FFF5F5;
   color: #C53030;
+}
+
+.student-badge.shared {
+  background: #F0FFF4;
+  color: #2F855A;
 }
 
 .material-actions-row {

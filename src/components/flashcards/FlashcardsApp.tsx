@@ -208,6 +208,9 @@ export const FlashcardsApp: React.FC<FlashcardsAppProps> = ({ userToken, assignm
                         <CardViewer 
                             cards={deck.cards} 
                             onFinish={handleFinishGame}
+                            targetScore={deck.targetScore}
+                            targetTime={deck.targetTime}
+                            activityId={assignmentId}
                         />
                         <MaterialsDrawer isOpen={isMaterialsOpen} onClose={() => setIsMaterialsOpen(false)} />
                     </>

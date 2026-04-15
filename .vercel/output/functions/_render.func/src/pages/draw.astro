@@ -1,0 +1,13 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+import DrawApp from '../components/draw/DrawApp.tsx';
+---
+
+<DashboardLayout title="Destrave Draw — Quadro Branco Inteligente" activeNav="draw">
+  <DrawApp client:only="react" />
+</DashboardLayout>
+
+<style>
+  /* O container principal no DashboardLayout já tem scroll, 
+     mas o DrawApp precisa de espaço imersivo */
+</style>

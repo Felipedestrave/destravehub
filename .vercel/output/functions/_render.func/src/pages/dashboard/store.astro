@@ -1,0 +1,50 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import { StoreView } from '../../components/store/StoreView.tsx';
+---
+
+<DashboardLayout title="Mercado Destrave" activeNav="store">
+  <div class="page-header">
+    <div class="breadcrumb">
+      <a href="/dashboard">Dashboard</a>
+      <span class="separator">/</span>
+      <span class="current">Mercado Destrave</span>
+    </div>
+    <div class="title-section">
+      <h1 class="page-title">Mercado Destrave 💎</h1>
+      <p class="page-subtitle">
+        Use suas Destrave Coins para desbloquear itens exclusivos e personalizar sua jornada.
+      </p>
+    </div>
+  </div>
+
+  <StoreView client:only="react" />
+</DashboardLayout>
+
+<style>
+  .page-header { margin-bottom: 2.5rem; }
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-slate-mid);
+    margin-bottom: 1.25rem;
+  }
+  .breadcrumb a { color: var(--color-slate-mid); text-decoration: none; transition: color 150ms ease; }
+  .breadcrumb a:hover { color: var(--color-brand); }
+  .breadcrumb .separator { color: var(--color-slate-border); }
+  .breadcrumb .current { color: var(--color-slate-dark); }
+  
+  .title-section { display: flex; flex-direction: column; gap: 0.25rem; }
+  .page-title {
+    font-family: var(--font-outfit);
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--color-slate-dark);
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+  .page-subtitle { font-size: 1.1rem; color: var(--color-slate-mid); margin: 0; font-weight: 400; max-width: 600px; }
+</style>

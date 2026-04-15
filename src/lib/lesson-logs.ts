@@ -4,9 +4,8 @@ export interface LessonLog {
   id: string;
   teacher_id: string;
   student_id: string;
-  topics: string[];
+  topics: string;
   notes: string | null;
-  date: string;
   created_at: string;
 }
 
@@ -16,7 +15,7 @@ export const lessonLogService = {
       .from('lesson_logs')
       .select('*')
       .eq('student_id', studentId)
-      .order('date', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching lesson logs:', error);
