@@ -1,5 +1,30 @@
 # 📝 Log de Evolução - Destrave Hub
 
+## 📅 Data: 16/04/2026
+
+### ✅ Implementado nesta sessão:
+1.  **Sistema de Pastas "Drive-style" para Atividades:**
+    *   Implementação de hierarquia de pastas (multi-nível) para organizar missões.
+    *   **Navegação Inteligente:** Breadcrumbs dinâmicos e busca omnidirecional.
+    *   **Drag & Drop Nativo:** Organização fluida de atividades entre pastas.
+2.  **Gestão de Economia (Wallet Control):**
+    *   **Interface Sensei Power:** Novo painel "Central de Economia" no perfil do aluno.
+    *   **Ajustes Manuais:** Botões rápidos para bonificar ou debitar Destrave Coins.
+    *   **Histórico de Transações:** Registro auditável de cada movimentação manual feita pelo professor.
+3.  **Segurança e Infraestrutura:**
+    *   Políticas de RLS para movimentações financeiras.
+    *   Endpoints robustos para gestão de saldo e logs.
+
+---
+
+### 🚀 Próximos Passos (Planejamento Atualizado):
+1.  **Expansão de Conteúdo:**
+    *   Ampliar o número de atividades e exercícios conforme o projeto original.
+2.  **Sistema Financeiro:**
+    *   Integrar módulo financeiro na plataforma (mensalidades, pagamentos, controle de faturamento).
+
+---
+
 ## 📅 Data: 15/04/2026
 
 ### ✅ Implementado nesta sessão:
@@ -22,19 +47,6 @@
 5.  **Sincronização Aluno/Professor:**
     *   Atualização das políticas de segurança (RLS) no Supabase para garantir que alunos vejam seus agendamentos e históricos de forma privada e segura.
     *   Correção no componente `StudentHistory` para exibir os novos logs estruturados (JSON) de forma visualmente atraente.
-
----
-
-### 🚀 Próximos Passos (Planejamento Atualizado):
-1.  **Organização de Backend de Atividades:**
-    *   Implementar sistema de **Pastas para Atividades** para melhor categorização (ex: Nível Básico, Gramática, Conversação).
-    *   Sistema de **Busca por Nome** em tempo real no dashboard de atividades.
-2.  **Gestão Manual de Economia (Wallet Control):**
-    *   Interface para o professor transferir ou "dar" moedas manualmente para o aluno.
-3.  **Expansão de Conteúdo:**
-    *   Ampliar o número de atividades e exercícios conforme o projeto original.
-4.  **Sistema Financeiro:**
-    *   Integrar módulo financeiro na plataforma (mensalidades, pagamentos, controle de faturamento).
 
 ---
 

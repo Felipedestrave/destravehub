@@ -8,7 +8,15 @@ interface Activity {
     type: 'flashcards' | 'escuta' | 'mrp';
     created_at: string;
     config: Record<string, any>;
+    folder_id: string | null;
     material_count?: { count: number }[];
+}
+
+interface Folder {
+    id: string;
+    name: string;
+    parent_id: string | null;
+    created_at: string;
 }
 
 interface Student {
@@ -24,18 +32,27 @@ const TYPE_LABELS: Record<string, { icon: string; label: string; color: string }
 
 export default function ActivitiesPanel() {
     const [activities, setActivities] = useState<Activity[]>([]);
+    const [folders, setFolders] = useState<Folder[]>([]);
+    const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
     const [students, setStudents] = useState<Student[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
+    const [searchQuery, setSearchQuery] = useState('');
+    
+    // UI State
     const [assigning, setAssigning] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
     const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
     const [sharingActivity, setSharingActivity] = useState<Activity | null>(null);
+    const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
     const [shareTab, setShareTab] = useState<'platform' | 'experimental' | 'public'>('platform');
     const [experimentalLink, setExperimentalLink] = useState<string | null>(null);
     const [generatingLink, setGeneratingLink] = useState(false);
     const [linkingActivity, setLinkingActivity] = useState<Activity | null>(null);
+    
+    // Folder State
+    const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+    const [newFolderName, setNewFolderName] = useState('');
 
     const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
         setToast({ msg, type });
@@ -65,23 +82,22 @@ export default function ActivitiesPanel() {
                     setError(actData.error || 'Erro ao carregar atividades do servidor.');
                 } else {
                     setActivities(actData.activities ?? []);
+                    if (actData.students) setStudents(actData.students);
                 }
             } catch (aErr) {
                 setError('Falha de conexão com a biblioteca de missões.');
             }
 
-            // 2. Fetch Students
+            // 2. Fetch Folders
             try {
-                const { data: stuData, error: stuErr } = await supabase
-                    .from('students')
-                    .select('id, name')
-                    .eq('teacher_id', session.user.id)
-                    .order('name');
-                
-                if (!stuErr) {
-                    setStudents(stuData ?? []);
+                const foldRes = await fetch('/api/activities/folders/list', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const foldData = await foldRes.json();
+                if (foldRes.ok) {
+                    setFolders(foldData.folders ?? []);
                 }
-            } catch (sErr) {}
+            } catch (fErr) {}
 
         } catch (err: any) {
             setError('Um erro fatal impediu o carregamento da central.');
@@ -91,6 +107,115 @@ export default function ActivitiesPanel() {
     }, []);
 
     useEffect(() => { fetchData(); }, [fetchData]);
+
+    // Folder Actions
+    const handleCreateFolder = async () => {
+        if (!newFolderName.trim()) return;
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        try {
+            const res = await fetch('/api/activities/folders/create', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${session.access_token}`
+                },
+                body: JSON.stringify({ name: newFolderName, parent_id: currentFolderId })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setFolders(prev => [...prev, data.folder]);
+                setNewFolderName('');
+                setIsCreatingFolder(false);
+                showToast('Pasta criada!');
+            } else {
+                showToast('Erro ao criar pasta.', 'error');
+            }
+        } catch (err) {
+            showToast('Erro de conexão.', 'error');
+        }
+    };
+
+    const handleDeleteFolder = async (id: string, name: string) => {
+        if (!confirm(`Excluir a pasta "${name}"? Todas as subpastas e atividades dentro dela ficarão "órfãs" (sem pasta).`)) return;
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        try {
+            const res = await fetch(`/api/activities/folders/delete?id=${id}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${session.access_token}` }
+            });
+
+            if (res.ok) {
+                setFolders(prev => prev.filter(f => f.id !== id));
+                // Update activities that were in this folder
+                setActivities(prev => prev.map(a => a.folder_id === id ? { ...a, folder_id: null } : a));
+                showToast('Pasta excluída.');
+            } else {
+                showToast('Erro ao excluir pasta.', 'error');
+            }
+        } catch (err) {
+            showToast('Erro de conexão.', 'error');
+        }
+    };
+
+    const handleMoveToFolder = async (activityId: string, folderId: string | null) => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        try {
+            const res = await fetch('/api/activities/move', {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${session.access_token}`
+                },
+                body: JSON.stringify({ activityId, folderId })
+            });
+
+            if (res.ok) {
+                setActivities(prev => prev.map(a => a.id === activityId ? { ...a, folder_id: folderId } : a));
+                showToast('Atividade movida!');
+            }
+        } catch (err) {}
+    };
+
+    // Breadcrumbs Logic
+    const getBreadcrumbs = () => {
+        const crumbs: { id: string | null; name: string }[] = [{ id: null, name: 'Início' }];
+        if (!currentFolderId) return crumbs;
+
+        const path: { id: string; name: string }[] = [];
+        let curr: Folder | undefined = folders.find(f => f.id === currentFolderId);
+        
+        while (curr) {
+            path.unshift({ id: curr.id, name: curr.name });
+            const pId = curr.parent_id;
+            curr = folders.find(f => f.id === pId);
+        }
+
+        return [...crumbs, ...path];
+    };
+
+    // Drag and Drop Logic
+    const onDragStart = (e: React.DragEvent, activityId: string) => {
+        e.dataTransfer.setData('activityId', activityId);
+    };
+
+    const onDrop = (e: React.DragEvent, targetFolderId: string | null) => {
+        e.preventDefault();
+        const activityId = e.dataTransfer.getData('activityId');
+        if (activityId) {
+            handleMoveToFolder(activityId, targetFolderId);
+        }
+    };
+
+    const onDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+    };
 
     const closeModal = () => {
         setSharingActivity(null);
@@ -280,6 +405,14 @@ export default function ActivitiesPanel() {
         return `${baseSub}${matSuffix}`;
     };
 
+    const filteredFolders = searchQuery 
+        ? folders.filter(f => f.name.toLowerCase().includes(searchQuery.toLowerCase()))
+        : folders.filter(f => f.parent_id === currentFolderId);
+
+    const filteredActivities = searchQuery
+        ? activities.filter(a => a.title.toLowerCase().includes(searchQuery.toLowerCase()))
+        : activities.filter(a => a.folder_id === currentFolderId);
+
     if (loading) {
         return (
             <div className="ap-loading">
@@ -294,10 +427,65 @@ export default function ActivitiesPanel() {
             <div className="ap-header">
                 <div>
                     <h2 className="ap-title">Central de Atividades</h2>
-                    <p className="ap-subtitle">Todas as missões que você gerou. Atribua aos alunos conforme necessário.</p>
+                    <p className="ap-subtitle">Organize suas missões em pastas e atribua aos alunos.</p>
                 </div>
-                <span className="ap-count-badge">{activities.length} atividade{activities.length !== 1 ? 's' : ''}</span>
+                
+                <div className="ap-header-actions">
+                    <div className="ap-search-box">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                        <input 
+                            type="text" 
+                            placeholder="Buscar missão..." 
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+                    <button className="ap-btn-new-folder" onClick={() => setIsCreatingFolder(true)}>
+                        📁 Nova Pasta
+                    </button>
+                    <span className="ap-count-badge">
+                        {searchQuery ? `${filteredActivities.length} encontrados` : `${activities.length} total`}
+                    </span>
+                </div>
             </div>
+
+            {isCreatingFolder && (
+                <div className="ap-folder-modal-overlay" onClick={() => setIsCreatingFolder(false)}>
+                    <div className="ap-folder-modal" onClick={e => e.stopPropagation()}>
+                        <h3>Criar Nova Pasta</h3>
+                        <input 
+                            type="text" 
+                            placeholder="Nome da pasta" 
+                            value={newFolderName}
+                            onChange={e => setNewFolderName(e.target.value)}
+                            autoFocus
+                            onKeyDown={e => e.key === 'Enter' && handleCreateFolder()}
+                        />
+                        <div className="ap-folder-modal-actions">
+                            <button className="cancel" onClick={() => setIsCreatingFolder(false)}>Cancelar</button>
+                            <button className="confirm" onClick={handleCreateFolder}>Criar Pasta</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {!searchQuery && (
+                <nav className="ap-breadcrumbs">
+                    {getBreadcrumbs().map((crumb, idx) => (
+                        <React.Fragment key={crumb.id || 'root'}>
+                            <span 
+                                className={`ap-breadcrumb-item ${crumb.id === currentFolderId ? 'active' : ''}`}
+                                onClick={() => setCurrentFolderId(crumb.id)}
+                                onDrop={(e) => onDrop(e, crumb.id)}
+                                onDragOver={onDragOver}
+                            >
+                                {crumb.name}
+                            </span>
+                            {idx < getBreadcrumbs().length - 1 && <span className="ap-breadcrumb-sep">/</span>}
+                        </React.Fragment>
+                    ))}
+                </nav>
+            )}
 
             {error ? (
                 <div className="ap-error-state">
@@ -305,20 +493,47 @@ export default function ActivitiesPanel() {
                     <p>{error}</p>
                     <button onClick={fetchData} className="ap-btn-retry">Tentar novamente</button>
                 </div>
-            ) : activities.length === 0 ? (
+            ) : (filteredActivities.length === 0 && filteredFolders.length === 0) ? (
                 <div className="ap-empty">
                     <span>📭</span>
-                    <p>Nenhuma atividade salva ainda.</p>
-                    <p className="ap-empty-sub">Gere um deck de flashcards, uma missão de escuta ou um MRP e clique em "Salvar".</p>
+                    <p>{searchQuery ? 'Nenhum resultado encontrado.' : 'Esta pasta está vazia.'}</p>
+                    {!searchQuery && <p className="ap-empty-sub">Clique em "Nova Pasta" ou mova atividades para cá.</p>}
                 </div>
             ) : (
                 <div className="ap-grid">
-                    {activities.map((a) => {
+                    {/* FOLDERS GRID */}
+                    {filteredFolders.map(f => (
+                        <div 
+                            key={f.id} 
+                            className="ap-folder-card"
+                            onClick={() => { setCurrentFolderId(f.id); setSearchQuery(''); }}
+                            onDrop={(e) => onDrop(e, f.id)}
+                            onDragOver={onDragOver}
+                        >
+                            <div className="ap-folder-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+                            </div>
+                            <div className="ap-folder-info">
+                                <h3 className="ap-folder-name">{f.name}</h3>
+                            </div>
+                            <button 
+                                className="ap-folder-delete"
+                                onClick={(e) => { e.stopPropagation(); handleDeleteFolder(f.id, f.name); }}
+                            >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                    ))}
+
+                    {/* ACTIVITIES GRID */}
+                    {filteredActivities.map((a) => {
                         const meta = TYPE_LABELS[a.type] ?? { icon: '📄', label: a.type, color: '#64748b' };
                         return (
                             <div 
                                 className="ap-card" 
                                 key={a.id}
+                                draggable
+                                onDragStart={(e) => onDragStart(e, a.id)}
                                 style={{ zIndex: activeMenuId === a.id ? 101 : 1 }}
                             >
                                 <div className="ap-card-top">
@@ -527,51 +742,89 @@ export default function ActivitiesPanel() {
             )}
 
             <style>{`
-                .ap-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 5rem; color: var(--color-slate-mid); }
-                .ap-spinner { width: 38px; height: 38px; border: 3px solid var(--color-slate-border); border-top-color: var(--color-brand); border-radius: 50%; animation: ap-spin 0.7s linear infinite; }
+                .ap-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 5rem; color: #64748b; }
+                .ap-spinner { width: 38px; height: 38px; border: 3px solid #e2e8f0; border-top-color: #58317e; border-radius: 50%; animation: ap-spin 0.7s linear infinite; }
                 .ap-spinner.sm { width: 16px; height: 16px; border-width: 2px; }
                 @keyframes ap-spin { to { transform: rotate(360deg); } }
 
-                .ap-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap; }
-                .ap-title { font-family: var(--font-outfit); font-size: 1.875rem; font-weight: 800; color: var(--color-slate-dark); margin: 0 0 0.25rem; }
-                .ap-subtitle { font-size: 1rem; color: var(--color-slate-mid); margin: 0; }
-                .ap-count-badge { padding: 0.4rem 1rem; background: var(--color-ice); color: var(--color-brand); border-radius: 999px; font-family: var(--font-outfit); font-weight: 800; font-size: 0.85rem; white-space: nowrap; align-self: center; }
+                .ap-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap; }
+                .ap-title { font-size: 1.875rem; font-weight: 800; color: #0f172a; margin: 0 0 0.25rem; }
+                .ap-subtitle { font-size: 1rem; color: #64748b; margin: 0; }
+                
+                .ap-header-actions { display: flex; align-items: center; gap: 1rem; }
+                .ap-search-box { position: relative; display: flex; align-items: center; background: white; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 0 1rem; width: 280px; transition: 0.2s; }
+                .ap-search-box:focus-within { border-color: #58317e; box-shadow: 0 0 0 3px rgba(88,49,126,0.1); }
+                .ap-search-box svg { color: #94a3b8; }
+                .ap-search-box input { border: none; background: transparent; padding: 0.75rem 0.5rem; font-size: 0.875rem; outline: none; flex: 1; }
+                .ap-btn-new-folder { background: #f8fafc; border: 1.5px solid #e2e8f0; padding: 0.75rem 1.25rem; border-radius: 12px; font-weight: 700; font-size: 0.875rem; color: #1e293b; cursor: pointer; transition: 0.2s; white-space: nowrap; }
+                .ap-btn-new-folder:hover { background: #f1f5f9; border-color: #cbd5e1; }
+
+                .ap-count-badge { padding: 0.4rem 1rem; background: #f5f3ff; color: #58317e; border-radius: 999px; font-weight: 800; font-size: 0.85rem; white-space: nowrap; }
+
+                .ap-breadcrumbs { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; font-weight: 700; font-size: 0.95rem; color: #64748b; }
+                .ap-breadcrumb-item { cursor: pointer; padding: 0.25rem 0.5rem; border-radius: 6px; transition: 0.2s; }
+                .ap-breadcrumb-item:hover { color: #58317e; background: #f5f3ff; }
+                .ap-breadcrumb-item.active { color: #0f172a; cursor: default; }
+                .ap-breadcrumb-item.active:hover { background: transparent; }
+                .ap-breadcrumb-sep { color: #cbd5e1; }
 
                 .ap-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.75rem; padding: 5rem 2rem; text-align: center; }
                 .ap-empty span { font-size: 3.5rem; }
-                .ap-empty p { font-family: var(--font-outfit); font-size: 1.1rem; font-weight: 700; color: var(--color-slate-dark); margin: 0; }
-                .ap-empty-sub { font-size: 0.9rem; color: var(--color-slate-mid); max-width: 380px; line-height: 1.6; }
+                .ap-empty p { font-size: 1.1rem; font-weight: 700; color: #0f172a; margin: 0; }
+                .ap-empty-sub { font-size: 0.9rem; color: #64748b; max-width: 380px; line-height: 1.6; }
 
                 .ap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
 
-                .ap-card { background: white; border: 1.5px solid var(--color-slate-border); border-radius: 1.5rem; padding: 1.75rem; display: flex; flex-direction: column; gap: 0.5rem; transition: transform 200ms, box-shadow 200ms; position: relative; }
+                /* FOLDER CARD */
+                .ap-folder-card { background: white; border: 1.5px solid #e2e8f0; border-radius: 1.25rem; padding: 1.25rem; display: flex; align-items: center; gap: 1rem; cursor: pointer; transition: 0.2s; position: relative; }
+                .ap-folder-card:hover { border-color: #58317e; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+                .ap-folder-icon { color: #58317e; }
+                .ap-folder-name { font-size: 1rem; font-weight: 700; color: #0f172a; margin: 0; }
+                .ap-folder-delete { position: absolute; top: 0.5rem; right: 0.5rem; width: 24px; height: 24px; border-radius: 6px; border: none; background: transparent; color: #94a3b8; display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.2s; }
+                .ap-folder-card:hover .ap-folder-delete { opacity: 1; }
+                .ap-folder-delete:hover { background: #fee2e2; color: #ef4444; }
+
+                .ap-card { background: white; border: 1.5px solid #e2e8f0; border-radius: 1.5rem; padding: 1.75rem; display: flex; flex-direction: column; gap: 0.5rem; transition: transform 200ms, box-shadow 200ms; position: relative; cursor: grab; }
+                .ap-card:active { cursor: grabbing; }
                 .ap-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(30,41,59,0.08); border-color: #cbd5e1; }
 
                 .ap-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
                 .ap-type-pill { padding: 0.35rem 0.8rem; border-radius: 999px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.02em; }
                 
                 .ap-menu-container { position: relative; }
-                .ap-action-btn.dots { width: 32px; height: 32px; border-radius: 10px; background: var(--color-ice); border: none; color: var(--color-slate-mid); cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
-                .ap-action-btn.dots:hover, .ap-action-btn.dots.active { background: var(--color-brand); color: white; }
+                .ap-action-btn.dots { width: 32px; height: 32px; border-radius: 10px; background: #f8fafc; border: none; color: #64748b; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+                .ap-action-btn.dots:hover, .ap-action-btn.dots.active { background: #58317e; color: white; }
                 
                 .ap-menu-backdrop { position: fixed; inset: 0; z-index: 50; }
-                .ap-dropdown-menu { position: absolute; top: calc(100% + 8px); right: 0; width: 220px; background: white; border: 1.5px solid var(--color-slate-border); border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 60; padding: 0.5rem; overflow: hidden; animation: menuShow 0.2s ease-out; }
+                .ap-dropdown-menu { position: absolute; top: calc(100% + 8px); right: 0; width: 220px; background: white; border: 1.5px solid #e2e8f0; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 60; padding: 0.5rem; overflow: hidden; animation: menuShow 0.2s ease-out; }
                 @keyframes menuShow { from { opacity: 0; transform: translateY(-10px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
                 
-                .ap-dropdown-menu button { width: 100%; display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border: none; background: none; border-radius: 0.6rem; font-family: var(--font-outfit); font-weight: 600; font-size: 0.875rem; color: var(--color-slate-dark); cursor: pointer; text-align: left; transition: 0.15s; }
-                .ap-dropdown-menu button:hover { background: var(--color-ice); color: var(--color-brand); }
+                .ap-dropdown-menu button { width: 100%; display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border: none; background: none; border-radius: 0.6rem; font-weight: 600; font-size: 0.875rem; color: #0f172a; cursor: pointer; text-align: left; transition: 0.15s; }
+                .ap-dropdown-menu button:hover { background: #f5f3ff; color: #58317e; }
                 .ap-dropdown-menu button.delete { color: #dc2626; }
                 .ap-dropdown-menu button.delete:hover { background: #fee2e2; }
-                .ap-menu-divider { height: 1.5px; background: var(--color-slate-border); margin: 0.4rem; }
+                .ap-menu-divider { height: 1.5px; background: #e2e8f0; margin: 0.4rem; }
 
-                .ap-card-title { font-family: var(--font-outfit); font-size: 1.25rem; font-weight: 800; color: var(--color-slate-dark); margin: 0; line-height: 1.2; }
-                .ap-card-sub { font-size: 0.85rem; color: var(--color-slate-mid); margin-bottom: 1rem; }
+                .ap-card-title { font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0; line-height: 1.2; }
+                .ap-card-sub { font-size: 0.85rem; color: #64748b; margin-bottom: 1rem; }
 
                 .ap-card-footer { margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-                .ap-btn-preview { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem; background: var(--color-ice); border: 1.5px solid var(--color-slate-border); border-radius: 0.875rem; color: var(--color-slate-dark); font-family: var(--font-outfit); font-weight: 700; font-size: 0.8rem; cursor: pointer; transition: 0.2s; }
-                .ap-btn-preview:hover { background: white; border-color: var(--color-brand); color: var(--color-brand); }
-                .ap-btn-share-main { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem; background: var(--color-brand); border: none; border-radius: 0.875rem; color: white; font-family: var(--font-outfit); font-weight: 800; font-size: 0.8rem; cursor: pointer; transition: 0.2s; }
+                .ap-btn-preview { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 0.875rem; color: #1e293b; font-weight: 700; font-size: 0.8rem; cursor: pointer; transition: 0.2s; }
+                .ap-btn-preview:hover { background: white; border-color: #58317e; color: #58317e; }
+                .ap-btn-share-main { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem; background: #58317e; border: none; border-radius: 0.875rem; color: white; font-weight: 800; font-size: 0.8rem; cursor: pointer; transition: 0.2s; }
                 .ap-btn-share-main:hover { filter: brightness(1.1); transform: scale(1.02); }
+
+                /* FOLDER MODAL */
+                .ap-folder-modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.45); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 2000; animation: ap-fadein 0.2s ease; }
+                .ap-folder-modal { background: white; border-radius: 1.5rem; padding: 2rem; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
+                .ap-folder-modal h3 { font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0 0 1rem; }
+                .ap-folder-modal input { width: 100%; padding: 0.875rem; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1rem; outline: none; transition: 0.2s; margin-bottom: 1.5rem; }
+                .ap-folder-modal input:focus { border-color: #58317e; }
+                .ap-folder-modal-actions { display: flex; gap: 0.75rem; }
+                .ap-folder-modal-actions button { flex: 1; padding: 0.875rem; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.2s; }
+                .ap-folder-modal-actions .cancel { background: #f8fafc; border: 1.5px solid #e2e8f0; color: #64748b; }
+                .ap-folder-modal-actions .confirm { background: #58317e; border: none; color: white; }
+                .ap-folder-modal-actions button:hover { opacity: 0.9; }
 
                 /* MODAL */
                 .ap-modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.45); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; animation: ap-fadein 0.2s ease; }
@@ -580,39 +833,37 @@ export default function ActivitiesPanel() {
                 @keyframes ap-slidein { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
                 .ap-modal-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 1.75rem 1.75rem 1rem; }
-                .ap-modal-pretitle { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-brand); margin-bottom: 0.25rem; }
-                .ap-modal-title { font-family: var(--font-outfit); font-size: 1.5rem; font-weight: 800; color: var(--color-slate-dark); margin: 0; line-height: 1.1; }
-                .ap-modal-close { background: var(--color-ice); border: none; border-radius: 0.75rem; width: 36px; height: 36px; cursor: pointer; font-size: 0.9rem; color: var(--color-slate-mid); display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-                .ap-modal-close:hover { background: #e2e8f0; color: var(--color-slate-dark); }
+                .ap-modal-pretitle { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #58317e; margin-bottom: 0.25rem; }
+                .ap-modal-title { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin: 0; line-height: 1.1; }
+                .ap-modal-close { background: #f8fafc; border: none; border-radius: 0.75rem; width: 36px; height: 36px; cursor: pointer; font-size: 0.9rem; color: #64748b; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+                .ap-modal-close:hover { background: #e2e8f0; color: #0f172a; }
 
-                .ap-tabs { display: flex; margin: 0 1.75rem; padding: 0.4rem; background: var(--color-ice); border-radius: 1rem; gap: 0.4rem; }
-                .ap-tab-btn { flex: 1; padding: 0.6rem; border: none; background: transparent; border-radius: 0.75rem; font-family: var(--font-outfit); font-weight: 700; font-size: 0.85rem; color: var(--color-slate-mid); cursor: pointer; transition: 0.2s; }
-                .ap-tab-btn.active { background: white; color: var(--color-brand); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+                .ap-tabs { display: flex; margin: 0 1.75rem; padding: 0.4rem; background: #f8fafc; border-radius: 1rem; gap: 0.4rem; }
+                .ap-tab-btn { flex: 1; padding: 0.6rem; border: none; background: transparent; border-radius: 0.75rem; font-weight: 700; font-size: 0.85rem; color: #64748b; cursor: pointer; transition: 0.2s; }
+                .ap-tab-btn.active { background: white; color: #58317e; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 
                 .ap-tab-content { padding: 1.5rem 1.75rem; }
-                .ap-modal-instruction { font-size: 0.95rem; color: var(--color-slate-mid); margin-bottom: 1rem; line-height: 1.5; }
+                .ap-modal-instruction { font-size: 0.95rem; color: #64748b; margin-bottom: 1rem; line-height: 1.5; }
 
                 .ap-student-list { list-style: none; margin: 0; padding: 0; max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; padding-right: 0.5rem; }
-                .ap-student-item { display: flex; align-items: center; gap: 1rem; padding: 0.85rem 1rem; border-radius: 1rem; border: 1.5px solid var(--color-slate-border); cursor: pointer; transition: 0.15s; }
-                .ap-student-item:hover { border-color: var(--color-brand); background: rgba(88,49,126,0.02); }
-                .ap-student-item.selected { border-color: var(--color-brand); background: rgba(88,49,126,0.05); }
-                .ap-student-avatar { width: 38px; height: 38px; border-radius: 12px; background: var(--color-brand); color: white; font-family: var(--font-outfit); font-weight: 800; display: flex; align-items: center; justify-content: center; }
-                .ap-student-name { font-weight: 700; color: var(--color-slate-dark); font-size: 0.95rem; flex: 1; }
-                .ap-checkbox { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--color-slate-border); display: flex; align-items: center; justify-content: center; }
-                .ap-checkbox.checked { background: var(--color-brand); border-color: var(--color-brand); }
+                .ap-student-item { display: flex; align-items: center; gap: 1rem; padding: 0.85rem 1rem; border-radius: 1rem; border: 1.5px solid #e2e8f0; cursor: pointer; transition: 0.15s; }
+                .ap-student-item:hover { border-color: #58317e; background: rgba(88,49,126,0.02); }
+                .ap-student-item.selected { border-color: #58317e; background: rgba(88,49,126,0.05); }
+                .ap-student-avatar { width: 38px; height: 38px; border-radius: 12px; background: #58317e; color: white; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+                .ap-student-name { font-weight: 700; color: #0f172a; font-size: 0.95rem; flex: 1; }
+                .ap-checkbox { width: 22px; height: 22px; border-radius: 6px; border: 2px solid #e2e8f0; display: flex; align-items: center; justify-content: center; }
+                .ap-checkbox.checked { background: #58317e; border-color: #58317e; }
 
-                .ap-link-box { background: white; border: 2px solid var(--color-slate-border); border-radius: 1rem; padding: 0.5rem; display: flex; gap: 0.5rem; margin: 1.5rem 0; }
-                .ap-link-input { border: none; background: transparent; padding: 0.5rem; flex: 1; font-family: var(--font-inter); font-size: 0.85rem; color: var(--color-slate-dark); outline: none; min-width: 0; }
-                .ap-link-copy { padding: 0.6rem 1.25rem; background: var(--color-action); color: white; border: none; border-radius: 0.6rem; font-family: var(--font-outfit); font-weight: 800; font-size: 0.85rem; cursor: pointer; transition: 0.2s; }
-                .ap-link-copy:hover { filter: brightness(1.1); transform: scale(1.05); }
-                .ap-link-hint { font-size: 0.8rem; color: var(--color-slate-mid); font-style: italic; line-height: 1.4; }
+                .ap-link-box { background: white; border: 2px solid #e2e8f0; border-radius: 1rem; padding: 0.5rem; display: flex; gap: 0.5rem; margin: 1.5rem 0; }
+                .ap-link-input { border: none; background: transparent; padding: 0.5rem; flex: 1; font-size: 0.85rem; color: #0f172a; outline: none; min-width: 0; }
+                .ap-link-copy { padding: 0.6rem 1.25rem; background: #58317e; color: white; border: none; border-radius: 0.6rem; font-weight: 800; font-size: 0.85rem; cursor: pointer; transition: 0.2s; }
 
-                .ap-modal-footer { display: flex; gap: 1rem; padding-top: 1.5rem; border-top: 1.5px solid var(--color-slate-border); margin-top: 1rem; }
-                .ap-btn-cancel { flex: 1; padding: 0.875rem; background: var(--color-ice); color: var(--color-slate-mid); border: none; border-radius: 1rem; font-family: var(--font-outfit); font-weight: 700; cursor: pointer; }
-                .ap-btn-confirm { flex: 1.5; padding: 0.875rem; background: var(--color-brand); color: white; border: none; border-radius: 1rem; font-family: var(--font-outfit); font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+                .ap-modal-footer { display: flex; gap: 1rem; padding-top: 1.5rem; border-top: 1.5px solid #e2e8f0; margin-top: 1rem; }
+                .ap-btn-cancel { flex: 1; padding: 0.875rem; background: #f8fafc; color: #64748b; border: none; border-radius: 1rem; font-weight: 700; cursor: pointer; }
+                .ap-btn-confirm { flex: 1.5; padding: 0.875rem; background: #58317e; color: white; border: none; border-radius: 1rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; }
                 .ap-btn-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
 
-                .ap-toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); padding: 1rem 2rem; border-radius: 999px; background: #0f172a; color: white; font-family: var(--font-outfit); font-weight: 800; font-size: 0.9rem; box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 10000; animation: toastUp 0.3s ease-out; }
+                .ap-toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); padding: 1rem 2rem; border-radius: 999px; background: #0f172a; color: white; font-weight: 800; font-size: 0.9rem; box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 10000; animation: toastUp 0.3s ease-out; }
                 @keyframes toastUp { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
 
                 .ap-error-state { padding: 4rem 2rem; text-align: center; background: #fff1f2; border: 1.5px dashed #fecaca; border-radius: 2rem; }

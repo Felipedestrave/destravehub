@@ -24,6 +24,7 @@ export const GET: APIRoute = async ({ request }) => {
             type, 
             created_at, 
             config,
+            folder_id,
             material_count:activity_materials(count)
         `)
         .eq('teacher_id', user.id)
