@@ -2,6 +2,13 @@
 
 ## 📅 Data: 16/04/2026
 
+### 🚧 Ponto de Parada Atual (RETOMAR AQUI):
+1. **Resolução do erro 500/503 na geração de exercícios:**
+    *   **Contexto:** Chave da Gemini antiga foi comprometida e trocada na Vercel (resolvido erro 500 inicial).
+    *   **Status Atual:** O modelo `gemini-2.5-flash` estava apresentando instabilidade (503 UNAVAILABLE - High Demand).
+    *   **Solução em deploy:** Foi implementado `withRetry` com *Exponential Backoff* nas rotas `validate-answer`, `generate-questions`, `generate-deck`, etc., para retentar automaticamente quando a API do Gemini der 503.
+    *   **Próxima Ação Imediata:** Assim que o usuário voltar, confirmar se o sistema está gerando os flashcards e exercícios de Escuta corretamente com a nova estrutura de retry na Vercel.
+
 ### ✅ Implementado nesta sessão:
 1.  **Sistema de Pastas "Drive-style" para Atividades:**
     *   Implementação de hierarquia de pastas (multi-nível) para organizar missões.
@@ -9,19 +16,23 @@
     *   **Drag & Drop Nativo:** Organização fluida de atividades entre pastas.
 2.  **Gestão de Economia (Wallet Control):**
     *   **Interface Sensei Power:** Novo painel "Central de Economia" no perfil do aluno.
-    *   **Ajustes Manuais:** Botões rápidos para bonificar ou debitar Destrave Coins.
-    *   **Histórico de Transações:** Registro auditável de cada movimentação manual feita pelo professor.
-3.  **Segurança e Infraestrutura:**
-    *   Políticas de RLS para movimentações financeiras.
-    *   Endpoints robustos para gestão de saldo e logs.
+    *   **Ajustes Manuais:** Botões diretos para bonificar ou debitar Destrave Coins com formulário avançado.
+    *   **Histórico Auditável:** Modal em popup "Ver Tudo" exibindo todo o histórico de empenho e recebimentos/débitos do aluno.
+3.  **UX / UI Avançada (Otimização Mobile):**
+    *   **Overlay de Feedback (Mascote):** Lógica inteligente implementada (`BuddyView`) onde a área de exercício foca apenas no desafio quando no mobile, e o mascote só salta para o centro da tela em uma comemoração pop-up durante um acerto/erro (Estilo Duolingo).
+    *   **Formulário de Captação Internacional:** Adicionado um campo customizado suspenso de Códigos de DDI (Brasil, Japão, EUA, Portugal) para captação robusta e padronizada pelo WhatsApp nos links experimentais.
+4.  **Segurança e Infraestrutura:**
+    *   Políticas de RLS e endpoints robustos de transação.
 
 ---
 
 ### 🚀 Próximos Passos (Planejamento Atualizado):
-1.  **Expansão de Conteúdo:**
+1.  **Algoritmo de Repetição Espaçada (Spaced Repetition System):**
+    *   Implementar um sistema de recompensas progressivo voltado aos exercícios, gamificando e estimulando a prática em determinados ciclos/dias para fixar o aprendizado.
+2.  **Expansão de Conteúdo:**
     *   Ampliar o número de atividades e exercícios conforme o projeto original.
-2.  **Sistema Financeiro:**
-    *   Integrar módulo financeiro na plataforma (mensalidades, pagamentos, controle de faturamento).
+3.  **Sistema Financeiro:**
+    *   Integrar ferramentas financeiras (pagamentos, controle de faturamento).
 
 ---
 

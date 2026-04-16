@@ -8,6 +8,7 @@ interface BuddyViewProps {
     avatarId?: string | null;
     state?: BuddyState;
     message?: string | null;
+    hideOnMobile?: boolean;
 }
 
 function getAudioPath(avatarId: string | null | undefined, message: string | null, type: 'success' | 'error'): string | null {
@@ -26,7 +27,8 @@ export const BuddyView: React.FC<BuddyViewProps> = ({
     avatarUrl = '/assets/avatars/tanuki-novato.png',
     avatarId = null,
     state = 'idle',
-    message = null
+    message = null,
+    hideOnMobile = true
 }) => {
     const controls = useAnimation();
     const prevState = useRef<BuddyState>('idle');
@@ -141,21 +143,20 @@ export const BuddyView: React.FC<BuddyViewProps> = ({
         });
     }, [controls]);
 
+    const isFeedback = state === 'success' || state === 'error';
+    
+    // Mobile logic: Se hideOnMobile = true, esconde no idle. Quando for feedback, joga pro meio da tela.
+    const mobileClasses = hideOnMobile 
+        ? (isFeedback 
+            ? 'flex bottom-[15vh] left-1/2 -translate-x-1/2 w-[240px] h-[280px]' 
+            : 'hidden w-0 h-0')
+        : 'flex bottom-4 right-4 w-24 h-32';
+        
+    const desktopClasses = 'md:flex md:bottom-8 md:right-8 md:left-auto md:translate-x-0 md:w-[180px] md:h-[240px]';
+
     return (
         <div
-            className="buddy-host"
-            style={{
-                position: 'fixed',
-                bottom: '2rem',
-                right: '2rem',
-                zIndex: 1000,
-                pointerEvents: 'none',
-                width: '180px',
-                height: '240px',
-                display: 'flex',
-                alignItems: 'flex-end',
-                justifyContent: 'center',
-            }}
+            className={`buddy-host fixed z-[1000] pointer-events-none items-end justify-center ${mobileClasses} ${desktopClasses}`}
         >
             <AnimatePresence>
                 {message && (
@@ -206,13 +207,7 @@ export const BuddyView: React.FC<BuddyViewProps> = ({
 
             <motion.div
                 animate={controls}
-                style={{
-                    width: '100%',
-                    height: '100%',
-                    display: 'flex',
-                    alignItems: 'flex-end',
-                    justifyContent: 'center',
-                }}
+                className="flex w-full h-full items-end justify-center"
             >
                 <img
                     src={avatarUrl}

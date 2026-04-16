@@ -52,11 +52,11 @@ export const POST: APIRoute = async ({ request }) => {
     2. Se houver texto manual ("${context}"), integre os pontos principais.
 
     REGRAS OBRIGATÓRIAS PARA OS CARDS:
-    1. FRENTE ('front'): Palavra ou gramática em japonês (Kanji/Kana).
+    1. FRENTE ('front'): Palavra ou gramática em japonês acompanhada da sua transcrição em Romaji entre parênteses. (Ex: 食べる (taberu)). NÃO use macrons (ā, ō), use alfabetos planos (aa, ou).
     2. LEITURA ('reading'): Leitura em Hiragana/Katakana.
     3. VERSO ('back'): Tradução clara em português.
-    4. EXEMPLO ('example'): Frase de exemplo em japonês NO CONTEXTO da aula.
-    5. TRADUÇÃO DO EXEMPLO ('exampleTranslation'): Tradução do exemplo.
+    4. EXEMPLO ('example'): Frase de exemplo em japonês acompanhada da sua transcrição em Romaji entre parênteses. (Ex: 寿司を食べる (sushi o taberu)). NÃO use macrons.
+    5. TRADUÇÃO DO EXEMPLO ('exampleTranslation'): Tradução da frase de exemplo em português.
     6. NÍVEL ('level'): Use exatamente "${level}".
     7. VARIEDADE: Mescle vocabulário e padrões gramaticais.
 

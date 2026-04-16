@@ -113,15 +113,23 @@ const typeInfo = typeMap[activity.type] ?? { label: 'Missão Especial', icon: '�
 
                     <div class="field-group">
                         <label for="lead-whatsapp" class="field-label">WhatsApp <span class="field-required">*</span></label>
-                        <input
-                            id="lead-whatsapp"
-                            name="whatsapp"
-                            type="tel"
-                            placeholder="(11) 9 0000-0000"
-                            class="field-input"
-                            autocomplete="tel"
-                            required
-                        />
+                        <div class="phone-input-group">
+                            <select id="country-code" name="countryCode" class="country-select" aria-label="Código do País">
+                                <option value="55" selected>🇧🇷 +55</option>
+                                <option value="81">🇯🇵 +81</option>
+                                <option value="1">🇺🇸 +1</option>
+                                <option value="351">🇵🇹 +351</option>
+                            </select>
+                            <input
+                                id="lead-whatsapp"
+                                name="whatsapp"
+                                type="tel"
+                                placeholder="(11) 90000-0000"
+                                class="field-input phone-main-input"
+                                autocomplete="tel"
+                                required
+                            />
+                        </div>
                     </div>
 
                     <div class="field-group">
@@ -165,7 +173,8 @@ const typeInfo = typeMap[activity.type] ?? { label: 'Missão Especial', icon: '�
 
         const formData = new FormData(form);
         const name = (formData.get('name') as string)?.trim();
-        const whatsapp = (formData.get('whatsapp') as string)?.trim();
+        const countryCode = (formData.get('countryCode') as string)?.trim();
+        const rawWhatsapp = (formData.get('whatsapp') as string)?.trim();
         const email = (formData.get('email') as string)?.trim();
         const activityId = formData.get('activityId') as string;
 
@@ -175,11 +184,16 @@ const typeInfo = typeMap[activity.type] ?? { label: 'Missão Especial', icon: '�
             document.getElementById('lead-name')?.focus();
             return;
         }
-        if (!whatsapp) {
-            formError.textContent = 'O WhatsApp é obrigatório para receber seu acesso.';
+        if (!rawWhatsapp || rawWhatsapp.length < 8) {
+            formError.textContent = 'Informe um WhatsApp válido para receber as correções.';
             document.getElementById('lead-whatsapp')?.focus();
             return;
         }
+
+        // Clean numbers and build final formatted standard: +[country][number]
+        const cleanNumber = rawWhatsapp.replace(/\D/g, '');
+        const whatsapp = `+${countryCode}${cleanNumber}`;
+
 
         // Show loading state
         submitBtn.disabled = true;
@@ -414,6 +428,32 @@ const typeInfo = typeMap[activity.type] ?? { label: 'Missão Especial', icon: '�
     .field-input:focus {
         border-color: var(--color-brand);
         box-shadow: 0 0 0 3px rgba(88, 49, 126, 0.12);
+    }
+    .phone-input-group {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    .country-select {
+        flex-shrink: 0;
+        padding: 0.8125rem 0.5rem;
+        border: 2px solid var(--color-slate-border);
+        border-radius: 0.875rem;
+        font-family: var(--font-inter);
+        font-size: 1rem;
+        color: var(--color-slate-dark);
+        background: var(--color-white);
+        cursor: pointer;
+        outline: none;
+        transition: border-color 150ms ease, box-shadow 150ms ease;
+    }
+    .country-select:focus {
+        border-color: var(--color-brand);
+        box-shadow: 0 0 0 3px rgba(88, 49, 126, 0.12);
+    }
+    .phone-main-input {
+        flex: 1;
+        width: 100%;
     }
 
     /* ─── Error ─── */

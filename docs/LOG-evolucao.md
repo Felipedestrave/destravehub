@@ -9,7 +9,7 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - [x] **Conexão Imersiva:** Aluno agora vê foto e nome do professor no topo do dashboard.
 - [x] **Correção RLS:** Permissões de banco ajustadas para compartilhamento de perfil seguro.
 - [x] **Infraestrutura SSR:** Adaptador Vercel configurado e deploy em produção realizado com sucesso.
-- **Status:** Deploy Vercel (OK) | Perfil do Sensei concluído | Vozes do Buddy (87/90) | Fix Navegação Global.
+- **Status:** Deploy Vercel (OK) | Perfil do Sensei concluído | Vozes do Buddy (89/90) | Fix Navegação Global.
 - **Última Atualização:** 15/04/2026 (11:35h)
 - **GitHub:** `https://github.com/Felipedestrave/destravehub.git` (Branch `main`)
 
@@ -176,8 +176,8 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - [x] **Fix de Áudio (Buddy)**: O problema de áudio mudo (`NotSupportedError`) foi resolvido. 
   - **Causa**: O Gemini TTS envia PCM bruto (L16) sem cabeçalho.
   - **Solução**: Implementada função `createWavHeader` no script de geração que injeta o cabeçalho WAV de 44 bytes.
-  - **Status**: 65 de 90 arquivos gerados. 25 pendentes devido ao limite de cota diária (100 requisições/dia).
-  - **Ação futura**: Rodar `npx tsx scripts/generate-buddy-voices.ts` após o reset da cota (aprox. 6h) para completar a biblioteca.
+  - **Status**: 89 de 90 arquivos gerados. Falta apenas 1 áudio devido a limite de API.
+  - **Ação futura**: Rodar `npx tsx scripts/generate-buddy-voices.ts` para finalizar a última voz restante.
 
 ### Fase 6: Central do Sensei & Identidade Sincronizada (10/04/2026) ✅
 - **Perfil Profissional do Professor**: Reconstrução da página de configurações (`SettingsPanel.tsx`) com suporte a Biografia, Especialidade e Nome de Exibição.
@@ -198,7 +198,7 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 
   - **Fix Tipográfico**: Corrigido erro de pluralização "questãoões" para "questões" na Central de Atividades.
   - **Navegação Inteligente**: Adicionado botão "Início/Dashboard" na TopBar global (DashboardLayout) para facilitar o retorno à página principal.
-  - **Audit de Vozes**: Verificados 87/90 áudios do Buddy gerados.
+  - **Audit de Vozes**: Verificados 89/90 áudios do Buddy gerados.
   - **Upgrade Flashcards (UX & Metas)** (15/04/2026):
     - **Fix de Layout**: Implementado `font-size` dinâmico (`clamp`) para evitar estouro de texto em cards com significados longos.
     - **Confetes Epic**: Aumentada a intensidade da celebração (120 partículas) para cumprimento de alvos.
@@ -217,11 +217,9 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
    - Rotina API `api/leads/capture` para salvar leads via JSONB na tabela de `students` (campo `metadata: { is_lead: true, whatsapp, email }`).
    - Propagação de botão "Chamar o Sensei no Zap" (usando prop `senseiWhatsapp`) no sumário das 3 atividades experimentais concluídas.
    - Aba "Leads Capturados" adicionada ao Dashboard do professor para listar e contactar vendas.
-4. **Finalizar Vozes do Buddy**: Rodar o script de geração para os 25 arquivos restantes assim que a cota da API Gemini resetar.
-5. **Mecânica de Streaks (Fogo)**: Implementar visual de sequência de dias para bônus de XP e incentivar prática diária.
-6. **Notificações In-App**: Sistema de alertas visuais para novas missões atribuídas ou avisos do professor.
-7. **SFX de Buddy**: Adicionar efeitos sonoros leves para as reações do mascote (comemoração e erro).
-8. **Mecânica de Streaks (Backlog)**: Planejada a lógica de "Fogo" por dias consecutivos, multiplicador de recompensas e item "Freeze" na loja. (Arquivado para implementação futura).
+2. ✅ **Vozes do Buddy**: Praticamente finalizado. Faltando apenas 1 arquivo (89/90) de áudio.
+3. 🔥 **Mecânica de Streaks (Fogo) [PRIORIDADE]**: Implementar visual de sequência de dias para bônus de XP e incentivar prática diária.
+4. 🔔 **Notificações In-App [BACKLOG]**: Sistema de alertas visuais para novas missões atribuídas ou avisos do professor (Planejado para etapas futuras).
 
 ---
 
