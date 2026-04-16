@@ -2,6 +2,11 @@ import type { APIRoute } from 'astro';
 import { GoogleGenAI, Type } from '@google/genai';
 import type { Question } from '../../../types/escuta';
 
+const isRetryable = (error: unknown): boolean => {
+    const msg = error instanceof Error ? error.message : '';
+    return msg.includes('429') || msg.includes('503') || msg.includes('UNAVAILABLE');
+};
+
 const withRetry = async <T>(fn: () => Promise<T>, retries = 3, delay = 2000): Promise<T> => {
     try {
         return await fn();

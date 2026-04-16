@@ -13,13 +13,16 @@ const getVoiceForContext = (context?: string): string => {
     return 'Kore';
 };
 
+const isRetryable = (error: unknown): boolean => {
+    const msg = error instanceof Error ? error.message : '';
+    return msg.includes('429') || msg.includes('503') || msg.includes('UNAVAILABLE');
+};
+
 const withRetry = async <T>(fn: () => Promise<T>, retries = 3, delay = 2000): Promise<T> => {
     try {
         return await fn();
     } catch (error: unknown) {
-        const msg = error instanceof Error ? error.message : '';
-        const isRateLimit = msg.includes('429');
-        if (retries > 0 && isRateLimit) {
+        if (retries > 0 && isRetryable(error)) {
             await new Promise((r) => setTimeout(r, delay));
             return withRetry(fn, retries - 1, delay * 2);
         }

@@ -2,6 +2,23 @@ import type { APIRoute } from 'astro';
 import { GoogleGenAI, Type } from '@google/genai';
 import type { MrpQuestion } from '../../../types/mrp';
 
+const isRetryable = (error: unknown): boolean => {
+    const msg = error instanceof Error ? error.message : '';
+    return msg.includes('429') || msg.includes('503') || msg.includes('UNAVAILABLE');
+};
+
+const withRetry = async <T>(fn: () => Promise<T>, retries = 3, delay = 2000): Promise<T> => {
+    try {
+        return await fn();
+    } catch (error: unknown) {
+        if (retries > 0 && isRetryable(error)) {
+            await new Promise((r) => setTimeout(r, delay));
+            return withRetry(fn, retries - 1, delay * 2);
+        }
+        throw error;
+    }
+};
+
 export const POST: APIRoute = async ({ request }) => {
     const geminiKey = import.meta.env.GEMINI_API_KEY;
     if (!geminiKey) {
@@ -56,7 +73,7 @@ export const POST: APIRoute = async ({ request }) => {
   `;
 
     try {
-        const response = await ai.models.generateContent({
+        const response = await withRetry(() => ai.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: prompt,
             config: {
@@ -70,7 +87,7 @@ export const POST: APIRoute = async ({ request }) => {
                     required: ['isCorrect', 'feedback'],
                 },
             },
-        });
+        }));
 
         const result = JSON.parse(response.text || '{"isCorrect":false,"feedback":"Erro na avaliação."}');
 

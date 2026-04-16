@@ -2,11 +2,16 @@ import type { APIRoute } from 'astro';
 import { GoogleGenAI, Type } from '@google/genai';
 import type { DeckConfig } from '../../../types/flashcards';
 
+const isRetryable = (error: any): boolean => {
+    const msg = error?.message || '';
+    return msg.includes('429') || msg.includes('503') || msg.includes('UNAVAILABLE');
+};
+
 const withRetry = async <T>(fn: () => Promise<T>, retries = 3, delay = 2000): Promise<T> => {
     try {
         return await fn();
     } catch (error: any) {
-        if (retries > 0 && error?.message?.includes('429')) {
+        if (retries > 0 && isRetryable(error)) {
             await new Promise((r) => setTimeout(r, delay));
             return withRetry(fn, retries - 1, delay * 2);
         }
