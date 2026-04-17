@@ -203,6 +203,7 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
     - **Fix de Layout**: Implementado `font-size` dinâmico (`clamp`) para evitar estouro de texto em cards com significados longos.
     - **Confetes Epic**: Aumentada a intensidade da celebração (120 partículas) para cumprimento de alvos.
     - **Metas do Professor**: Adicionada interface no "Review Studio" para o professor estabelecer Alvos de Acertos e Tempo antes de compartilhar.
+    - **Leitura Guiada (Romaji) (16/04/2026)**: Atualizado o gerador de decks de Flashcards na API (`generate-deck.ts`) para incluir automaticamente a leitura em romaji (sem macrons) entre parênteses ao lado das palavras em Kanji na frente do card e nas frases de exemplo.
   - **Refinamento Central de Atividades** (15/04/2026):
     - **Fix Z-Index**: Corrigido problema onde o menu de opções do card ficava atrás de outros cards.
     - **Upload Direto**: Integrado botão de Upload no modal "Vincular Materiais", permitindo subir arquivos e vinculá-los instantaneamente à atividade sem trocar de página (Fix: Mapeamento de coluna `file_path`).

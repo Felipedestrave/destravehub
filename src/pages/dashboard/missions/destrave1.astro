@@ -1,0 +1,96 @@
+---
+import DashboardLayout from '../../../layouts/DashboardLayout.astro';
+import { Destrave1App } from '../../../components/destrave1/Destrave1App.tsx';
+import { supabaseAdmin } from '../../../lib/supabase-admin';
+
+const assignmentId = Astro.url.searchParams.get('assignment');
+const editingId = Astro.url.searchParams.get('edit');
+let initialQuestions = undefined;
+let initialConfig = undefined;
+let initialTitle = undefined;
+
+if (assignmentId) {
+    const { data: assignment, error } = await supabaseAdmin
+        .from('assignments')
+        .select('*, activities(*)')
+        .eq('id', assignmentId)
+        .single();
+    
+    if (!error && assignment && assignment.activities) {
+        const rawConfig = assignment.activities.config as any;
+        initialTitle = assignment.activities.title;
+        initialQuestions = rawConfig?.questions || [];
+        initialConfig = {
+             title: rawConfig?.title || initialTitle,
+        };
+    }
+}
+
+if (editingId) {
+    const { data: activity } = await supabaseAdmin
+        .from('activities')
+        .select('*')
+        .eq('id', editingId)
+        .single();
+    
+    if (activity) {
+        const rawConfig = activity.config as any;
+        initialTitle = activity.title;
+        initialQuestions = rawConfig?.questions || [];
+        initialConfig = {
+             title: rawConfig?.title || initialTitle,
+        };
+    }
+}
+---
+
+<DashboardLayout title="Destrave 1.0 — Atividades Clássicas" activeNav="destrave1">
+  <div class="page-header">
+    <div class="breadcrumb">
+      <a href="/dashboard">Dashboard</a>
+      <span class="separator">/</span>
+      <span class="current">Destrave 1.0</span>
+    </div>
+    <div class="title-section">
+      <h1 class="page-title">Destrave 1.0 📝</h1>
+      <p class="page-subtitle">
+        Banco de exercícios clássicos: Múltipla Escolha e Questões Discursivas com correção híbrida.
+      </p>
+    </div>
+  </div>
+
+  <Destrave1App 
+    client:only="react" 
+    initialConfig={initialConfig as any} 
+    initialQuestions={initialQuestions} 
+    editingId={editingId || undefined}
+    assignmentId={assignmentId || undefined}
+    initialTitle={initialTitle}
+  />
+</DashboardLayout>
+
+<style>
+  .page-header { margin-bottom: 1.5rem; }
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-slate-mid);
+    margin-bottom: 1rem;
+  }
+  .breadcrumb a { color: var(--color-slate-mid); text-decoration: none; transition: color 150ms ease; }
+  .breadcrumb a:hover { color: var(--color-brand); }
+  .breadcrumb .separator { color: var(--color-slate-border); }
+  .breadcrumb .current { color: var(--color-slate-dark); }
+  .title-section { display: flex; flex-direction: column; gap: 0.25rem; }
+  .page-title {
+    font-family: var(--font-outfit);
+    font-size: 1.875rem;
+    font-weight: 800;
+    color: var(--color-slate-dark);
+    margin: 0;
+  }
+  .page-subtitle { font-size: 1rem; color: var(--color-slate-mid); margin: 0; }
+</style>
