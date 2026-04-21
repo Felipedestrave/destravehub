@@ -6,11 +6,12 @@ import { ResultScreen } from '../escuta/ResultScreen';
 
 interface Destrave1PlayerProps {
   questions: Destrave1Question[];
-  assignmentId: string;
+  assignmentId?: string;
   activityTitle?: string;
+  publicAccess?: boolean;
 }
 
-export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, assignmentId, activityTitle }) => {
+export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, assignmentId, activityTitle, publicAccess = false }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Destrave1UserAnswer[]>([]);
   const [gameResult, setGameResult] = useState<any>(null);
@@ -108,14 +109,24 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
         score: finalScore,
         total: questions.length,
         history: finalAnswers,
-        timeSpent: 0, // Could properly track time later
+        timeSpent: 0,
         targetTime: 0
       };
 
       setGameResult(stats);
 
+      if (!assignmentId) {
+        console.log('No assignmentId, skipping result save');
+        return;
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      const token = session?.access_token;
+
+      if (!token) {
+        console.log('No session token, skipping result save');
+        return;
+      }
 
       const res = await fetch('/api/missions/save-result', {
         method: 'POST',

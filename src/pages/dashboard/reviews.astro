@@ -1,0 +1,8 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import { ReviewCenter } from '../../components/dashboard/ReviewCenter';
+---
+
+<DashboardLayout title="Central de Revisão — Destrave Hub" activeNav="reviews">
+    <ReviewCenter client:only="react" />
+</DashboardLayout>

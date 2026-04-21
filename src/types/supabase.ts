@@ -22,6 +22,7 @@ export type Database = {
                     teacher_id: string
                     title: string
                     type: string
+                    folder_id: string | null
                 }
                 Insert: {
                     config?: Json | null
@@ -30,6 +31,7 @@ export type Database = {
                     teacher_id: string
                     title: string
                     type: string
+                    folder_id?: string | null
                 }
                 Update: {
                     config?: Json | null
@@ -38,6 +40,7 @@ export type Database = {
                     teacher_id?: string
                     title?: string
                     type?: string
+                    folder_id?: string | null
                 }
                 Relationships: [
                     {
@@ -47,6 +50,52 @@ export type Database = {
                         referencedRelation: "profiles"
                         referencedColumns: ["id"]
                     },
+                    {
+                        foreignKeyName: "activities_folder_id_fkey"
+                        columns: ["folder_id"]
+                        isOneToOne: false
+                        referencedRelation: "activity_folders"
+                        referencedColumns: ["id"]
+                    },
+                ]
+            }
+            activity_folders: {
+                Row: {
+                    id: string
+                    name: string
+                    teacher_id: string
+                    parent_id: string | null
+                    created_at: string | null
+                }
+                Insert: {
+                    id?: string
+                    name: string
+                    teacher_id: string
+                    parent_id?: string | null
+                    created_at?: string | null
+                }
+                Update: {
+                    id?: string
+                    name?: string
+                    teacher_id?: string
+                    parent_id?: string | null
+                    created_at?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "activity_folders_parent_id_fkey"
+                        columns: ["parent_id"]
+                        isOneToOne: false
+                        referencedRelation: "activity_folders"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "activity_folders_teacher_id_fkey"
+                        columns: ["teacher_id"]
+                        isOneToOne: false
+                        referencedRelation: "profiles"
+                        referencedColumns: ["id"]
+                    }
                 ]
             }
             activity_materials: {

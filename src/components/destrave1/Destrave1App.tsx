@@ -11,6 +11,7 @@ interface Destrave1AppProps {
   editingId?: string;
   assignmentId?: string;
   initialTitle?: string;
+  publicAccess?: boolean;
 }
 
 type AppState = 'LOADING' | 'EDITOR' | 'PLAYER';
@@ -20,7 +21,8 @@ export const Destrave1App: React.FC<Destrave1AppProps> = ({
   initialQuestions = [],
   editingId,
   assignmentId,
-  initialTitle
+  initialTitle,
+  publicAccess = false
 }) => {
   const [appState, setAppState] = useState<AppState>('LOADING');
   const [userRole, setUserRole] = useState<'teacher'|'student'|null>(null);
@@ -30,6 +32,11 @@ export const Destrave1App: React.FC<Destrave1AppProps> = ({
   }, []);
 
   const checkRole = async () => {
+    if (publicAccess && assignmentId) {
+      setAppState('PLAYER');
+      return;
+    }
+    
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
     
@@ -47,7 +54,7 @@ export const Destrave1App: React.FC<Destrave1AppProps> = ({
     } else if (role === 'teacher') {
        setAppState('EDITOR');
     } else {
-       // Falback caso um aluno acesse sem assignmentId
+       // Falback caso um aluno akses sem assignmentId
        window.location.href = '/dashboard';
     }
   };
@@ -74,7 +81,8 @@ export const Destrave1App: React.FC<Destrave1AppProps> = ({
         <Destrave1Player 
           questions={initialQuestions} 
           assignmentId={assignmentId} 
-          activityTitle={initialTitle} 
+          activityTitle={initialTitle}
+          publicAccess={publicAccess}
         />
       )}
     </div>

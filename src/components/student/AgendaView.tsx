@@ -101,7 +101,7 @@ export const AgendaView: React.FC = () => {
 
     return (
         <div className="agenda-container">
-            <h2 className="agenda-title">Programação Próxima</h2>
+            <h2 className="agenda-title">Atividades a fazer</h2>
             
             <div className="timeline">
                 {items.map((item, idx) => {
@@ -235,6 +235,8 @@ export const AgendaView: React.FC = () => {
 
                 .timeline-content {
                     flex: 1;
+                    min-width: 0;
+                    overflow: hidden;
                 }
                 .content-card {
                     display: flex;
@@ -270,6 +272,8 @@ export const AgendaView: React.FC = () => {
 
                 .card-info {
                     flex: 1;
+                    min-width: 0;
+                    overflow: hidden;
                 }
                 .card-type-label {
                     font-size: 0.65rem;
@@ -283,6 +287,9 @@ export const AgendaView: React.FC = () => {
                     font-weight: 700;
                     color: var(--color-slate-dark);
                     margin: 0;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
                 }
                 .card-meta {
                     font-size: 0.75rem;

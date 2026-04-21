@@ -75,6 +75,7 @@ export default function MissionList() {
     if (type === 'escuta') window.location.href = `/dashboard/missions/escuta?assignment=${mission.id}`;
     if (type === 'mrp') window.location.href = `/dashboard/missions/mrp?assignment=${mission.id}`;
     if (type === 'flashcards') window.location.href = `/dashboard/missions/flashcards?assignment=${mission.id}`;
+    if (type === 'destrave1') window.location.href = `/dashboard/missions/destrave1?assignment=${mission.id}`;
   };
 
   if (loading) {

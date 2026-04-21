@@ -3,6 +3,7 @@ import Layout from '@/layouts/Layout.astro';
 import { EscutaApp } from '@/components/escuta/EscutaApp.tsx';
 import { MrpApp } from '@/components/mrp/MrpApp.tsx';
 import { CardViewer } from '@/components/flashcards/CardViewer.tsx';
+import { Destrave1App } from '@/components/destrave1/Destrave1App.tsx';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
 const { type, assignmentId } = Astro.params;
@@ -49,6 +50,7 @@ const rawConfig = assignment.activities.config as any;
 let initialQuestions = [];
 let initialConfig = null;
 let flashcardsCards = [];
+let destrave1Config = null;
 
 // Preparação de dados específica por tipo
 if (type === 'escuta' || type === 'mrp') {
@@ -60,8 +62,10 @@ if (type === 'escuta' || type === 'mrp') {
         mode: rawConfig?.mode || (type === 'mrp' ? 'Múltipla Escolha' : undefined)
     };
 } else if (type === 'flashcards') {
-    // No Destrave Cards, os cards estão dentro da config
     flashcardsCards = rawConfig?.cards || [];
+} else if (type === 'destrave1') {
+    destrave1Config = rawConfig as any;
+    initialQuestions = destrave1Config?.questions || [];
 }
 
 const teacherId = assignment.activities.teacher_id;
@@ -112,6 +116,18 @@ const senseiData = teacherProfile ? {
                         cards={flashcardsCards} 
                         senseiData={senseiData}
                         activityId={assignment.activities.id} 
+                    />
+                </div>
+            )}
+            {type === 'destrave1' && (
+                <div class="max-w-5xl mx-auto py-8">
+                    <Destrave1App 
+                        client:only="react" 
+                        initialQuestions={initialQuestions}
+                        assignmentId={isTest ? undefined : assignment.id}
+                        initialTitle={assignment.activities.title}
+                        initialConfig={destrave1Config}
+                        publicAccess={true}
                     />
                 </div>
             )}
