@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { supabaseAdmin } from '../../../lib/supabase-admin';
+import { repetitionService } from '../../../lib/repetition';
 
 export const POST: APIRoute = async ({ request }) => {
     const authHeader = request.headers.get('Authorization');
@@ -60,11 +61,18 @@ export const POST: APIRoute = async ({ request }) => {
         });
     }
 
+    const now = new Date().toISOString();
+    const repetitionSchedule = repetitionService.generateSchedule(now);
+
     const assignments = newStudentIds.map((studentId) => ({
         activity_id: body.activityId,
         student_id: studentId,
         status: 'pending',
-        assigned_at: new Date().toISOString(),
+        assigned_at: now,
+        result_data: { 
+            repetition: repetitionSchedule,
+            scheduled_at: now 
+        }
     }));
 
     const { error: insertError } = await supabaseAdmin.from('assignments').insert(assignments);

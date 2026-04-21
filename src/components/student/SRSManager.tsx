@@ -1,0 +1,74 @@
+import React, { useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
+import { notificationService } from '../../lib/notifications';
+import { toast } from 'react-hot-toast';
+
+export const SRSManager: React.FC = () => {
+  useEffect(() => {
+    checkForDueRevisions();
+  }, []);
+
+  const checkForDueRevisions = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      // 1. Buscar missões com cronograma SRS pendente
+      const { data: assignments, error } = await supabase
+        .from('assignments')
+        .select('id, result_data, activities(title)')
+        .eq('status', 'completed') // Só missões já feitas uma vez
+        .not('result_data', 'is', null);
+
+      if (error) throw error;
+
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      for (const assignment of (assignments || [])) {
+        const data = assignment.result_data as any;
+        if (!data.repetition || !Array.isArray(data.repetition)) continue;
+
+        let needsUpdate = false;
+        const updatedRepetition = [...data.repetition];
+
+        for (let i = 0; i < updatedRepetition.length; i++) {
+          const milestone = updatedRepetition[i];
+          const scheduled = new Date(milestone.scheduledDate);
+          const scheduledDay = new Date(scheduled.getFullYear(), scheduled.getMonth(), scheduled.getDate());
+
+          // Se o dia chegou ou passou, e ainda está pendente e não notificado
+          if (milestone.status === 'pending' && today >= scheduledDay && !milestone.notified) {
+            
+            // Enviar Notificação Interna
+            await notificationService.sendNotification(
+                session.user.id,
+                'Revisão Disponível! 📚',
+                `A sua revisão da missão "${(assignment.activities as any)?.title}" está disponível hoje. Ganhe moedas extras ao refazer agora!`,
+                'assignment',
+                `/dashboard/missions/destrave1?assignment=${assignment.id}` // Link para a missão
+            );
+
+            toast('Revisão disponível! Verifique seu sininho.', { icon: '🔔' });
+
+            // Marcar como notificado
+            updatedRepetition[i].notified = true;
+            needsUpdate = true;
+          }
+        }
+
+        if (needsUpdate) {
+          // Atualizar o banco para não repetir a notificação
+          await supabase
+            .from('assignments')
+            .update({ result_data: { ...data, repetition: updatedRepetition } })
+            .eq('id', assignment.id);
+        }
+      }
+    } catch (err) {
+      console.error('[SRSManager] Error checking revisions:', err);
+    }
+  };
+
+  return null; // Componente invisível
+};

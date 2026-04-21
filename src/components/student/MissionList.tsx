@@ -146,6 +146,17 @@ export default function MissionList() {
             const language = config.language || 'Japonês';
             const level = config.level || 'Iniciante';
             const dateStr = mission.assigned_at ? new Date(mission.assigned_at).toLocaleDateString('pt-BR') : '—';
+            
+            // Lógica para detectar revisão pendente (SRS)
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+            const hasDueRevision = config.repetition?.some((m: any) => {
+              const scheduled = new Date(m.scheduledDate).toISOString().split('T')[0];
+              return m.status === 'pending' && scheduled <= todayStr;
+            }) || (mission.result_data as any)?.repetition?.some((m: any) => {
+              const scheduled = new Date(m.scheduledDate).toISOString().split('T')[0];
+              return m.status === 'pending' && scheduled <= todayStr;
+            });
 
             return (
               <div 
@@ -159,7 +170,14 @@ export default function MissionList() {
                 <div className="mission-content">
                   <div className="mission-header">
                     <h3 className="mission-title">{mission.activities?.title || 'Missão Sem Título'}</h3>
-                    {getStatusBadge(mission.status)}
+                    <div className="flex gap-2 items-center">
+                      {hasDueRevision && (
+                        <span className="status-badge due-revision animate-pulse">
+                          🔔 REVISÃO DISPONÍVEL
+                        </span>
+                      )}
+                      {getStatusBadge(mission.status)}
+                    </div>
                   </div>
                   <div className="mission-footer">
                     <span className="mission-meta">🗣️ {language}</span>
@@ -323,6 +341,11 @@ export default function MissionList() {
         .status-badge.completed {
           background: #DCFCE7;
           color: #166534;
+        }
+        .status-badge.due-revision {
+          background: #FEF3C7;
+          color: #D97706;
+          border: 1px solid #FCD34D;
         }
 
         .mission-footer {

@@ -213,14 +213,18 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 ## ⏭️ Próximos Passos (Próxima Sessão)
 
 1. ✅ **[PRIORIDADE MÁXIMA] Portal de Captura (Lead Magnet)**: Criado e finalizado!
-   - Link de convite na Central de Atividades para Landing Page `convite/[id]`.
-   - Landing Page de captura `CaptureForm` com validação.
-   - Rotina API `api/leads/capture` para salvar leads via JSONB na tabela de `students` (campo `metadata: { is_lead: true, whatsapp, email }`).
-   - Propagação de botão "Chamar o Sensei no Zap" (usando prop `senseiWhatsapp`) no sumário das 3 atividades experimentais concluídas.
-   - Aba "Leads Capturados" adicionada ao Dashboard do professor para listar e contactar vendas.
 2. ✅ **Vozes do Buddy**: Praticamente finalizado. Faltando apenas 1 arquivo (89/90) de áudio.
 3. 🔥 **Mecânica de Streaks (Fogo) [PRIORIDADE]**: Implementar visual de sequência de dias para bônus de XP e incentivar prática diária.
 4. 🔔 **Notificações In-App [BACKLOG]**: Sistema de alertas visuais para novas missões atribuídas ou avisos do professor (Planejado para etapas futuras).
+5. [ ] **Finalização das Vozes do Buddy (89/90 concluídos)**
+6. [ ] **Mecânica de Streaks (Sequência de dias com animação de fogo)**
+7. [ ] **Sistema de Alertas de Missões Críticas (Vencimento de revisões)**
+8. [ ] **Loja: Itens consumíveis para o sistema de repetição (ex: Rebobinar ciclo) incentivar prática diária.**
+9. [ ] **Backlog: Gestão Financeira (Mestre & Aluno)**
+   - Painel de mensalidades (Pago/Pendente/Atrasado)
+   - Dashboard de MRR e Previsão de Caixa
+   - Botão de cobrança semi-automática via Link de WhatsApp
+   - Área do Aluno com histórico de faturas e chave Pix "Copia e Cola"
 
 ---
 

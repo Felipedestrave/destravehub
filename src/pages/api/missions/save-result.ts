@@ -2,6 +2,8 @@ import type { APIRoute } from 'astro';
 import { supabase } from '../../../lib/supabase';
 import { supabaseAdmin } from '../../../lib/supabase-admin';
 import { calculateMissionRewards } from '../../../lib/gamification';
+import { repetitionService } from '../../../lib/repetition';
+import { notificationService } from '../../../lib/notifications';
 import type { HistoryItem } from '../../../types/escuta';
 
 export const POST: APIRoute = async ({ request }) => {
@@ -88,14 +90,45 @@ export const POST: APIRoute = async ({ request }) => {
             }
 
             if (isReplay) {
-                // Preserving First Attempt Logic
+                // --- Lógica de Repetição Esparsa (SRS) ---
                 const old = current.result_data as any;
+                let repetitionReward = 0;
+                let repetitionMilestoneIndex = -1;
+
+                if (old.repetition && Array.isArray(old.repetition)) {
+                    // Encontrar o próximo marco pendente
+                    repetitionMilestoneIndex = old.repetition.findIndex((m: any) => m.status === 'pending');
+                    
+                    if (repetitionMilestoneIndex !== -1) {
+                        const milestone = old.repetition[repetitionMilestoneIndex];
+                        const nextMilestone = old.repetition[repetitionMilestoneIndex + 1];
+                        
+                        const review = repetitionService.calculateReward(
+                            milestone.milestone, 
+                            milestone.scheduledDate, 
+                            nextMilestone?.scheduledDate
+                        );
+
+                        if (review.coins > 0) {
+                            repetitionReward = review.coins;
+                            // Atualizar o status do marco no cronograma
+                            old.repetition[repetitionMilestoneIndex].status = 'completed';
+                            old.repetition[repetitionMilestoneIndex].completedAt = now;
+                            old.repetition[repetitionMilestoneIndex].earnedCoins = repetitionReward;
+                            
+                            console.log(`[SRS] Student completed milestone ${milestone.milestone}. Reward: ${repetitionReward} DC.`);
+                        }
+                    }
+                }
+
+                // Preserving First Attempt Logic
                 const newReplay = {
                     score,
                     totalQuestions,
                     history,
                     completed_at: now,
-                    rewards // Log rewards in the replay record too
+                    rewards, // Log original rewards
+                    repetitionReward // Bonus reward for SRS
                 };
 
                 finalResultData = {
@@ -105,11 +138,31 @@ export const POST: APIRoute = async ({ request }) => {
                     practice_count: (old.practice_count || 1) + 1,
                     is_practice: true
                 };
+
+                // Se houve recompensa de repetição, adiciona ao perfil
+                if (repetitionReward > 0 && profileId) {
+                    await supabaseAdmin.rpc('increment_gamification', { 
+                        user_id: profileId, 
+                        xp_gain: 0, 
+                        coins_gain: repetitionReward 
+                    });
+                    
+                    // Notificação interna
+                    await notificationService.sendNotification(
+                        profileId,
+                        'Recompensa de Revisão! 🎯',
+                        `Você completou uma revisão agendada e ganhou ${repetitionReward} DC extras!`,
+                        'completion'
+                    );
+                }
                 
-                console.log(`[Save Result] Student ${studentId || 'unknown'} completed a replay of ${assignmentId}. Preserving original score.`);
+                console.log(`[Save Result] Student ${studentId || 'unknown'} completed a replay of ${assignmentId}.`);
             } else {
-                // First Attempt
+                // First Attempt (O cronograma SRS já foi gerado na atribuição pelo professor)
+                const existingData = current.result_data as any;
+                
                 finalResultData = {
+                    ...existingData, // Preserva o 'repetition' agendado
                     score,
                     totalQuestions,
                     history,
@@ -119,7 +172,7 @@ export const POST: APIRoute = async ({ request }) => {
                     practice_count: 1,
                     rewards // Primary rewards
                 };
-                console.log(`[Save Result] Student ${studentId || 'unknown'} completed mission ${assignmentId} for the first time.`);
+                console.log(`[Save Result] Student ${studentId || 'unknown'} completed mission ${assignmentId} for the first time. Preserving SRS schedule.`);
             }
 
             const { error: updateError } = await supabaseAdmin
