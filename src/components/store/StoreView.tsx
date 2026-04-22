@@ -66,7 +66,7 @@ export const StoreView: React.FC<StoreViewProps> = () => {
         }
     };
 
-    const handleEquip = async (item: StoreItem) => {
+    const handleEquip = async (item: StoreItem, isCurrentlyEquipped: boolean) => {
         setIsLoading(`equip-${item.id}`);
         setError(null);
         try {
@@ -75,7 +75,7 @@ export const StoreView: React.FC<StoreViewProps> = () => {
 
             const newEquipped = {
                 ...equippedItems,
-                [item.category]: item.id
+                [item.category]: isCurrentlyEquipped ? null : item.id
             };
 
             const res = await fetch('/api/store/equip', {
@@ -94,6 +94,10 @@ export const StoreView: React.FC<StoreViewProps> = () => {
                 ...prev,
                 equipped: newEquipped
             }));
+
+            if (item.category === 'theme') {
+                window.dispatchEvent(new CustomEvent('theme-changed', { detail: newEquipped.theme }));
+            }
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -211,8 +215,8 @@ export const StoreView: React.FC<StoreViewProps> = () => {
                             <div className="card-actions">
                                 {isOwned ? (
                                     <button 
-                                        onClick={() => handleEquip(item)}
-                                        disabled={isEquipped || loading}
+                                        onClick={() => handleEquip(item, isEquipped)}
+                                        disabled={loading}
                                         className={`btn-equip ${isEquipped ? 'equipped' : ''}`}
                                     >
                                         {loading ? <Loader2 className="animate-spin" size={16} /> : isEquipped ? <><CheckCircle2 size={16} /> Equipado</> : 'Equipar'}

@@ -522,6 +522,51 @@ export type Database = {
                     }
                 ]
             }
+            wallet_transactions: {
+                Row: {
+                    id: string
+                    created_at: string
+                    user_id: string
+                    teacher_id: string | null
+                    amount: number
+                    type: string
+                    description: string | null
+                }
+                Insert: {
+                    id?: string
+                    created_at?: string
+                    user_id: string
+                    teacher_id?: string | null
+                    amount: number
+                    type: string
+                    description?: string | null
+                }
+                Update: {
+                    id?: string
+                    created_at?: string
+                    user_id?: string
+                    teacher_id?: string | null
+                    amount?: number
+                    type?: string
+                    description?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "wallet_transactions_user_id_fkey"
+                        columns: ["user_id"]
+                        isOneToOne: false
+                        referencedRelation: "profiles"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "wallet_transactions_teacher_id_fkey"
+                        columns: ["teacher_id"]
+                        isOneToOne: false
+                        referencedRelation: "profiles"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            }
         }
         Views: {
             [_ in never]: never

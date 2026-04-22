@@ -108,7 +108,20 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
       const stats = {
         score: finalScore,
         total: questions.length,
-        history: finalAnswers,
+        history: finalAnswers.map(a => {
+          const q = questions.find(question => question.id === a.questionId);
+          return {
+            correct: a.isCorrect,
+            points: a.isCorrect ? 10 : 0,
+            questionData: {
+              question: {
+                japanese_sentence: q?.question || 'Questão',
+                context_name: 'Destrave 1.0'
+              }
+            },
+            usedHint: false
+          };
+        }),
         timeSpent: 0,
         targetTime: 0
       };
@@ -164,6 +177,7 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
     return (
       <ResultScreen
         result={gameResult}
+        onRestart={() => window.location.reload()}
         hideActions={true}
         rewards={rewards}
       />
@@ -285,7 +299,7 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
              <span className="text-yellow-300">★</span> {currentScore} Acertos
            </div>
 
-           <BuddyView status={buddyStatus} size="large" />
+           <BuddyView state={buddyStatus} />
            
            <div className="mt-6 text-center z-10 w-full relative">
              {buddyStatus === 'idle' && currentQuestion.type === 'discursive' && !isEvaluating && (

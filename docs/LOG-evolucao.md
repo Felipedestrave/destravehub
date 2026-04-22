@@ -9,8 +9,8 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - [x] **Conexão Imersiva:** Aluno agora vê foto e nome do professor no topo do dashboard.
 - [x] **Correção RLS:** Permissões de banco ajustadas para compartilhamento de perfil seguro.
 - [x] **Infraestrutura SSR:** Adaptador Vercel configurado e deploy em produção realizado com sucesso.
-- **Status:** Deploy Vercel (OK) | Perfil do Sensei concluído | Vozes do Buddy (89/90) | Fix Navegação Global.
-- **Última Atualização:** 15/04/2026 (11:35h)
+- **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Fix Coluna Equipped (OK) | Vozes do Buddy (89/90).
+- **Última Atualização:** 22/04/2026 (07:45h)
 - **GitHub:** `https://github.com/Felipedestrave/destravehub.git` (Branch `main`)
 
 ---
@@ -154,6 +154,13 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
     - [x] **Design Temático (Guerreiros Pixar):** Reformulação total para 21 itens exclusivos com temática japonesa urbana e 3D Pixar.
     - [x] **UX da Loja:** Cards com prévia em 1:1, suporte a imagens de corpo inteiro (`contain`) e banners de cenário (`cover`).
     - [x] **Economia Balanceada:** Projeção de ganhos para perfis Hardcore (6 meses) e Médio (2 anos) para retenção de longo prazo.
+    - [x] **Sistema de Temas Dinâmicos (22/04/2026) 🎨:**
+        - [x] **Fix de Banco**: Adicionada coluna `equipped` (jsonb) na tabela `profiles` via migração SQL.
+        - [x] **Arquitetura de Variáveis**: Temas implementados via CSS Variables (`--color-brand`, `--color-ice`, etc.) com escopo global.
+        - [x] **Layout Sincronizado**: `DashboardLayout.astro` atualizado para aplicar classes de tema (`theme-konbini-night`, etc.) baseadas no perfil.
+        - [x] **Equipamento Inteligente**: Implementada lógica de "Toggle" (Equipar/Desequipar) na Loja e Inventário.
+        - [x] **Real-time Engine**: Uso de `CustomEvent` (`theme-changed`) para trocar as cores do dashboard instantaneamente sem recarregar a página.
+        - [x] **Paletas Customizadas**: Criadas 7 paletas exclusivas (Midnight, Shinkansen, Ramen, Akihabara Glitch, etc.) com uso de `!important` para garantir consistência sobre o Tailwind v4.
 
 ### Fase 3: O Companheiro (Buddy) & Gamificação Refinada (28/03/2026) ✅
 - **Criação do Buddy Motor**: Implementação do `BuddyView.tsx` com Framer Motion (animações Pixar de idle, sucesso e erro).

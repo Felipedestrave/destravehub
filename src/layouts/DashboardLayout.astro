@@ -218,6 +218,40 @@ const {
       
       const profile = profiles?.[0];
       const userRole = profile?.role || session.user.user_metadata?.role || 'teacher';
+      const equipped = profile?.equipped || {};
+      const currentThemeId = equipped.theme;
+
+      // --- APLICAR TEMA ---
+      const applyTheme = (themeId: string | null) => {
+        console.log('[Theme] Tentando aplicar:', themeId);
+        
+        // Remover temas antigos do <html> e <body>
+        const targets = [document.documentElement, document.body];
+        targets.forEach(el => {
+          // Converter para array para evitar problemas ao remover durante a iteração
+          const classesToRemove = Array.from(el.classList).filter(cls => cls.startsWith('theme-'));
+          classesToRemove.forEach(cls => el.classList.remove(cls));
+        });
+        
+        if (themeId && themeId !== 'null') {
+          document.documentElement.classList.add(themeId);
+          document.documentElement.setAttribute('data-theme', themeId);
+          document.body.classList.add(themeId);
+          console.log('[Theme] Aplicado com sucesso:', themeId);
+        } else {
+          document.documentElement.removeAttribute('data-theme');
+          console.log('[Theme] Tema removido, voltando ao padrão.');
+        }
+      };
+
+      if (currentThemeId) {
+        applyTheme(currentThemeId);
+      }
+
+      // Listener para mudanças em tempo real (sem refresh)
+      window.addEventListener('theme-changed', (e: any) => {
+        applyTheme(e.detail);
+      });
 
       const nameEl = document.getElementById('user-name');
       const roleBadge = document.getElementById('role-badge');
@@ -332,6 +366,101 @@ const {
   toggleBtn?.addEventListener('click', toggleSidebar);
   backdrop?.addEventListener('click', toggleSidebar);
 </script>
+
+<style is:global>
+  /* 
+     ============================================
+     TEMAS DINÂMICOS (FORÇADOS)
+     ============================================ 
+  */
+
+  /* 1. Konbini Night */
+  html.theme-konbini-night, body.theme-konbini-night {
+    --color-brand: #1E1B4B !important;
+    --color-brand-hover: #312E81 !important;
+    --color-action: #06B6D4 !important;
+    --color-action-hover: #0891B2 !important;
+    --color-lilac: #CFFAFE !important;
+    --color-ice: #0F172A !important;
+    --color-white: #1E293B !important;
+    --color-slate-border: #334155 !important;
+    --color-slate-dark: #F8FAF0 !important;
+  }
+  .theme-konbini-night .dashboard-topbar,
+  .theme-konbini-night .sidebar-content {
+    background-color: #1E1B4B !important;
+    border-color: #334155 !important;
+  }
+  .theme-konbini-night .sidebar-link:not(.active) {
+    color: #94A3B8 !important;
+  }
+
+  /* 2. Shinkansen Dash */
+  html.theme-shinkansen-dash, body.theme-shinkansen-dash {
+    --color-brand: #334155 !important;
+    --color-brand-hover: #1E293B !important;
+    --color-action: #2563EB !important;
+    --color-action-hover: #1D4ED8 !important;
+    --color-lilac: #DBEAFE !important;
+    --color-ice: #F1F5F9 !important;
+  }
+
+  /* 3. Ramen Mania */
+  html.theme-ramen-mania, body.theme-ramen-mania {
+    --color-brand: #92400E !important;
+    --color-brand-hover: #78350F !important;
+    --color-action: #F59E0B !important;
+    --color-action-hover: #D97706 !important;
+    --color-lilac: #FEF3C7 !important;
+    --color-ice: #FFFBEB !important;
+    --color-white: #FFFDF5 !important;
+  }
+
+  /* 4. Vending Machine */
+  html.theme-vending-machine, body.theme-vending-machine {
+    --color-brand: #0F766E !important;
+    --color-brand-hover: #115E59 !important;
+    --color-action: #F43F5E !important;
+    --color-action-hover: #E11D48 !important;
+    --color-lilac: #FFE4E6 !important;
+    --color-ice: #F0FDFA !important;
+  }
+
+  /* 5. Akihabara Glitch */
+  html.theme-akihabara-glitch, body.theme-akihabara-glitch {
+    --color-brand: #000000 !important;
+    --color-brand-hover: #111111 !important;
+    --color-action: #22C55E !important;
+    --color-action-hover: #16A34A !important;
+    --color-lilac: #DCFCE7 !important;
+    --color-slate-dark: #FFFFFF !important;
+    --color-slate-mid: #94A3B8 !important;
+    --color-ice: #050505 !important;
+    --color-white: #0A0A0A !important;
+    --color-slate-border: #22C55E33 !important;
+  }
+
+  /* 6. Sushi Go-Round */
+  html.theme-sushi-go-round, body.theme-sushi-go-round {
+    --color-brand: #C2410C !important;
+    --color-brand-hover: #9A3412 !important;
+    --color-action: #65A30D !important;
+    --color-action-hover: #4D7C0F !important;
+    --color-lilac: #F0FDF4 !important;
+    --color-ice: #FFF7ED !important;
+  }
+
+  /* 7. Harajuku Pop */
+  html.theme-harajuku-pop, body.theme-harajuku-pop {
+    --color-brand: #DB2777 !important;
+    --color-brand-hover: #BE185D !important;
+    --color-action: #7C3AED !important;
+    --color-action-hover: #6D28D9 !important;
+    --color-lilac: #F5F3FF !important;
+    --color-ice: #FDF2F8 !important;
+    --color-white: #FFF5F9 !important;
+  }
+</style>
 
 <style>
   .dashboard-body {

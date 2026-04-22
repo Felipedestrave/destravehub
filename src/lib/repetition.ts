@@ -3,7 +3,7 @@
 export const REPETITION_DAYS = [1, 2, 6, 11, 17, 26];
 export const REPETITION_REWARDS = [0, 2, 4, 6, 8, 10]; // Nova escala solicitada
 
-export interface RepetitionMilestone {
+export type RepetitionMilestone = {
   milestone: number; // 1 a 5 (ou 0 a 5)
   scheduledDate: string;
   status: 'pending' | 'completed' | 'missed';

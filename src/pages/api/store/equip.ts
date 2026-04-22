@@ -30,7 +30,15 @@ export const POST: APIRoute = async ({ request }) => {
         return new Response(JSON.stringify({ success: true }), { status: 200 });
 
     } catch (err: any) {
-        console.error('[Store Equip Error]', err);
-        return new Response(JSON.stringify({ error: 'Erro ao equipar item' }), { status: 500 });
+        console.error('[Store Equip Error]', {
+            message: err.message,
+            code: err.code,
+            details: err.details,
+            hint: err.hint
+        });
+        return new Response(JSON.stringify({ 
+            error: 'Erro ao equipar item', 
+            details: err.message 
+        }), { status: 500 });
     }
 };

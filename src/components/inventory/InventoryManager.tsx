@@ -37,14 +37,15 @@ export const InventoryManager: React.FC = () => {
         fetchInventory();
     }, []);
 
-    const handleEquip = async (item: StoreItem) => {
+    const handleEquip = async (item: StoreItem, isCurrentlyEquipped: boolean) => {
         setSaving(item.id);
         try {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) return;
 
             const newEquipped = { ...equipped };
-            newEquipped[item.category] = item.id;
+            // Se já estiver equipado, desequipa (null), senão equipa
+            newEquipped[item.category] = isCurrentlyEquipped ? null : item.id;
 
             const res = await fetch('/api/store/equip', {
                 method: 'POST',
@@ -59,7 +60,7 @@ export const InventoryManager: React.FC = () => {
                 setEquipped(newEquipped);
                 // Trigger global theme update if it's a theme change
                 if (item.category === 'theme') {
-                    window.dispatchEvent(new CustomEvent('theme-changed', { detail: item.id }));
+                    window.dispatchEvent(new CustomEvent('theme-changed', { detail: newEquipped.theme }));
                 }
             }
         } catch (err) {
@@ -122,7 +123,7 @@ export const InventoryManager: React.FC = () => {
                             <div 
                                 key={item.id} 
                                 className={`inventory-card ${isEquipped ? 'equipped' : ''}`}
-                                onClick={() => !isEquipped && handleEquip(item)}
+                                onClick={() => handleEquip(item, isEquipped)}
                             >
                                 <div className="card-preview">
                                     <img src={item.previewUrl} alt={item.name} />

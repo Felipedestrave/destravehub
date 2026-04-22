@@ -264,3 +264,92 @@ body {
     animation: scale-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   }
 }
+
+/* ============================================
+   TEMAS VISUAIS (STORE)
+   ============================================ */
+
+/* 1. Konbini Night - Azul Noturno & Neon */
+:root.theme-konbini-night, body.theme-konbini-night {
+  --color-brand: #1E1B4B !important;
+  --color-brand-hover: #312E81 !important;
+  --color-action: #06B6D4 !important;
+  --color-action-hover: #0891B2 !important;
+  --color-lilac: #CFFAFE !important;
+  --color-ice: #0F172A !important;
+}
+.theme-konbini-night { background-color: #0F172A; }
+.theme-konbini-night .card, 
+.theme-konbini-night .sidebar-content,
+.theme-konbini-night .dashboard-topbar {
+  border-color: #334155 !important;
+}
+
+/* 2. Shinkansen Dash - Prateado & Moderno */
+:root.theme-shinkansen-dash, body.theme-shinkansen-dash {
+  --color-brand: #334155 !important;
+  --color-brand-hover: #1E293B !important;
+  --color-action: #2563EB !important;
+  --color-action-hover: #1D4ED8 !important;
+  --color-lilac: #DBEAFE !important;
+  --color-ice: #F1F5F9 !important;
+}
+
+/* 3. Ramen Mania - Quente & Aconchegante */
+:root.theme-ramen-mania, body.theme-ramen-mania {
+  --color-brand: #92400E !important;
+  --color-brand-hover: #78350F !important;
+  --color-action: #F59E0B !important;
+  --color-action-hover: #D97706 !important;
+  --color-lilac: #FEF3C7 !important;
+  --color-ice: #FFFBEB !important;
+}
+
+/* 4. Vending Machine - Colorido & Tech */
+:root.theme-vending-machine, body.theme-vending-machine {
+  --color-brand: #0F766E !important;
+  --color-brand-hover: #115E59 !important;
+  --color-action: #F43F5E !important;
+  --color-action-hover: #E11D48 !important;
+  --color-lilac: #FFE4E6 !important;
+  --color-ice: #F0FDFA !important;
+}
+
+/* 5. Akihabara Glitch - Cyberpunk Neon */
+:root.theme-akihabara-glitch, body.theme-akihabara-glitch {
+  --color-brand: #000000 !important;
+  --color-brand-hover: #111111 !important;
+  --color-action: #22C55E !important;
+  --color-action-hover: #16A34A !important;
+  --color-lilac: #DCFCE7 !important;
+  --color-slate-dark: #FFFFFF !important;
+  --color-slate-mid: #94A3B8 !important;
+  --color-ice: #050505 !important;
+}
+.theme-akihabara-glitch .card,
+.theme-akihabara-glitch .dashboard-topbar {
+  background-color: #0A0A0A !important;
+  border-color: #22C55E33 !important;
+}
+
+/* 6. Sushi Go-Round - Salmão & Frescor */
+:root.theme-sushi-go-round, body.theme-sushi-go-round {
+  --color-brand: #C2410C !important;
+  --color-brand-hover: #9A3412 !important;
+  --color-action: #65A30D !important;
+  --color-action-hover: #4D7C0F !important;
+  --color-lilac: #F0FDF4 !important;
+  --color-ice: #FFF7ED !important;
+}
+
+/* 7. Harajuku Pop - Kawaii & Pink */
+:root.theme-harajuku-pop, body.theme-harajuku-pop {
+  --color-brand: #DB2777 !important;
+  --color-brand-hover: #BE185D !important;
+  --color-action: #7C3AED !important;
+  --color-action-hover: #6D28D9 !important;
+  --color-lilac: #F5F3FF !important;
+  --color-ice: #FDF2F8 !important;
+}
+
+

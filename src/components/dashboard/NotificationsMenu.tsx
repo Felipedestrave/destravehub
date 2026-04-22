@@ -37,6 +37,7 @@ export const NotificationsMenu: React.FC<Props> = ({ userId, isOpen, onClose }) 
   };
 
   const handleMarkAllRead = async () => {
+    if (!userId) return;
     await notificationService.markAllAsRead(userId);
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
@@ -92,7 +93,7 @@ export const NotificationsMenu: React.FC<Props> = ({ userId, isOpen, onClose }) 
         </div>
       </motion.div>
 
-      <style jsx>{`
+      <style>{`
         .notifications-dropdown-container {
           position: absolute;
           top: 100%;

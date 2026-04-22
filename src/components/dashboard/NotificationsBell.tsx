@@ -67,7 +67,7 @@ export const NotificationsBell: React.FC<Props> = ({ userId: initialUserId }) =>
         onClose={() => setIsOpen(false)} 
       />
 
-      <style jsx>{`
+      <style>{`
         .notifications-btn {
           position: relative;
           background: none;
