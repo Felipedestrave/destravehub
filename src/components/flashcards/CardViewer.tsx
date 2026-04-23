@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase';
 import { STORE_ITEMS } from '../../lib/store';
 import { getBuddyPhrase } from '../../lib/buddy-phrases';
 import { MaterialsDrawer } from '../materials/MaterialsDrawer';
+import { shuffleArray } from '../../lib/utils';
 
 interface CardViewerProps {
     cards: Flashcard[];
@@ -23,6 +24,9 @@ interface CardViewerProps {
 }
 
 export const CardViewer: React.FC<CardViewerProps> = ({ cards, onFinish, senseiWhatsapp, activityId, targetScore: initialTargetScore, targetTime: initialTargetTime }) => {
+    // Randomize cards once on mount
+    const [shuffledCards] = useState(() => shuffleArray(cards));
+
     // ESTADOS
     const [status, setStatus] = useState<'SETUP' | 'PLAYING' | 'SUMMARY'>('SETUP');
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -62,10 +66,10 @@ export const CardViewer: React.FC<CardViewerProps> = ({ cards, onFinish, senseiW
         }, 2000);
     };
 
-    const [targetScore, setTargetScore] = useState(initialTargetScore || Math.ceil(cards.length * 0.75)); 
+    const [targetScore, setTargetScore] = useState(initialTargetScore || Math.ceil(shuffledCards.length * 0.75)); 
     const [targetTimeStr, setTargetTimeStr] = useState(initialTargetTime || '02:00');
 
-    const currentCard = cards[currentIndex];
+    const currentCard = shuffledCards[currentIndex];
 
     // Cronômetro
     useEffect(() => {
@@ -117,14 +121,14 @@ export const CardViewer: React.FC<CardViewerProps> = ({ cards, onFinish, senseiW
 
         setIsFlipped(false);
         setTimeout(() => {
-            if (currentIndex + 1 < cards.length) {
+            if (currentIndex + 1 < shuffledCards.length) {
                 setCurrentIndex(v => v + 1);
             } else {
                 setStatus('SUMMARY');
                 if (onFinish) {
                     onFinish({
                         score: correctCount + (isCorrect ? 1 : 0),
-                        total: cards.length,
+                        total: shuffledCards.length,
                         history: [...history, { correct: isCorrect, card: currentCard }],
                         timeSpent: seconds,
                         targetTime: targetTimeInSeconds()
@@ -165,10 +169,10 @@ export const CardViewer: React.FC<CardViewerProps> = ({ cards, onFinish, senseiW
                                 type="number" 
                                 value={targetScore} 
                                 onChange={e => setTargetScore(Number(e.target.value))}
-                                max={cards.length}
+                                max={shuffledCards.length}
                                 min={1}
                             />
-                            <span className="input-suffix">de {cards.length}</span>
+                            <span className="input-suffix">de {shuffledCards.length}</span>
                         </div>
                     </div>
 
@@ -235,7 +239,7 @@ export const CardViewer: React.FC<CardViewerProps> = ({ cards, onFinish, senseiW
                     <div className={`p-6 rounded-[2rem] border-2 transition-all duration-500 ${scoreReached ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
                         <CheckCircle2 size={20} className={scoreReached ? 'text-green-600 mb-2 mx-auto' : 'text-red-600 mb-2 mx-auto'} />
                         <span className="text-[0.65rem] uppercase tracking-widest font-black text-slate-mid block mb-1">Acertos</span>
-                        <div className={`text-2xl font-black font-outfit ${scoreReached ? 'text-green-700' : 'text-red-700'}`}>{correctCount}/{cards.length}</div>
+                        <div className={`text-2xl font-black font-outfit ${scoreReached ? 'text-green-700' : 'text-red-700'}`}>{correctCount}/{shuffledCards.length}</div>
                         <span className="text-[0.6rem] font-bold opacity-60 italic">Alvo: {targetScore} acertos</span>
                     </div>
                 </div>
@@ -248,7 +252,7 @@ export const CardViewer: React.FC<CardViewerProps> = ({ cards, onFinish, senseiW
                 
                 {senseiWhatsapp ? (
                     <a
-                        href={`/api/contact/sensei?teacherId=${senseiWhatsapp}&text=${encodeURIComponent(`Oi Sensei! Acabei de completar a missão de Flashcards. Acertei ${correctCount} de ${cards.length} no tempo de ${formatTime(seconds)}. Quero saber mais sobre as aulas! 🃏`)}`}
+                        href={`/api/contact/sensei?teacherId=${senseiWhatsapp}&text=${encodeURIComponent(`Oi Sensei! Acabei de completar a missão de Flashcards. Acertei ${correctCount} de ${shuffledCards.length} no tempo de ${formatTime(seconds)}. Quero saber mais sobre as aulas! 🃏`)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="w-full bg-[#25D366] text-white font-outfit font-black py-5 rounded-2xl flex items-center justify-center gap-3 hover:scale-[1.02] transform transition-all shadow-xl shadow-green-500/20 mb-4"
@@ -276,7 +280,7 @@ export const CardViewer: React.FC<CardViewerProps> = ({ cards, onFinish, senseiW
             <div className="viewer-header-layout">
                 <div className="viewer-progress-header">
                     <div className="flex justify-between items-center mb-1">
-                        <span className="p-text">Card {currentIndex + 1} de {cards.length}</span>
+                        <span className="p-text">Card {currentIndex + 1} de {shuffledCards.length}</span>
                         <div className="flex items-center gap-2">
                              <button 
                                 onClick={() => setIsMaterialsOpen(true)}
@@ -291,7 +295,7 @@ export const CardViewer: React.FC<CardViewerProps> = ({ cards, onFinish, senseiW
                         </div>
                     </div>
                     <div className="p-track">
-                        <div className="p-fill" style={{ width: `${((currentIndex + 1) / cards.length) * 100}%` }} />
+                        <div className="p-fill" style={{ width: `${((currentIndex + 1) / shuffledCards.length) * 100}%` }} />
                     </div>
                 </div>
             </div>
@@ -410,7 +414,7 @@ export const CardViewer: React.FC<CardViewerProps> = ({ cards, onFinish, senseiW
             border-color: #4c2b6d;
         }
 
-        .kanji-text { font-family: 'Noto Sans JP', sans-serif; font-size: clamp(2rem, 12vw, 5rem); font-weight: 900; margin: 0; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.05)); word-break: break-all; }
+        .kanji-text { font-family: 'Noto Sans JP', sans-serif; font-size: clamp(2rem, 12vw, 5rem); font-weight: 900; margin: 0; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.05)); overflow-wrap: break-word; word-break: normal; }
         .reading-text { font-size: 1.1rem; color: var(--color-slate-mid); margin-top: 2rem; font-weight: 600; font-family: var(--font-outfit); opacity: 0.7; }
 
         .back-reading-white { font-family: var(--font-inter); font-size: 1.2rem; color: rgba(255,255,255,0.7); margin-bottom: 0.5rem; letter-spacing: 0.05em; }

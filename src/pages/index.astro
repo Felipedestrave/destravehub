@@ -25,8 +25,37 @@ import Layout from '../layouts/Layout.astro';
         <a href="/auth/login" class="font-bold text-[var(--color-brand)] hover:opacity-80 transition-opacity text-sm">Entrar</a>
         <a href="/auth/register" class="btn-primary text-sm !py-2.5 !px-5">Criar Conta</a>
       </div>
+
+      <!-- Mobile Menu Button -->
+      <button id="mobile-menu-open" class="md:hidden text-[var(--color-slate-dark)] p-2">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      </button>
     </div>
   </nav>
+
+  <!-- Mobile Menu Overlay -->
+  <div id="mobile-menu" class="fixed inset-0 z-[60] bg-white transform translate-x-full transition-transform duration-300 md:hidden overflow-y-auto">
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-10">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 bg-[var(--color-brand)] rounded-lg flex items-center justify-center shadow-md -rotate-6">
+            <span class="text-white font-outfit font-bold text-lg">D</span>
+          </div>
+          <span class="font-outfit font-bold text-xl text-[var(--color-brand)]">Destrave<span class="text-[var(--color-slate-dark)]/60">Hub</span></span>
+        </div>
+        <button id="mobile-menu-close" class="text-[var(--color-slate-dark)] p-2">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="flex flex-col gap-6">
+        <a href="#ferramentas" class="mobile-link text-xl font-bold text-[var(--color-slate-dark)]">Ferramentas</a>
+        <a href="#como-funciona" class="mobile-link text-xl font-bold text-[var(--color-slate-dark)]">Como Funciona</a>
+        <hr class="border-[var(--color-slate-border)]" />
+        <a href="/auth/login" class="text-[var(--color-brand)] font-bold text-xl">Entrar</a>
+        <a href="/auth/register" class="btn-primary text-center text-lg !py-4">Criar Conta</a>
+      </div>
+    </div>
+  </div>
 
   <!-- ============ HERO ============ -->
   <section class="max-w-6xl mx-auto px-6 pt-24 pb-20 text-center">
@@ -409,4 +438,26 @@ import Layout from '../layouts/Layout.astro';
     submitBtn.textContent = 'Inscrito!';
     form.reset();
   });
+
+  // --- Mobile Menu Toggle ---
+  const menuOpenBtn = document.getElementById('mobile-menu-open');
+  const menuCloseBtn = document.getElementById('mobile-menu-close');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const mobileLinks = document.querySelectorAll('.mobile-link');
+
+  const toggleMenu = (open: boolean) => {
+    if (mobileMenu) {
+      if (open) {
+        mobileMenu.classList.remove('translate-x-full');
+        document.body.style.overflow = 'hidden';
+      } else {
+        mobileMenu.classList.add('translate-x-full');
+        document.body.style.overflow = '';
+      }
+    }
+  };
+
+  menuOpenBtn?.addEventListener('click', () => toggleMenu(true));
+  menuCloseBtn?.addEventListener('click', () => toggleMenu(false));
+  mobileLinks.forEach(link => link.addEventListener('click', () => toggleMenu(false)));
 </script>

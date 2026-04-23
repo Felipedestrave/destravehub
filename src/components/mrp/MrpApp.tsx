@@ -12,6 +12,7 @@ import { RoleGuard } from '../shared/RoleGuard';
 import { AdvancedLoading } from '../shared/AdvancedLoading';
 import { MaterialsDrawer } from '../materials/MaterialsDrawer';
 import { BookOpen } from 'lucide-react';
+import { shuffleArray } from '../../lib/utils';
 import type { MrpConfig, MrpQuestion, MrpUserAnswer, MrpStatus } from '../../types/mrp';
 interface MrpAppProps {
     userToken?: string;
@@ -79,7 +80,8 @@ export const MrpApp: React.FC<MrpAppProps> = ({ userToken, assignmentId, editing
 
     React.useEffect(() => {
         if (!editingId && initialQuestions && initialQuestions.length > 0) {
-            setQuestions(initialQuestions);
+            const shuffled = shuffleArray(initialQuestions);
+            setQuestions(shuffled);
             setConfig(initialConfig || null);
             setStatus('PLAYING');
         }

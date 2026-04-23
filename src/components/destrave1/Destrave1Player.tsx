@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import type { Destrave1Question, Destrave1UserAnswer, AutoEvaluationStatus } from '../../types/destrave1';
+import { Destrave1Question, Destrave1UserAnswer, AutoEvaluationStatus } from '../../types/destrave1';
 import { BuddyView } from '../buddy/BuddyView';
 import { ResultScreen } from '../escuta/ResultScreen';
+import { shuffleArray } from '../../lib/utils';
 
 interface Destrave1PlayerProps {
   questions: Destrave1Question[];
@@ -16,6 +17,9 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
   const [answers, setAnswers] = useState<Destrave1UserAnswer[]>([]);
   const [gameResult, setGameResult] = useState<any>(null);
   const [rewards, setRewards] = useState<any>(null);
+
+  // Randomize questions once on mount
+  const [shuffledQuestions] = useState(() => shuffleArray(questions));
   
   // State for Discursive question flow
   const [discursiveText, setDiscursiveText] = useState('');
@@ -24,8 +28,8 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
   // Buddy state
   const [buddyStatus, setBuddyStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
-  const currentQuestion = questions[currentIndex];
-  const isFinished = currentIndex >= questions.length && questions.length > 0;
+  const currentQuestion = shuffledQuestions[currentIndex];
+  const isFinished = currentIndex >= shuffledQuestions.length && shuffledQuestions.length > 0;
 
   const currentScore = answers.filter(a => a.isCorrect).length;
 
@@ -52,7 +56,7 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
     // Timeout to let buddy finish animating and move to next
     setTimeout(() => {
       setBuddyStatus('idle');
-      if (currentIndex + 1 < questions.length) {
+      if (currentIndex + 1 < shuffledQuestions.length) {
         setCurrentIndex(currentIndex + 1);
       } else {
         finishGame(newAnswersList);
@@ -94,7 +98,7 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
       setDiscursiveText('');
       setIsEvaluating(false);
 
-      if (currentIndex + 1 < questions.length) {
+      if (currentIndex + 1 < shuffledQuestions.length) {
         setCurrentIndex(currentIndex + 1);
       } else {
         finishGame(newAnswersList);
@@ -107,9 +111,9 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
       const finalScore = finalAnswers.filter(a => a.isCorrect).length;
       const stats = {
         score: finalScore,
-        total: questions.length,
+        total: shuffledQuestions.length,
         history: finalAnswers.map(a => {
-          const q = questions.find(question => question.id === a.questionId);
+          const q = shuffledQuestions.find(question => question.id === a.questionId);
           return {
             correct: a.isCorrect,
             points: a.isCorrect ? 10 : 0,
@@ -150,7 +154,7 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
         body: JSON.stringify({
           assignmentId,
           score: finalScore,
-          totalQuestions: questions.length,
+          totalQuestions: shuffledQuestions.length,
           history: finalAnswers,
           timeSpent: 0,
           targetTime: 0,
@@ -169,7 +173,7 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
     }
   };
 
-  if (questions.length === 0) {
+  if (shuffledQuestions.length === 0) {
     return <div className="p-10 text-center">Nenhuma questão encontrada para esta atividade.</div>;
   }
 
@@ -194,7 +198,7 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
               {activityTitle || 'Atividade'}
             </h2>
             <div className="bg-[var(--color-ice)] text-[var(--color-brand)] font-bold px-4 py-2 rounded-xl text-sm">
-              Progresso: {currentIndex + 1} / {questions.length}
+              Progresso: {currentIndex + 1} / {shuffledQuestions.length}
             </div>
         </div>
 

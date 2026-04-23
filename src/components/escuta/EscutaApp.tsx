@@ -13,6 +13,7 @@ import { STORE_ITEMS } from '../../lib/store';
 import { getBuddyPhrase } from '../../lib/buddy-phrases';
 import { MaterialsDrawer } from '../materials/MaterialsDrawer';
 import { BookOpen } from 'lucide-react';
+import { shuffleArray } from '../../lib/utils';
 import {
     Difficulty,
     POINTS_CONFIG,
@@ -100,8 +101,9 @@ export const EscutaApp: React.FC<EscutaAppProps> = ({
 
     useEffect(() => {
         if (initialQuestions && initialQuestions.length > 0) {
-            setAllQuestions(initialQuestions);
-            startWithQuestions(initialQuestions);
+            const shuffled = shuffleArray(initialQuestions);
+            setAllQuestions(shuffled);
+            startWithQuestions(shuffled);
         }
     }, [initialQuestions]);
 
@@ -161,7 +163,8 @@ export const EscutaApp: React.FC<EscutaAppProps> = ({
             if (!qRes.ok) throw new Error(qData.error || 'Erro ao gerar questões');
 
             const questions = qData.questions;
-            setAllQuestions(questions);
+            const shuffled = shuffleArray(questions);
+            setAllQuestions(shuffled);
 
             const firstAudio = await fetchAudio(questions[0]);
             const firstData: GeneratedData = {
