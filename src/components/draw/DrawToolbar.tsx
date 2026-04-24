@@ -26,7 +26,7 @@ export const DrawToolbar: React.FC<DrawToolbarProps> = ({
     tool, setTool, activeColor, setActiveColor, onUndo, onOpenSettings
 }) => {
     return (
-        <div className="fixed bottom-[88px] md:bottom-auto left-1/2 -translate-x-1/2 md:left-4 md:translate-x-0 md:top-1/2 md:-translate-y-1/2 z-[4000] flex flex-row md:flex-col items-center gap-2 md:gap-3 p-2 md:p-4 bg-white/95 backdrop-blur-xl rounded-[24px] md:rounded-[40px] shadow-2xl border-2 md:border-4 border-slate-900 max-w-[95vw] md:max-h-[90vh] overflow-x-auto md:overflow-y-auto no-scrollbar">
+        <div className="fixed bottom-[88px] md:bottom-auto left-1/2 -translate-x-1/2 md:left-[280px] md:translate-x-0 md:top-1/2 md:-translate-y-1/2 z-[4000] flex flex-row md:flex-col items-center gap-2 md:gap-3 p-2 md:p-4 bg-white/95 backdrop-blur-xl rounded-[24px] md:rounded-[40px] shadow-2xl border-2 md:border-4 border-slate-900 max-w-[95vw] md:max-h-[90vh] overflow-x-auto md:overflow-y-auto no-scrollbar">
             <button
                 onClick={() => setTool('laser')}
                 className={`p-2 md:p-4 rounded-[16px] md:rounded-[24px] transition-all ${tool === 'laser' ? 'bg-slate-900 text-white shadow-lg scale-110' : 'text-slate-600 hover:bg-slate-100'}`}

@@ -305,13 +305,19 @@ export default function DrawApp({ isReadOnly = false, senseiData = null }: DrawA
                 e.preventDefault();
                 setStrokes(prev => prev.slice(0, -1));
             }
+            // Atalhos para animações (1-5)
+            if (e.key === '1') triggerEffect('matsuri');
+            if (e.key === '2') triggerEffect('rocket');
+            if (e.key === '3') triggerEffect('sweat');
+            if (e.key === '4') triggerEffect('focus');
+            if (e.key === '5') triggerEffect('challenge');
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isConfigMode, showNext, showPrev, isReadOnly]);
 
     return (
-        <div className={`draw-app-container min-h-screen bg-ice text-slate-dark ${!isConfigMode ? 'presentation-mode' : ''}`}>
+        <div className={`draw-app-container min-h-screen bg-ice text-slate-dark font-hand ${!isConfigMode ? 'presentation-mode' : ''}`}>
 
             {/* 1. Modo de Configuração (Setup da Aula) */}
             {isConfigMode ? (
@@ -329,7 +335,7 @@ export default function DrawApp({ isReadOnly = false, senseiData = null }: DrawA
                                 type="text"
                                 value={lessonTitle}
                                 onChange={(e) => setLessonTitle(e.target.value)}
-                                className="text-xl md:text-2xl lg:text-3xl font-bold bg-transparent border-none outline-none focus:ring-0 text-slate-dark w-full font-outfit"
+                                className="text-xl md:text-2xl lg:text-3xl font-bold bg-transparent border-none outline-none focus:ring-0 text-slate-dark w-full"
                                 placeholder="Título da Aula"
                             />
                         </div>
@@ -482,10 +488,11 @@ export default function DrawApp({ isReadOnly = false, senseiData = null }: DrawA
                     {/* Controles Rápidos de Efeitos (Direita/Topo) - Somente Professores */}
                     {!isReadOnly && (
                         <div className="fixed top-4 right-4 md:top-1/2 md:right-4 md:-translate-y-1/2 z-[4000] flex flex-row md:flex-col gap-2 md:gap-3 p-2 md:p-3 bg-white/90 backdrop-blur-xl rounded-full md:rounded-[40px] shadow-2xl border-2 md:border-4 border-slate-dark">
-                            <button onClick={() => triggerEffect('matsuri')} className="p-1.5 md:p-3 bg-action/10 text-action rounded-full hover:scale-110 transition-all font-bold text-lg md:text-xl" title="Matsuri">🎉</button>
-                            <button onClick={() => triggerEffect('rocket')} className="p-1.5 md:p-3 bg-blue-50 text-blue-500 rounded-full hover:scale-110 transition-all font-bold text-lg md:text-xl" title="Sucesso">🚀</button>
-                            <button onClick={() => triggerEffect('focus')} className="p-1.5 md:p-3 bg-red-50 text-red-500 rounded-full hover:scale-110 transition-all font-bold text-lg md:text-xl" title="Foco">💢</button>
-                            <button onClick={() => triggerEffect('challenge')} className="p-1.5 md:p-3 bg-brand/10 text-brand rounded-full hover:scale-110 transition-all font-bold text-lg md:text-xl" title="Desafio">⚡</button>
+                            <button onClick={() => triggerEffect('matsuri')} className="p-1.5 md:p-3 bg-action/10 text-action rounded-full hover:scale-110 transition-all font-bold text-lg md:text-xl" title="Matsuri [1]">🎉</button>
+                            <button onClick={() => triggerEffect('rocket')} className="p-1.5 md:p-3 bg-blue-50 text-blue-500 rounded-full hover:scale-110 transition-all font-bold text-lg md:text-xl" title="Sucesso [2]">🚀</button>
+                            <button onClick={() => triggerEffect('sweat')} className="p-1.5 md:p-3 bg-blue-50 text-blue-500 rounded-full hover:scale-110 transition-all font-bold text-lg md:text-xl" title="Esforço [3]">💦</button>
+                            <button onClick={() => triggerEffect('focus')} className="p-1.5 md:p-3 bg-red-50 text-red-500 rounded-full hover:scale-110 transition-all font-bold text-lg md:text-xl" title="Foco [4]">💢</button>
+                            <button onClick={() => triggerEffect('challenge')} className="p-1.5 md:p-3 bg-brand/10 text-brand rounded-full hover:scale-110 transition-all font-bold text-lg md:text-xl" title="Desafio [5]">⚡</button>
                         </div>
                     )}
 
@@ -584,7 +591,7 @@ export default function DrawApp({ isReadOnly = false, senseiData = null }: DrawA
                     {/* Navegação Inferior */}
                     <div className="fixed bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 z-[4000] flex items-center gap-4 md:gap-8 bg-slate-dark/95 text-white px-6 md:px-10 py-3 md:py-5 rounded-full shadow-2xl border border-white/20 backdrop-blur-md">
                         <button onClick={showPrev} className="hover:text-action transition-colors p-1"><ArrowLeft className="w-5 h-5 md:w-6 md:h-6" /></button>
-                        <span className="font-black text-lg md:text-xl font-outfit tabular-nums">{currentIndex + 1} / {lessonItems.length}</span>
+                        <span className="font-black text-lg md:text-xl tabular-nums">{currentIndex + 1} / {lessonItems.length}</span>
                         <button onClick={showNext} className="hover:text-action transition-colors p-1"><ArrowRight className="w-5 h-5 md:w-6 md:h-6" /></button>
                     </div>
                 </div>

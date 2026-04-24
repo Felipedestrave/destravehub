@@ -9,8 +9,8 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - [x] **Conexão Imersiva:** Aluno agora vê foto e nome do professor no topo do dashboard.
 - [x] **Correção RLS:** Permissões de banco ajustadas para compartilhamento de perfil seguro.
 - [x] **Infraestrutura SSR:** Adaptador Vercel configurado e deploy em produção realizado com sucesso.
-- **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Fix Coluna Equipped (OK) | Vozes do Buddy (89/90).
-- **Última Atualização:** 22/04/2026 (07:45h)
+- **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Gestão Destrave Draw (OK) | Vozes do Buddy (89/90).
+- **Última Atualização:** 24/04/2026 (10:30h)
 - **GitHub:** `https://github.com/Felipedestrave/destravehub.git` (Branch `main`)
 
 ---
@@ -39,6 +39,16 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
   - [x] Fontes dinâmicas (`clamp`) e toolbar adaptável.
   - [x] Canvas com ResizeObserver/Width dinâmico para respeitar a sidebar.
 - [x] **Infraestrutura IA:** Dictionary e TTS operando via Gemini Flash Lite 2.0.
+- [x] **Gestão de Lições (CRUD Pro):**
+    - [x] Salvamento persistente (POST/PUT) no Supabase.
+    - [x] Suporte a Duplicar, Renomear e Excluir lições.
+    - [x] Organização por pastas integrada ao Destrave Drive.
+- [x] **Modo Player (Student Edition):**
+    - [x] Interface `isReadOnly` que oculta ferramentas de edição.
+    - [x] Card de "Intervenção do Sensei" com foto e link WhatsApp do professor.
+    - [x] Rota dinâmica de player `/play/draw/[id]` integrada ao sistema de missões.
+    - [x] Botão "Testar Agora" para preview imediato do professor.
+- [x] **Qualidade de Áudio:** Implementação de `createWavHeader` para compatibilidade total de TTS nos navegadores.
 - [x] **Gestão de Alunos (LMS):**
     - [x] Página dedicada de cadastro (`/dashboard/students/new`).
     - [x] Criação de contas oficiais (Auth) via API Administrativa.
