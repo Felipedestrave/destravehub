@@ -4,6 +4,7 @@ import { EscutaApp } from '@/components/escuta/EscutaApp.tsx';
 import { MrpApp } from '@/components/mrp/MrpApp.tsx';
 import { CardViewer } from '@/components/flashcards/CardViewer.tsx';
 import { Destrave1App } from '@/components/destrave1/Destrave1App.tsx';
+import DrawApp from '@/components/draw/DrawApp.tsx';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
 const { type, assignmentId } = Astro.params;
@@ -59,8 +60,7 @@ if (type === 'escuta' || type === 'mrp') {
         difficulty: rawConfig?.difficulty || 'Fácil',
         count: initialQuestions.length,
         focus: rawConfig?.focus || 'Tradução Fiel',
-        mode: rawConfig?.mode || (type === 'mrp' ? 'Múltipla Escolha' : undefined)
-    };
+    } as any;
 } else if (type === 'flashcards') {
     flashcardsCards = rawConfig?.cards || [];
 } else if (type === 'destrave1') {
@@ -80,7 +80,7 @@ const { data: teacherProfile } = await supabaseAdmin
 const senseiData = teacherProfile ? {
     name: teacherProfile.display_name || teacherProfile.full_name || 'Sensei',
     avatar: teacherProfile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${teacherId}`,
-    whatsapp: teacherProfile.whatsapp
+    whatsapp: teacherProfile.whatsapp || undefined
 } : null;
 ---
 
@@ -95,7 +95,7 @@ const senseiData = teacherProfile ? {
                     initialQuestions={initialQuestions} 
                     initialConfig={initialConfig} 
                     publicAccess={true}
-                    senseiData={senseiData}
+                    senseiWhatsapp={senseiData?.whatsapp}
                 />
             )}
             {type === 'mrp' && (
@@ -106,7 +106,7 @@ const senseiData = teacherProfile ? {
                     initialQuestions={initialQuestions} 
                     initialConfig={initialConfig}
                     publicAccess={true}
-                    senseiData={senseiData}
+                    senseiWhatsapp={senseiData?.whatsapp}
                 />
             )}
             {type === 'flashcards' && (
@@ -114,7 +114,6 @@ const senseiData = teacherProfile ? {
                     <CardViewer 
                         client:only="react" 
                         cards={flashcardsCards} 
-                        senseiData={senseiData}
                         activityId={assignment.activities.id} 
                     />
                 </div>
@@ -128,6 +127,15 @@ const senseiData = teacherProfile ? {
                         initialTitle={assignment.activities.title}
                         initialConfig={destrave1Config}
                         publicAccess={true}
+                    />
+                </div>
+            )}
+            {type === 'draw' && (
+                <div class="w-full">
+                    <DrawApp 
+                        client:only="react" 
+                        isReadOnly={true}
+                        senseiData={senseiData as any}
                     />
                 </div>
             )}

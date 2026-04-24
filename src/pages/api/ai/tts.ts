@@ -3,6 +3,30 @@ import { GoogleGenAI, Modality } from "@google/genai";
 
 const geminiKey = import.meta.env.GEMINI_API_KEY || '';
 
+/**
+ * Cria um cabeçalho WAV de 44 bytes para áudio PCM L16 (16-bit, Mono, 24kHz)
+ */
+function createWavHeader(dataLength: number): Buffer {
+    const sampleRate = 24000;
+    const header = Buffer.alloc(44);
+    
+    header.write('RIFF', 0);
+    header.writeUInt32LE(dataLength + 36, 4);
+    header.write('WAVE', 8);
+    header.write('fmt ', 12);
+    header.writeUInt32LE(16, 16); 
+    header.writeUInt16LE(1, 20);  
+    header.writeUInt16LE(1, 22);  
+    header.writeUInt32LE(sampleRate, 24);
+    header.writeUInt32LE(sampleRate * 2, 28); 
+    header.writeUInt16LE(2, 32);  
+    header.writeUInt16LE(16, 34); 
+    header.write('data', 36);
+    header.writeUInt32LE(dataLength, 40);
+    
+    return header;
+}
+
 export const POST: APIRoute = async ({ request }) => {
     try {
         const { text } = await request.json();
@@ -29,8 +53,17 @@ export const POST: APIRoute = async ({ request }) => {
         });
 
         const base64Audio = result.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+        
+        if (!base64Audio) {
+            throw new Error('Nenhum áudio gerado pela IA.');
+        }
 
-        return new Response(JSON.stringify({ audio: base64Audio }), {
+        // Converter para buffer e injetar cabeçalho WAV
+        const audioBuffer = Buffer.from(base64Audio, 'base64');
+        const header = createWavHeader(audioBuffer.length);
+        const finalAudio = Buffer.concat([header, audioBuffer]);
+
+        return new Response(JSON.stringify({ audio: finalAudio.toString('base64') }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' }
         });
