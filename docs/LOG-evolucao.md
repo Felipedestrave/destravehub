@@ -232,24 +232,39 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 
 ---
 
+### Fase 8: Gamificação & Agendamento Produtivo (28/04/2026) ✅
+- **Gamificação & Recompensas**:
+  - **Lógica de Streak (🔥)**: Implementado bônus progressivo de presença (+2 moedas por aula consecutiva, máx 20).
+  - **Gestão de Faltas**: Botão "Registrar Falta" que reseta o streak do aluno e adiciona marcador visual no histórico.
+  - **Correção de Avatar**: Resolvido bug do "Tanuki" no Destrave 1.0; agora o sistema carrega o avatar equipado do aluno com voz e balões.
+- **Agendamento Turbinado (Calendário)**:
+  - **Recorrência Inteligente**: Suporte a aulas Semanais, Quinzenais e Mensais com criação em massa.
+  - **Convites Complexos (Zoom/Meet)**: Campo de instruções multi-linha que aceita blocos completos (Link + ID + Senha).
+  - **Notificações Informais**: Modelos de mensagem WhatsApp configuráveis e amigáveis ("Te espero lá. Tamo junto!").
+  - **Aviso de Bom Dia**: Botão de lembrete rápido em cada aula da lista diária para envio instantâneo via WhatsApp com um clique.
+- **Segurança & Dados**:
+  - **Registro de WhatsApp**: Atalho para cadastrar telefone do aluno diretamente no popup de agendamento e na tela de Detalhes.
+  - **Fix de Tipagem**: Resolvido erro de ambiguidade de Join (`profiles!student_id`) e nulidade de IDs no TypeScript.
+
+---
+
 ## ⏭️ Próximos Passos (Próxima Sessão)
 
 1. ✅ **[PRIORIDADE MÁXIMA] Portal de Captura (Lead Magnet)**: Criado e finalizado!
 2. ✅ **Vozes do Buddy**: Finalizado! (90/90 áudios gerados com cabeçalho WAV).
-3. 🔥 **Mecânica de Streaks (Fogo) [PRIORIDADE]**: Implementar visual de sequência de dias para bônus de XP e incentivar prática diária.
-4. 🔔 **Notificações In-App [BACKLOG]**: Sistema de alertas visuais para novas missões atribuídas ou avisos do professor (Planejado para etapas futuras).
+3. ✅ **Mecânica de Streaks (Fogo)**: Implementada lógica de presença consecutiva com bônus de moedas.
+4. 🔔 **Notificações In-App [BACKLOG]**: Sistema de alertas visuais para novas missões atribuídas ou avisos do professor.
 5. [x] **Finalização das Vozes do Buddy (90/90 concluídos) ✅**
-6. [ ] **Mecânica de Streaks (Sequência de dias com animação de fogo)**
+6. [x] **Mecânica de Streaks (Sequência de aulas com bônus progressivo) ✅**
 7. [ ] **Sistema de Alertas de Missões Críticas (Vencimento de revisões)**
-8. [ ] **Loja: Itens consumíveis para o sistema de repetição (ex: Rebobinar ciclo) incentivar prática diária.**
-9. [ ] **Backlog: Gestão Financeira (Mestre & Aluno)**
-   - Painel de mensalidades (Pago/Pendente/Atrasado)
-   - Dashboard de MRR e Previsão de Caixa
-   - Botão de cobrança semi-automática via Link de WhatsApp
-   - Área do Aluno com histórico de faturas e chave Pix "Copia e Cola"
+8. [ ] **Backlog de Testes (Semana que vem):**
+   - [ ] Validar bônus progressivo (+2 moedas) até o limite de 20.
+   - [ ] Confirmar reset do fogo (🔥) ao registrar falta.
+   - [ ] Testar formatação de convites Zoom no WhatsApp mobile.
 
 ---
 
-- **Astro Server Mode:** O sistema foi configurado com `output: 'server'` no `astro.config.mjs` para permitir que os endpoints de API (como o cadastro de alunos) processem requisições POST dinâmicas no servidor.
-- **Admin Auth Client:** A criação de alunos utiliza um cliente administrativo (`supabaseAdmin`) que opera via `SERVICE_ROLE_KEY` no lado do servidor, permitindo que o professor crie contas de autenticação oficiais sem deslogar da própria sessão.
-- **Tipagem Centralizada:** Todos os modelos de dados residem em `src/types/supabase.ts` para banco de dados e tipos específicos de componentes em seus respectivos diretórios.
+- **Astro Server Mode:** O sistema foi configurado com `output: 'server'` no `astro.config.mjs`.
+- **Admin Auth Client:** A criação de alunos utiliza um cliente administrativo (`supabaseAdmin`).
+- **Tipagem Centralizada:** Modelos em `src/types/supabase.ts`.
+
