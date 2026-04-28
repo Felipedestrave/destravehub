@@ -162,7 +162,7 @@ export const EscutaApp: React.FC<EscutaAppProps> = ({
             const qData = await qRes.json();
             if (!qRes.ok) throw new Error(qData.error || 'Erro ao gerar questões');
 
-            const questions = qData.questions;
+            const questions = qData.questions as Question[];
             const shuffled = shuffleArray(questions);
             setAllQuestions(shuffled);
 

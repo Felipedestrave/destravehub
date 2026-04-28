@@ -170,7 +170,7 @@ export default function MissionList() {
                 <div className="mission-content">
                   <div className="mission-header">
                     <h3 className="mission-title">{mission.activities?.title || 'Missão Sem Título'}</h3>
-                    <div className="flex gap-2 items-center">
+                    <div className="mission-badges">
                       {hasDueRevision && (
                         <span className="status-badge due-revision animate-pulse">
                           🔔 REVISÃO DISPONÍVEL
@@ -312,17 +312,24 @@ export default function MissionList() {
         }
         .mission-header {
           display: flex;
-          align-items: center;
-          justify-content: space-between;
+          flex-direction: column;
+          align-items: flex-start;
           margin-bottom: 0.5rem;
-          gap: 1rem;
+          gap: 0.5rem;
+        }
+        .mission-badges {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.4rem;
+          align-items: center;
         }
         .mission-title {
           font-family: var(--font-outfit);
           font-weight: 700;
-          font-size: 1.1rem;
+          font-size: 1rem;
           color: var(--color-slate-dark);
           margin: 0;
+          line-height: 1.3;
         }
         .status-badge {
           font-size: 0.75rem;
@@ -350,7 +357,8 @@ export default function MissionList() {
 
         .mission-footer {
           display: flex;
-          gap: 1rem;
+          flex-wrap: wrap;
+          gap: 0.5rem 1rem;
           font-size: 0.8rem;
           color: var(--color-slate-mid);
         }
@@ -402,10 +410,6 @@ export default function MissionList() {
         }
 
         @media (max-width: 640px) {
-          .mission-header {
-            flex-direction: column;
-            align-items: flex-start;
-          }
           .mission-type-icon {
             width: 50px;
             height: 50px;

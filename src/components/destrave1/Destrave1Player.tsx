@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Destrave1Question, Destrave1UserAnswer, AutoEvaluationStatus } from '../../types/destrave1';
-import { BuddyView } from '../buddy/BuddyView';
+import type { Destrave1Question, Destrave1UserAnswer, AutoEvaluationStatus } from '../../types/destrave1';
+import { BuddyView, type BuddyState } from '../buddy/BuddyView';
 import { ResultScreen } from '../escuta/ResultScreen';
 import { shuffleArray } from '../../lib/utils';
+import { STORE_ITEMS } from '../../lib/store';
+import { getBuddyPhrase } from '../../lib/buddy-phrases';
 
 interface Destrave1PlayerProps {
   questions: Destrave1Question[];
@@ -26,7 +28,34 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
   const [isEvaluating, setIsEvaluating] = useState(false); // True when revealing the expected answer
 
   // Buddy state
-  const [buddyStatus, setBuddyStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [buddyStatus, setBuddyStatus] = useState<BuddyState>('idle');
+  const [buddyMessage, setBuddyMessage] = useState<string | null>(null);
+  const [buddyAvatarUrl, setBuddyAvatarUrl] = useState<string>('/assets/avatars/tanuki-novato.png');
+  const [buddyAvatarId, setBuddyAvatarId] = useState<string | null>(null);
+
+  // Carrega o avatar equipado do perfil do aluno
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) return;
+      supabase.from('profiles').select('equipped').eq('id', session.user.id).single().then(({ data }) => {
+        const equipped = data?.equipped as any;
+        if (equipped?.avatar) {
+          setBuddyAvatarId(equipped.avatar);
+          const item = STORE_ITEMS.find(i => i.id === equipped.avatar);
+          if (item?.previewUrl) setBuddyAvatarUrl(item.previewUrl);
+        }
+      });
+    });
+  }, []);
+
+  const triggerBuddy = (state: BuddyState, type?: 'success' | 'error') => {
+    setBuddyStatus(state);
+    if (type) setBuddyMessage(getBuddyPhrase(buddyAvatarId, type));
+    setTimeout(() => {
+      setBuddyStatus('idle');
+      setBuddyMessage(null);
+    }, 2000);
+  };
 
   const currentQuestion = shuffledQuestions[currentIndex];
   const isFinished = currentIndex >= shuffledQuestions.length && shuffledQuestions.length > 0;
@@ -39,7 +68,7 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
     const isCorrect = selectedIndex === currentQuestion.correctOptionIndex;
     
     // Animate buddy
-    setBuddyStatus(isCorrect ? 'success' : 'error');
+    triggerBuddy(isCorrect ? 'success' : 'error', isCorrect ? 'success' : 'error');
 
     // Save answer
     const newAnswer: Destrave1UserAnswer = {
@@ -55,7 +84,6 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
 
     // Timeout to let buddy finish animating and move to next
     setTimeout(() => {
-      setBuddyStatus('idle');
       if (currentIndex + 1 < shuffledQuestions.length) {
         setCurrentIndex(currentIndex + 1);
       } else {
@@ -75,9 +103,9 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
     let isLineCorrect = false;
     if (evalStatus === 'correct' || evalStatus === 'close') {
       isLineCorrect = true;
-      setBuddyStatus('success');
+      triggerBuddy('success', 'success');
     } else {
-      setBuddyStatus('error');
+      triggerBuddy('error', 'error');
     }
 
     const newAnswer: Destrave1UserAnswer = {
@@ -94,7 +122,6 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
     setAnswers(newAnswersList);
 
     setTimeout(() => {
-      setBuddyStatus('idle');
       setDiscursiveText('');
       setIsEvaluating(false);
 
@@ -303,7 +330,7 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
              <span className="text-yellow-300">★</span> {currentScore} Acertos
            </div>
 
-           <BuddyView state={buddyStatus} />
+           <BuddyView avatarUrl={buddyAvatarUrl} avatarId={buddyAvatarId} state={buddyStatus} message={buddyMessage} />
            
            <div className="mt-6 text-center z-10 w-full relative">
              {buddyStatus === 'idle' && currentQuestion.type === 'discursive' && !isEvaluating && (

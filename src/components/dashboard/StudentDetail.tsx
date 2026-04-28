@@ -19,6 +19,8 @@ export const StudentDetail: React.FC<Props> = ({ studentId }) => {
   const [newTopics, setNewTopics] = useState("");
   const [newNotes, setNewNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [whatsappInput, setWhatsappInput] = useState("");
+  const [isSavingWhatsapp, setIsSavingWhatsapp] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -29,11 +31,14 @@ export const StudentDetail: React.FC<Props> = ({ studentId }) => {
     try {
       const { data: studentData } = await supabase
         .from('students')
-        .select('*, profiles:student_id(id, avatar_url, xp, coins, attendance_streak)')
+        .select('*, profiles!student_id(id, avatar_url, xp, coins, attendance_streak, whatsapp)')
         .eq('id', studentId)
         .single();
       
       setStudent(studentData);
+      if (studentData?.profiles?.whatsapp) {
+        setWhatsappInput(studentData.profiles.whatsapp);
+      }
       
       if (studentData?.student_id) {
         fetchWalletHistory(studentData.student_id);
@@ -134,6 +139,27 @@ export const StudentDetail: React.FC<Props> = ({ studentId }) => {
     }
   };
 
+  const handleSaveWhatsapp = async () => {
+    if (!student?.profiles?.id) return;
+    setIsSavingWhatsapp(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ whatsapp: whatsappInput })
+        .eq('id', student.profiles.id);
+      
+      if (error) throw error;
+      setStudent((prev: any) => ({
+        ...prev,
+        profiles: { ...prev.profiles, whatsapp: whatsappInput }
+      }));
+    } catch (err) {
+      console.error('Error saving whatsapp:', err);
+    } finally {
+      setIsSavingWhatsapp(false);
+    }
+  };
+
   const parseTopics = (topics: string): string[] => {
     try {
       const parsed = JSON.parse(topics);
@@ -156,12 +182,27 @@ export const StudentDetail: React.FC<Props> = ({ studentId }) => {
           </div>
           <div className="flex-1 text-center md:text-left">
             <h1 className="font-outfit text-3xl font-black text-slate-dark">{student.name}</h1>
-            <p className="text-slate-mid font-bold flex items-center justify-center md:justify-start gap-2">
-              <span className={`px-2 py-1 rounded bg-slate-100 text-xs border border-slate-200`}>
-                  {student.level || 'N5'}
-              </span>
-              • {student.language || 'Japonês'}
-            </p>
+            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mt-1">
+              <p className="text-slate-mid font-bold flex items-center gap-2">
+                <span className={`px-2 py-1 rounded bg-slate-100 text-xs border border-slate-200`}>
+                    {student.level || 'N5'}
+                </span>
+                • {student.language || 'Japonês'}
+              </p>
+              <div className="flex items-center gap-2 group">
+                <input 
+                  type="text"
+                  value={whatsappInput}
+                  onChange={(e) => setWhatsappInput(e.target.value)}
+                  onBlur={() => {
+                    if (whatsappInput !== student?.profiles?.whatsapp) handleSaveWhatsapp();
+                  }}
+                  placeholder="Adicionar WhatsApp..."
+                  className="bg-transparent border-b border-transparent hover:border-slate-300 focus:border-brand outline-none text-xs font-bold text-slate-mid py-1 transition-all w-40"
+                />
+                {isSavingWhatsapp && <span className="text-[10px] text-brand animate-pulse">Salvando...</span>}
+              </div>
+            </div>
           </div>
           <div className="flex gap-4">
             <div className="bg-ice px-4 py-2 rounded-2xl border border-slate-border text-center min-w-[80px]">

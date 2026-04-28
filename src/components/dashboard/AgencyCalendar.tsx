@@ -16,10 +16,16 @@ interface CalendarEvent extends Appointment {
     };
 }
 
+type StudentWithProfile = Student & {
+    profiles?: {
+        whatsapp: string | null;
+    } | null;
+};
+
 export default function AgencyCalendar() {
     const [viewDate, setViewDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
-    const [students, setStudents] = useState<Student[]>([]);
+    const [students, setStudents] = useState<StudentWithProfile[]>([]);
     const [appointments, setAppointments] = useState<CalendarEvent[]>([]);
     const [teacherId, setTeacherId] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);
@@ -40,6 +46,13 @@ export default function AgencyCalendar() {
     const [formStudentId, setFormStudentId] = useState('');
     const [formStartTime, setFormStartTime] = useState('09:00');
     const [formDuration, setFormDuration] = useState('60'); // minutes
+    const [formRecurrence, setFormRecurrence] = useState<'none' | 'weekly' | 'biweekly' | 'monthly'>('none');
+    const [formRecurrenceCount, setFormRecurrenceCount] = useState('4');
+    const [formMeetingLink, setFormMeetingLink] = useState('');
+    const [formNotifyWhatsApp, setFormNotifyWhatsApp] = useState(true);
+    const [whatsappFallback, setWhatsappFallback] = useState('');
+    const [isMultiMode, setIsMultiMode] = useState(false);
+    const [multiSelectedDates, setMultiSelectedDates] = useState<string[]>([]);
 
     // Session Log Modal states
     const [showLogModal, setShowLogModal] = useState(false);
@@ -62,16 +75,16 @@ export default function AgencyCalendar() {
             if (role === 'teacher') {
                 const { data: stds } = await supabase
                     .from('students')
-                    .select('*')
+                    .select('*, profiles!student_id(whatsapp)')
                     .eq('teacher_id', uid)
                     .order('name');
-                setStudents(stds || []);
+                setStudents(stds as any || []);
 
                 const { data: apps } = await supabase
                     .from('appointments')
-                    .select('*, student:students(*)')
+                    .select('*, student:students(*, profiles!student_id(whatsapp))')
                     .eq('teacher_id', uid);
-                setAppointments(apps as CalendarEvent[] || []);
+                setAppointments(apps as any[] || []);
             } else {
                 // First get the internal student ID from the students table
                 const { data: studentRecord } = await supabase
@@ -146,6 +159,11 @@ export default function AgencyCalendar() {
         setFormStudentId('');
         setFormStartTime('09:00');
         setFormDuration('60');
+        setFormRecurrence('none');
+        setFormMeetingLink('');
+        setWhatsappFallback('');
+        setIsMultiMode(false);
+        setMultiSelectedDates([selectedDate.toISOString().split('T')[0]]);
         setShowModal(true);
     };
 
@@ -165,23 +183,67 @@ export default function AgencyCalendar() {
 
     const handleSaveAppointment = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!teacherId || !selectedDate) return;
+        if (!teacherId || (!selectedDate && !isMultiMode)) return;
 
         setModalLoading(true);
-        const start = new Date(selectedDate);
         const [hours, mins] = formStartTime.split(':').map(Number);
-        start.setHours(hours, mins, 0, 0);
-        const end = new Date(start.getTime() + parseInt(formDuration) * 60000);
+        const durationMs = parseInt(formDuration) * 60000;
+
+        // Determine all target dates
+        let targetDates: Date[] = [];
+        if (isMultiMode) {
+            targetDates = multiSelectedDates.map(d => {
+                const date = new Date(d + 'T12:00:00'); // Neutral time to avoid TZ shifts
+                date.setHours(hours, mins, 0, 0);
+                return date;
+            });
+        } else {
+            const start = new Date(selectedDate);
+            start.setHours(hours, mins, 0, 0);
+            targetDates.push(start);
+
+            if (formRecurrence !== 'none') {
+                const count = parseInt(formRecurrenceCount);
+                for (let i = 1; i < count; i++) {
+                    const next = new Date(start);
+                    if (formRecurrence === 'weekly') next.setDate(start.getDate() + (i * 7));
+                    if (formRecurrence === 'biweekly') next.setDate(start.getDate() + (i * 14));
+                    if (formRecurrence === 'monthly') next.setMonth(start.getMonth() + i);
+                    targetDates.push(next);
+                }
+            }
+        }
 
         try {
+            const selectedStudent = students.find(s => s.id === formStudentId);
+            const finalTitle = formTitle || (formStudentId ? `Aula: ${selectedStudent?.name}` : 'Aula');
+
+            // Save WhatsApp fallback if provided
+            if (whatsappFallback && selectedStudent && !selectedStudent.profiles?.whatsapp && selectedStudent.student_id) {
+                await supabase
+                    .from('profiles')
+                    .update({ whatsapp: whatsappFallback })
+                    .eq('id', selectedStudent.student_id);
+                
+                // Update local state for future sessions
+                setStudents(prev => prev.map(s => s.id === selectedStudent.id ? {
+                    ...s,
+                    profiles: { ...s.profiles, whatsapp: whatsappFallback }
+                } : s));
+            }
+
             if (editingAppointment) {
+                // Update single
+                const start = targetDates[0];
+                const end = new Date(start.getTime() + durationMs);
                 const { data, error } = await supabase
                     .from('appointments')
                     .update({
                         student_id: formStudentId || null,
-                        title: formTitle || (formStudentId ? `Aula: ${students.find(s => s.id === formStudentId)?.name}` : 'Aula'),
+                        title: finalTitle,
                         start_time: start.toISOString(),
                         end_time: end.toISOString(),
+                        description: (editingAppointment.description || '') + (formMeetingLink ? ` [LINK:${formMeetingLink}]` : '')
                     })
                     .eq('id', editingAppointment.id)
                     .select('*, student:students(*)')
@@ -191,22 +253,38 @@ export default function AgencyCalendar() {
                 setAppointments(prev => prev.map(a => a.id === data.id ? data as CalendarEvent : a));
                 toast.success('Aula atualizada!');
             } else {
+                // Insert one or multiple
+                const inserts = targetDates.map(date => ({
+                    teacher_id: teacherId,
+                    student_id: formStudentId || null,
+                    title: finalTitle,
+                    start_time: date.toISOString(),
+                    end_time: new Date(date.getTime() + durationMs).toISOString(),
+                    color: '#58317E',
+                    description: formMeetingLink ? `[LINK:${formMeetingLink}]` : ''
+                }));
+
                 const { data, error } = await supabase
                     .from('appointments')
-                    .insert({
-                        teacher_id: teacherId,
-                        student_id: formStudentId || null,
-                        title: formTitle || (formStudentId ? `Aula: ${students.find(s => s.id === formStudentId)?.name}` : 'Aula'),
-                        start_time: start.toISOString(),
-                        end_time: end.toISOString(),
-                        color: '#58317E'
-                    })
-                    .select('*, student:students(*)')
-                    .single();
+                    .insert(inserts)
+                    .select('*, student:students(*)');
 
                 if (error) throw error;
-                setAppointments(prev => [...prev, data as CalendarEvent]);
-                toast.success('Aula agendada!');
+                setAppointments(prev => [...prev, ...(data as any[])]);
+                toast.success(`${inserts.length > 1 ? `${inserts.length} aulas agendadas!` : 'Aula agendada!'}`);
+
+                // WhatsApp Notification (Informal)
+                const finalPhone = selectedStudent?.profiles?.whatsapp || whatsappFallback;
+                if (formNotifyWhatsApp && selectedStudent && finalPhone) {
+                    const firstName = selectedStudent.name.split(' ')[0];
+                    const firstDate = targetDates[0].toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                    const firstTime = targetDates[0].toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                    const linkMsg = formMeetingLink ? `\n\n*Instruções de Acesso:*\n${formMeetingLink}\n` : '';
+                    const msg = `Olá, ${firstName}! Nossa próxima aula agendada é no dia ${firstDate} às ${firstTime}.${linkMsg}\nTe espero lá. Tamo junto!`;
+                    
+                    const waLink = `https://wa.me/${finalPhone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`;
+                    window.open(waLink, '_blank');
+                }
             }
             setShowModal(false);
         } catch (err) {
@@ -277,7 +355,7 @@ export default function AgencyCalendar() {
                     .single();
 
                 const currentStreak = profile?.attendance_streak || 0;
-                const coinsToGain = Math.min(10 + currentStreak, 20);
+                const coinsToGain = Math.min(10 + (currentStreak * 2), 20);
                 const newStreak = currentStreak + 1;
 
                 // Grant coins using RPC
@@ -343,6 +421,65 @@ export default function AgencyCalendar() {
             toast.error(`Erro ao salvar: ${err.message || 'Verifique sua conexão'}`);
         } finally {
             setModalLoading(false);
+        }
+    };
+
+    const handleSendReminder = (app: CalendarEvent) => {
+        const student = app.student as any;
+        const phone = student?.profiles?.whatsapp;
+        if (!phone) {
+            toast.error('Aluno sem WhatsApp cadastrado.');
+            return;
+        }
+
+        const firstName = (student?.name || 'aluno').split(' ')[0];
+        const time = new Date(app.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        
+        // Extract link from description if exists (using dotAll style regex)
+        const linkMatch = app.description?.match(/\[LINK:([\s\S]*?)\]/);
+        const link = linkMatch ? linkMatch[1] : null;
+        const linkMsg = link ? `\n\n*Instruções de Acesso:*\n${link}\n` : '';
+
+        const msg = `Bom dia, ${firstName}! Passando para lembrar da nossa aula de hoje às ${time}.${linkMsg}\nNos vemos daqui a pouco! 🚀`;
+        const waLink = `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`;
+        window.open(waLink, '_blank');
+    };
+
+    const handleMarkAbsence = async (app: CalendarEvent) => {
+        if (!confirm(`Confirmar falta para ${app.student?.name}? Isso resetará o bônus de moedas dele para zero.`)) return;
+
+        const studentProfileId = app.student?.student_id;
+        setModalLoading(true);
+
+        try {
+            // 1. Reset Streak in Profile
+            if (studentProfileId) {
+                await supabase
+                    .from('profiles')
+                    .update({ attendance_streak: 0 })
+                    .eq('id', studentProfileId);
+            }
+
+            // 2. Mark appointment as Absence
+            const { error: appError } = await supabase
+                .from('appointments')
+                .update({ description: (app.description || '') + ' [FALTA]' })
+                .eq('id', app.id);
+            if (appError) throw appError;
+
+            // Update local state
+            setAppointments(prev => prev.map(a => a.id === app.id ? { 
+                ...a, 
+                description: (a.description || '') + ' [FALTA]' 
+            } : a));
+
+            toast.success('Falta registrada. O bônus do aluno foi resetado.');
+        } catch (err: any) {
+            console.error('MarkAbsence Error:', err);
+            toast.error('Erro ao registrar falta.');
+        } finally {
+            setModalLoading(false);
+            setActiveMenuId(null);
         }
     };
 
@@ -496,11 +633,23 @@ export default function AgencyCalendar() {
                                             {app.description?.includes('[PRESENÇA]') && (
                                                 <span className="status-badge attended"><Check size={12} /> Presença Marcada</span>
                                             )}
+                                            {app.description?.includes('[FALTA]') && (
+                                                <span className="status-badge attended" style={{ background: '#fee2e2', color: '#dc2626' }}><X size={12} /> Faltou</span>
+                                            )}
                                         </div>
                                     </div>
                                     
                                     {userRole === 'teacher' && (
-                                        <div className="app-actions">
+                                        <div className="app-actions" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                            {!app.description?.includes('[PRESENÇA]') && !app.description?.includes('[FALTA]') && (
+                                                <button 
+                                                    onClick={() => handleSendReminder(app)}
+                                                    className="w-8 h-8 flex items-center justify-center rounded-full bg-green-50 text-green-600 hover:bg-green-600 hover:text-white transition-all"
+                                                    title="Enviar Lembrete WhatsApp"
+                                                >
+                                                    <MessageSquare size={16} />
+                                                </button>
+                                            )}
                                             <button 
                                                 className="action-trigger"
                                                 onClick={(e) => {
@@ -520,10 +669,15 @@ export default function AgencyCalendar() {
                                                         exit={{ opacity: 0, scale: 0.9, y: -10 }}
                                                         className="context-menu"
                                                     >
-                                                        {!app.description?.includes('[PRESENÇA]') && (
-                                                            <button onClick={() => handleMarkAttendance(app)} className="menu-item highlight">
-                                                                <Check size={16} /> Marcar Presença
-                                                            </button>
+                                                        {!app.description?.includes('[PRESENÇA]') && !app.description?.includes('[FALTA]') && (
+                                                            <>
+                                                                <button onClick={() => handleMarkAttendance(app)} className="menu-item highlight">
+                                                                    <Check size={16} /> Marcar Presença
+                                                                </button>
+                                                                <button onClick={() => handleMarkAbsence(app)} className="menu-item text-red-500">
+                                                                    <X size={16} /> Registrar Falta
+                                                                </button>
+                                                            </>
                                                         )}
                                                         <button onClick={() => openEditModal(app)} className="menu-item">
                                                             <Edit2 size={16} /> Remarcar
@@ -611,6 +765,95 @@ export default function AgencyCalendar() {
                                         </select>
                                     </div>
                                 </div>
+
+                                {!editingAppointment && (
+                                    <div className="f-group bg-ice/50 p-4 rounded-2xl border border-slate-border/50">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <label className="m-0 text-brand font-bold flex items-center gap-2">
+                                                <CalendarIcon size={16} /> Estratégia de Agenda
+                                            </label>
+                                            <button 
+                                                type="button"
+                                                onClick={() => setIsMultiMode(!isMultiMode)}
+                                                className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border-2 transition-all ${isMultiMode ? 'bg-brand text-white border-brand' : 'text-slate-mid border-slate-border hover:border-brand/40'}`}
+                                            >
+                                                {isMultiMode ? 'Modo: Multi-Datas' : 'Mudar para Multi-Datas'}
+                                            </button>
+                                        </div>
+
+                                        {isMultiMode ? (
+                                            <div className="grid grid-cols-4 gap-2 mb-2">
+                                                {/* Mini selector for multi-dates could go here, but for now simple multiSelectedDates check */}
+                                                <p className="col-span-4 text-[11px] text-slate-mid italic">Selecione os dias clicando no calendário atrás antes de abrir este modal (Melhoria Futura) ou use a recorrência abaixo:</p>
+                                            </div>
+                                        ) : (
+                                            <div className="flex gap-4 items-end">
+                                                <div className="flex-1">
+                                                    <label className="text-[10px] uppercase font-bold text-slate-mid block mb-1">Repetir Aula</label>
+                                                    <select
+                                                        value={formRecurrence}
+                                                        onChange={e => setFormRecurrence(e.target.value as any)}
+                                                        className="f-input"
+                                                    >
+                                                        <option value="none">Não repetir</option>
+                                                        <option value="weekly">Semanalmente</option>
+                                                        <option value="biweekly">Quinzenalmente</option>
+                                                        <option value="monthly">Mensalmente</option>
+                                                    </select>
+                                                </div>
+                                                {formRecurrence !== 'none' && (
+                                                    <div className="w-24">
+                                                        <label className="text-[10px] uppercase font-bold text-slate-mid block mb-1">Vezes</label>
+                                                        <input 
+                                                            type="number" 
+                                                            value={formRecurrenceCount} 
+                                                            onChange={e => setFormRecurrenceCount(e.target.value)} 
+                                                            className="f-input"
+                                                            min="2"
+                                                            max="52"
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                <div className="f-group">
+                                    <label>Instruções de Acesso (Link, ID, Senha)</label>
+                                    <textarea
+                                        placeholder="Cole o link do Meet ou o convite completo do Zoom aqui..."
+                                        value={formMeetingLink}
+                                        onChange={e => setFormMeetingLink(e.target.value)}
+                                        className="f-input h-24 pt-3 resize-none"
+                                    />
+                                </div>
+
+                                <div className="flex items-center gap-3 p-3 bg-green-50 rounded-2xl border border-green-200">
+                                    <input 
+                                        type="checkbox" 
+                                        id="notifyWA"
+                                        checked={formNotifyWhatsApp}
+                                        onChange={e => setFormNotifyWhatsApp(e.target.checked)}
+                                        className="w-5 h-5 accent-green-600"
+                                    />
+                                    <label htmlFor="notifyWA" className="m-0 text-sm font-bold text-green-800 cursor-pointer flex-1">
+                                        Notificar aluno via WhatsApp ao confirmar
+                                    </label>
+                                </div>
+
+                                {formNotifyWhatsApp && formStudentId && !students.find(s => s.id === formStudentId)?.profiles?.whatsapp && (
+                                    <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 animate-fade-in">
+                                        <label className="text-[10px] font-black text-amber-700 uppercase mb-1 block">WhatsApp não cadastrado para este aluno:</label>
+                                        <input 
+                                            type="text"
+                                            placeholder="Digite o WhatsApp para salvar..."
+                                            value={whatsappFallback}
+                                            onChange={e => setWhatsappFallback(e.target.value)}
+                                            className="w-full bg-white border border-amber-300 rounded-xl p-2 text-xs font-bold outline-none focus:border-amber-500"
+                                        />
+                                    </div>
+                                )}
 
                                 <div className="mod-actions">
                                     <button type="button" onClick={() => setShowModal(false)} className="btn-cancel">Cancelar</button>

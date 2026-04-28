@@ -9,8 +9,8 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - [x] **Conexão Imersiva:** Aluno agora vê foto e nome do professor no topo do dashboard.
 - [x] **Correção RLS:** Permissões de banco ajustadas para compartilhamento de perfil seguro.
 - [x] **Infraestrutura SSR:** Adaptador Vercel configurado e deploy em produção realizado com sucesso.
-- **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Gestão Destrave Draw (OK) | Vozes do Buddy (89/90).
-- **Última Atualização:** 24/04/2026 (10:30h)
+- **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Gestão Destrave Draw (OK) | Vozes do Buddy (90/90 - OK).
+- **Última Atualização:** 28/04/2026 (16:55h)
 - **GitHub:** `https://github.com/Felipedestrave/destravehub.git` (Branch `main`)
 
 ---
@@ -48,6 +48,11 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
     - [x] Card de "Intervenção do Sensei" com foto e link WhatsApp do professor.
     - [x] Rota dinâmica de player `/play/draw/[id]` integrada ao sistema de missões.
     - [x] Botão "Testar Agora" para preview imediato do professor.
+- [x] **UX & Interatividade (Handwritten Edition):**
+    - [x] **Handwritten Font:** Implementada fonte "Architects Daughter" (estilo Excalidraw) em todo o canvas e interface da aula.
+    - [x] **Ajuste de Layout:** Reposicionamento da toolbar para evitar conflito com a sidebar lateral do dashboard (offset de 280px).
+    - [x] **Reações Rápidas:** Inclusão do efeito de "Suor/Esforço" (💦) completando o set de 5 animações.
+    - [x] **Atalhos de Teclado:** Teclas `1` a `5` agora disparam reações instantâneas para maior dinamismo na aula.
 - [x] **Qualidade de Áudio:** Implementação de `createWavHeader` para compatibilidade total de TTS nos navegadores.
 - [x] **Gestão de Alunos (LMS):**
     - [x] Página dedicada de cadastro (`/dashboard/students/new`).
@@ -193,7 +198,7 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - [x] **Fix de Áudio (Buddy)**: O problema de áudio mudo (`NotSupportedError`) foi resolvido. 
   - **Causa**: O Gemini TTS envia PCM bruto (L16) sem cabeçalho.
   - **Solução**: Implementada função `createWavHeader` no script de geração que injeta o cabeçalho WAV de 44 bytes.
-  - **Status**: 89 de 90 arquivos gerados. Falta apenas 1 áudio devido a limite de API.
+  - **Status**: 90 de 90 arquivos gerados. Todas as vozes estão prontas e com cabeçalho WAV correto.
   - **Ação futura**: Rodar `npx tsx scripts/generate-buddy-voices.ts` para finalizar a última voz restante.
 
 ### Fase 6: Central do Sensei & Identidade Sincronizada (10/04/2026) ✅
@@ -230,10 +235,10 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 ## ⏭️ Próximos Passos (Próxima Sessão)
 
 1. ✅ **[PRIORIDADE MÁXIMA] Portal de Captura (Lead Magnet)**: Criado e finalizado!
-2. ✅ **Vozes do Buddy**: Praticamente finalizado. Faltando apenas 1 arquivo (89/90) de áudio.
+2. ✅ **Vozes do Buddy**: Finalizado! (90/90 áudios gerados com cabeçalho WAV).
 3. 🔥 **Mecânica de Streaks (Fogo) [PRIORIDADE]**: Implementar visual de sequência de dias para bônus de XP e incentivar prática diária.
 4. 🔔 **Notificações In-App [BACKLOG]**: Sistema de alertas visuais para novas missões atribuídas ou avisos do professor (Planejado para etapas futuras).
-5. [ ] **Finalização das Vozes do Buddy (89/90 concluídos)**
+5. [x] **Finalização das Vozes do Buddy (90/90 concluídos) ✅**
 6. [ ] **Mecânica de Streaks (Sequência de dias com animação de fogo)**
 7. [ ] **Sistema de Alertas de Missões Críticas (Vencimento de revisões)**
 8. [ ] **Loja: Itens consumíveis para o sistema de repetição (ex: Rebobinar ciclo) incentivar prática diária.**
