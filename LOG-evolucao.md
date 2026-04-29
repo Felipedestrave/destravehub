@@ -1,13 +1,34 @@
 # 📝 Log de Evolução - Destrave Hub
 
-## 📅 Data: 16/04/2026
+## 📅 Data: 29/04/2026
+
+### ✅ Implementado nesta sessão:
+1.  **Unificação do Fluxo de Alunos (Cadastro/Edição):**
+    *   **Página Híbrida:** A página `/dashboard/students/new` agora detecta automaticamente o modo "Edição" via parâmetros de URL.
+    *   **Refatoração do Formulário:** O componente `AddStudentForm.tsx` foi reconstruído para suportar operações de **CREATE** e **UPDATE**, buscando dados automaticamente para edição.
+2.  **Suporte a WhatsApp Internacional:**
+    *   **Campo Inteligente:** Adicionado seletor de país (Brasil 🇧🇷 / Japão 🇯🇵) no formulário de aluno.
+    *   **Máscara Dinâmica:** Implementação de máscaras de telefone customizadas para os dois países (`(99) 99999-9999` e `99 9999-9999`).
+    *   **Padronização E.164:** Números são salvos com o DDI correspondente para facilitar futuras integrações de notificação.
+3.  **Infraestrutura de API:**
+    *   **Novo Endpoint:** Criado `/api/admin/update-student.ts` para lidar com atualizações de perfil e credenciais via Supabase Admin.
+    *   **Sincronização de Perfil:** Atualização automática do campo `whatsapp` na tabela `profiles` ao editar ou criar um aluno.
+
+---
 
 ### 🚧 Ponto de Parada Atual (RETOMAR AQUI):
-1. **Resolução do erro 500/503 na geração de exercícios:**
+1.  **Teste de Notificações via WhatsApp:**
+    *   **Próxima Ação:** Validar se os números salvos no formato internacional estão prontos para integração com serviços de mensagem (Evolution API ou similar).
+2.  **Resolução do erro 500/503 na geração de exercícios:**
+    *   **Status:** Monitorar estabilidade do Gemini-2.5-flash com a nova lógica de retry.
     *   **Contexto:** Chave da Gemini antiga foi comprometida e trocada na Vercel (resolvido erro 500 inicial).
     *   **Status Atual:** O modelo `gemini-2.5-flash` estava apresentando instabilidade (503 UNAVAILABLE - High Demand).
     *   **Solução em deploy:** Foi implementado `withRetry` com *Exponential Backoff* nas rotas `validate-answer`, `generate-questions`, `generate-deck`, etc., para retentar automaticamente quando a API do Gemini der 503.
     *   **Próxima Ação Imediata:** Assim que o usuário voltar, confirmar se o sistema está gerando os flashcards e exercícios de Escuta corretamente com a nova estrutura de retry na Vercel.
+
+---
+
+## 📅 Data: 16/04/2026
 
 ### ✅ Implementado nesta sessão:
 1.  **Sistema de Pastas "Drive-style" para Atividades:**

@@ -48,7 +48,8 @@ export const POST: APIRoute = async ({ request }) => {
             .upsert({
                 id: studentAuth.id,
                 full_name: name,
-                role: 'student'
+                role: 'student',
+                whatsapp: body.whatsapp || null
             });
 
         // 5. Link to Students table

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 
 const PROFICIENCY_LEVELS = [
@@ -18,9 +18,22 @@ const LANGUAGES = [
     'Outro'
 ];
 
-export default function AddStudentForm() {
+const COUNTRIES = [
+    { code: '+55', name: 'Brasil 🇧🇷', mask: '(99) 99999-9999' },
+    { code: '+81', name: 'Japão 🇯🇵', mask: '99 9999-9999' }
+];
+
+interface Props {
+    editId?: string | null;
+}
+
+export default function AddStudentForm({ editId }: Props) {
     const [loading, setLoading] = useState(false);
+    const [fetching, setFetching] = useState(!!editId);
     const [error, setError] = useState<string | null>(null);
+    const [country, setCountry] = useState(COUNTRIES[0]);
+    const [whatsappInput, setWhatsappInput] = useState('');
+    
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -30,9 +43,88 @@ export default function AddStudentForm() {
         notes: ''
     });
 
+    // --- Fetch Data for Editing ---
+    useEffect(() => {
+        if (!editId) return;
+
+        const fetchStudent = async () => {
+            try {
+                const { data: student, error: sError } = await supabase
+                    .from('students')
+                    .select('*, profiles!student_id(whatsapp)')
+                    .eq('id', editId)
+                    .single();
+
+                if (sError) throw sError;
+
+                if (student) {
+                    setFormData({
+                        name: student.name,
+                        email: '', // Email not stored in profiles table
+                        password: '', // Don't show password
+                        language: student.language || 'Japonês',
+                        level: student.level || 'Iniciante',
+                        notes: (student.metadata as any)?.notes || ''
+                    });
+
+                    const fullWpp = (student.profiles as any)?.whatsapp || '';
+                    if (fullWpp) {
+                        if (fullWpp.startsWith('+81')) {
+                            setCountry(COUNTRIES[1]);
+                            setWhatsappInput(fullWpp.replace('+81', ''));
+                        } else if (fullWpp.startsWith('+55')) {
+                            setCountry(COUNTRIES[0]);
+                            setWhatsappInput(fullWpp.replace('+55', ''));
+                        } else {
+                            setWhatsappInput(fullWpp);
+                        }
+                    }
+                }
+            } catch (err: any) {
+                console.error('Error fetching student:', err);
+                setError('Erro ao carregar dados do aluno.');
+            } finally {
+                setFetching(false);
+            }
+        };
+
+        fetchStudent();
+    }, [editId]);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleWhatsappChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let val = e.target.value.replace(/\D/g, ''); // Only numbers
+        
+        // Simple BR Mask logic
+        if (country.code === '+55') {
+            if (val.length > 11) val = val.substring(0, 11);
+            // Optional: apply visual mask here if desired
+        } else if (country.code === '+81') {
+            if (val.length > 11) val = val.substring(0, 11);
+        }
+        
+        setWhatsappInput(val);
+    };
+
+    const formatDisplayPhone = (val: string) => {
+        if (!val) return '';
+        if (country.code === '+55') {
+            // (99) 99999-9999
+            let m = val.match(/^(\d{0,2})(\d{0,5})(\d{0,4})$/);
+            if (!m) return val;
+            return (!m[2] ? m[1] : `(${m[1]}) ${m[2]}` + (m[3] ? `-${m[3]}` : ''));
+        }
+        if (country.code === '+81') {
+            // 99 9999 9999
+            let m = val.match(/^(\d{0,3})(\d{0,4})(\d{0,4})$/);
+            if (!m) return val;
+            return m[1] + (m[2] ? ` ${m[2]}` : '') + (m[3] ? ` ${m[3]}` : '');
+        }
+        return val;
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -44,41 +136,58 @@ export default function AddStudentForm() {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) throw new Error('Sessão expirada. Faça login novamente.');
 
-            const response = await fetch('/api/admin/create-student', {
+            const fullWhatsapp = whatsappInput ? `${country.code}${whatsappInput}` : null;
+            
+            const endpoint = editId ? '/api/admin/update-student' : '/api/admin/create-student';
+            
+            const payload = {
+                id: editId,
+                name: formData.name,
+                email: formData.email,
+                password: formData.password || undefined,
+                language: formData.language,
+                level: formData.level,
+                whatsapp: fullWhatsapp,
+                metadata: { notes: formData.notes }
+            };
+
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${session.access_token}`
                 },
-                body: JSON.stringify({
-                    name: formData.name,
-                    email: formData.email,
-                    password: formData.password,
-                    language: formData.language,
-                    level: formData.level,
-                    metadata: { notes: formData.notes }
-                })
+                body: JSON.stringify(payload)
             });
 
             const result = await response.json();
 
             if (!response.ok) {
-                throw new Error(result.error || 'Erro ao criar aluno.');
+                throw new Error(result.error || 'Erro ao processar solicitação.');
             }
 
-            // Success redirect
-            const params = new URLSearchParams({
-                name: formData.name,
-                email: formData.email,
-                password: formData.password
-            });
-            window.location.href = `/dashboard/students/success?${params.toString()}`;
+            if (editId) {
+                // Success redirect for edit
+                window.location.href = '/dashboard';
+            } else {
+                // Success redirect for create
+                const params = new URLSearchParams({
+                    name: formData.name,
+                    email: formData.email,
+                    password: formData.password
+                });
+                window.location.href = `/dashboard/students/success?${params.toString()}`;
+            }
 
         } catch (err: any) {
             setError(err.message);
             setLoading(false);
         }
     };
+
+    if (fetching) {
+        return <div className="text-center py-20 text-slate-mid animate-pulse">Carregando dados do aluno...</div>;
+    }
 
     return (
         <form onSubmit={handleSubmit} className="add-student-form">
@@ -114,15 +223,15 @@ export default function AddStudentForm() {
                             />
                         </div>
                         <div className="field-group">
-                            <label className="field-label">Senha Inicial *</label>
+                            <label className="field-label">{editId ? 'Nova Senha (deixe vazio para manter)' : 'Senha Inicial *'}</label>
                             <input
                                 type="password"
                                 name="password"
                                 value={formData.password}
                                 onChange={handleChange}
-                                required
+                                required={!editId}
                                 className="field-input"
-                                placeholder="Mínimo 6 caracteres"
+                                placeholder={editId ? "Opcional" : "Mínimo 6 caracteres"}
                             />
                         </div>
                     </div>
@@ -131,8 +240,8 @@ export default function AddStudentForm() {
                 <div className="form-divider" />
 
                 <div className="form-section">
-                    <h3 className="section-title">Perfil Pedagógico</h3>
-                    <p className="section-desc">Defina o foco e o nível atual do aluno.</p>
+                    <h3 className="section-title">Perfil Pedagógico & Contato</h3>
+                    <p className="section-desc">Defina o foco, o nível e o contato para notificações.</p>
 
                     <div className="field-grid">
                         <div className="field-group">
@@ -161,6 +270,32 @@ export default function AddStudentForm() {
                                 ))}
                             </select>
                         </div>
+                    </div>
+
+                    <div className="field-group">
+                        <label className="field-label">WhatsApp para Notificações</label>
+                        <div className="whatsapp-input-container">
+                            <select 
+                                className="country-selector"
+                                value={country.code}
+                                onChange={(e) => {
+                                    const c = COUNTRIES.find(c => c.code === e.target.value);
+                                    if (c) setCountry(c);
+                                }}
+                            >
+                                {COUNTRIES.map(c => (
+                                    <option key={c.code} value={c.code}>{c.name}</option>
+                                ))}
+                            </select>
+                            <input
+                                type="text"
+                                value={formatDisplayPhone(whatsappInput)}
+                                onChange={handleWhatsappChange}
+                                className="field-input wpp-field"
+                                placeholder={country.mask}
+                            />
+                        </div>
+                        <p className="field-hint">Usado para enviar lembretes de aula e novidades.</p>
                     </div>
 
                     <div className="field-group">
@@ -197,7 +332,7 @@ export default function AddStudentForm() {
                         className="btn-action"
                         disabled={loading}
                     >
-                        {loading ? 'Criando Conta...' : 'Cadastrar Aluno'}
+                        {loading ? 'Processando...' : (editId ? 'Salvar Alterações' : 'Cadastrar Aluno')}
                     </button>
                 </div>
             </div>
@@ -259,6 +394,7 @@ export default function AddStudentForm() {
                     font-size: 0.95rem;
                     outline: none;
                     transition: border-color 0.2s, box-shadow 0.2s;
+                    width: 100%;
                 }
                 .field-input:focus {
                     border-color: var(--color-brand);
@@ -268,6 +404,30 @@ export default function AddStudentForm() {
                     resize: vertical;
                     min-height: 80px;
                 }
+                
+                .whatsapp-input-container {
+                    display: flex;
+                    gap: 0.5rem;
+                }
+                .country-selector {
+                    padding: 0.75rem;
+                    border-radius: 0.75rem;
+                    border: 1px solid var(--color-slate-border);
+                    background: var(--color-ice);
+                    font-weight: 600;
+                    font-size: 0.85rem;
+                    outline: none;
+                }
+                .wpp-field {
+                    flex: 1;
+                }
+                .field-hint {
+                    font-size: 0.7rem;
+                    color: var(--color-slate-mid);
+                    font-weight: 500;
+                    margin-top: -0.25rem;
+                }
+
                 .form-error {
                     background: #FEF2F2;
                     border: 1px solid #FEE2E2;
@@ -294,6 +454,12 @@ export default function AddStudentForm() {
                     }
                     .form-card {
                         padding: 1.5rem;
+                    }
+                    .whatsapp-input-container {
+                        flex-direction: column;
+                    }
+                    .country-selector {
+                        width: 100%;
                     }
                 }
             `}</style>

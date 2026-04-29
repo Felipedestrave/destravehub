@@ -233,9 +233,9 @@ export default function StudentList() {
                                         <a href={`/dashboard/students/${student.id}`} className="dropdown-item">
                                             <TrendingUp size={16} /> Ver Perfil
                                         </a>
-                                        <button onClick={() => openEditModal(student)} className="dropdown-item">
+                                        <a href={`/dashboard/students/new?edit=${student.id}`} className="dropdown-item">
                                             <Edit2 size={16} /> Editar Aluno
-                                        </button>
+                                        </a>
                                         {!student.student_id && student.experimental_uuid && (
                                             <button onClick={() => copyLink(student.experimental_uuid)} className="dropdown-item">
                                                 <LinkIcon size={16} /> Copiar Link

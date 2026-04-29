@@ -1,20 +1,27 @@
 ---
 import DashboardLayout from '../../../layouts/DashboardLayout.astro';
 import AddStudentForm from '../../../components/dashboard/AddStudentForm.tsx';
+
+const editId = Astro.url.searchParams.get('edit');
+const title = editId ? "Editar Aluno" : "Novo Aluno";
 ---
 
-<DashboardLayout title="Novo Aluno — Destrave Hub" activeNav="students">
+<DashboardLayout title={`${title} — Destrave Hub`} activeNav="students">
   <div class="registration-header">
     <div class="breadcrumb">
       <a href="/dashboard">Dashboard</a>
       <span class="chevron">›</span>
-      <span class="current">Novo Aluno</span>
+      <a href="/dashboard">Alunos</a>
+      <span class="chevron">›</span>
+      <span class="current">{title}</span>
     </div>
-    <h1 class="page-title">Cadastrar Novo Aluno</h1>
-    <p class="page-subtitle">Configure a conta oficial do seu aluno para começar as missões.</p>
+    <h1 class="page-title">{editId ? 'Editar Aluno' : 'Cadastrar Novo Aluno'}</h1>
+    <p class="page-subtitle">
+      {editId ? 'Atualize as informações da conta do seu aluno.' : 'Configure a conta oficial do seu aluno para começar as missões.'}
+    </p>
   </div>
 
-  <AddStudentForm client:load />
+  <AddStudentForm client:load editId={editId} />
 
   <style>
     .registration-header {
