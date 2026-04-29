@@ -10,7 +10,7 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - [x] **Correção RLS:** Permissões de banco ajustadas para compartilhamento de perfil seguro.
 - [x] **Infraestrutura SSR:** Adaptador Vercel configurado e deploy em produção realizado com sucesso.
 - **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Gestão Destrave Draw (OK) | Vozes do Buddy (90/90 - OK).
-- **Última Atualização:** 28/04/2026 (16:55h)
+- **Última Atualização:** 29/04/2026 (08:40h)
 - **GitHub:** `https://github.com/Felipedestrave/destravehub.git` (Branch `main`)
 
 ---
@@ -245,6 +245,10 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - **Segurança & Dados**:
   - **Registro de WhatsApp**: Atalho para cadastrar telefone do aluno diretamente no popup de agendamento e na tela de Detalhes.
   - **Fix de Tipagem**: Resolvido erro de ambiguidade de Join (`profiles!student_id`) e nulidade de IDs no TypeScript.
+- **Correção de UI (29/04/2026) 🎨**:
+  - **Scroll Interno (Scheduling Modal)**: Implementado comportamento de scroll interno no modal de agendamento, resolvendo o problema de "vazamento" em telas menores.
+  - **Rodapé Fixo**: Botões de ação ("Confirmar Agenda" / "Cancelar") agora permanecem fixos na base do modal para melhor acessibilidade.
+  - **Responsividade**: O modal agora respeita os limites da viewport (`max-height: 95vh`), garantindo usabilidade em qualquer dispositivo.
 
 ---
 
