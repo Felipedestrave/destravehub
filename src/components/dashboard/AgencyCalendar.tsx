@@ -713,7 +713,8 @@ export default function AgencyCalendar() {
                             </div>
 
                             <form onSubmit={handleSaveAppointment} className="mod-form">
-                                <div className="f-group">
+                                <div className="mod-body scroll-y">
+                                    <div className="f-group">
                                     <label>Aluno</label>
                                     <select
                                         value={formStudentId}
@@ -855,6 +856,7 @@ export default function AgencyCalendar() {
                                     </div>
                                 )}
 
+                                </div>
                                 <div className="mod-actions">
                                     <button type="button" onClick={() => setShowModal(false)} className="btn-cancel">Cancelar</button>
                                     <button type="submit" disabled={modalLoading} className="btn-save">
@@ -1327,6 +1329,9 @@ export default function AgencyCalendar() {
                     border-radius: 1.5rem;
                     overflow: hidden;
                     box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+                    display: flex;
+                    flex-direction: column;
+                    max-height: 95vh;
                 }
 
                 .mod-header {
@@ -1348,7 +1353,22 @@ export default function AgencyCalendar() {
                 .close-btn { background: none; border: none; color: white; cursor: pointer; opacity: 0.8; transition: opacity 0.2s; }
                 .close-btn:hover { opacity: 1; }
 
-                .mod-form { padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
+                .mod-form { 
+                    display: flex; 
+                    flex-direction: column; 
+                    flex: 1; 
+                    overflow: hidden;
+                    padding: 0;
+                    gap: 0;
+                }
+                .mod-body {
+                    padding: 2rem;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1.5rem;
+                    flex: 1;
+                    overflow-y: auto;
+                }
                 .f-group { display: flex; flex-direction: column; gap: 0.5rem; }
                 .f-group label { font-size: 0.85rem; font-weight: 700; color: var(--color-slate-dark); }
                 .f-input {
@@ -1366,7 +1386,9 @@ export default function AgencyCalendar() {
                     display: flex;
                     justify-content: flex-end;
                     gap: 1rem;
-                    margin-top: 1rem;
+                    padding: 1.25rem 2rem;
+                    background: #F8FAFC;
+                    border-top: 1px solid var(--color-slate-border);
                 }
 
                 .btn-cancel {
@@ -1414,9 +1436,6 @@ export default function AgencyCalendar() {
                 /* Log Modal Styles */
                 .log-modal {
                     max-width: 700px !important;
-                    display: flex;
-                    flex-direction: column;
-                    max-height: 90vh;
                 }
 
                 .log-header {
