@@ -1,0 +1,18 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import { AdventureRoadmap } from '../../components/student/AdventureRoadmap';
+---
+
+<DashboardLayout title="Meu Caminho — Destrave Hub" activeNav="roadmap">
+  <div class="roadmap-wrapper">
+    <AdventureRoadmap client:load />
+  </div>
+</DashboardLayout>
+
+<style>
+  .roadmap-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+</style>

@@ -40,14 +40,22 @@ export const AgendaView: React.FC = () => {
                     .gte('start_time', new Date().toISOString())
                     .order('start_time', { ascending: true });
 
-                // 3. Fetch Missions (limit to 5 most recent pending)
+                // 3. Fetch Missions (limit to 10 to ensure we have enough after filtering)
                 const { data: missions } = await supabase
                     .from('assignments')
                     .select('*, activities(title, type)')
                     .eq('student_id', student.id)
                     .eq('status', 'pending')
                     .order('assigned_at', { ascending: false })
-                    .limit(5);
+                    .limit(10);
+
+                // 4. Fetch Completed Missions for SRS Milestones
+                const { data: completedMissions } = await supabase
+                    .from('assignments')
+                    .select('*, activities(title)')
+                    .eq('student_id', student.id)
+                    .eq('status', 'completed')
+                    .not('result_data', 'is', null);
 
                 const agendaItems: AgendaItem[] = [];
 
@@ -75,9 +83,32 @@ export const AgendaView: React.FC = () => {
                     });
                 });
 
+                // Transform SRS Milestones
+                completedMissions?.forEach(miss => {
+                    const data = miss.result_data as any;
+                    if (data.repetition && Array.isArray(data.repetition)) {
+                        data.repetition.forEach((milestone: any) => {
+                            const scheduled = new Date(milestone.scheduledDate);
+                            // Only show if it's due (today or past) and pending
+                            if (milestone.status === 'pending' && scheduled <= new Date()) {
+                                agendaItems.push({
+                                    id: `${miss.id}-srs-${milestone.milestone}`,
+                                    type: 'mission', // Using 'mission' style for SRS
+                                    title: `Revisão: ${(miss.activities as any)?.title}`,
+                                    date: scheduled,
+                                    status: 'pending',
+                                    meta: `SRS Etapa ${milestone.milestone}`
+                                });
+                            }
+                        });
+                    }
+                });
+
                 // Sort everything by date
                 agendaItems.sort((a, b) => a.date.getTime() - b.date.getTime());
-                setItems(agendaItems);
+                
+                // LIMIT TO 5 ITEMS as requested
+                setItems(agendaItems.slice(0, 5));
 
             } catch (err) {
                 console.error('[AgendaView] Error:', err);
@@ -130,10 +161,10 @@ export const AgendaView: React.FC = () => {
                                     </div>
                                     <div className="card-info">
                                         <div className="card-type-label">
-                                            {item.type === 'class' ? 'AULA AGENDADA' : 'MISSÃO PENDENTE'}
+                                            {item.type === 'class' ? 'AULA AGENDADA' : 'TAREFA PENDENTE'}
                                         </div>
                                         <h4 className="card-title">{item.title}</h4>
-                                        {item.meta && item.type === 'class' && (
+                                        {item.meta && (
                                             <p className="card-meta">{item.meta}</p>
                                         )}
                                     </div>
@@ -145,6 +176,13 @@ export const AgendaView: React.FC = () => {
                         </div>
                     );
                 })}
+            </div>
+
+            <div className="agenda-footer">
+                <a href="/dashboard/minhas-atividades" className="view-all-btn">
+                    Ver tudo
+                    <ChevronRight size={16} />
+                </a>
             </div>
 
             <style>{`
@@ -299,6 +337,34 @@ export const AgendaView: React.FC = () => {
 
                 .card-action-hint {
                     color: var(--color-slate-border);
+                }
+
+                .agenda-footer {
+                    margin-top: 2rem;
+                    padding-top: 1.5rem;
+                    border-top: 1px solid var(--color-slate-border);
+                    display: flex;
+                    justify-content: center;
+                }
+                .view-all-btn {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    padding: 0.75rem 1.5rem;
+                    background: var(--color-ice);
+                    color: var(--color-brand);
+                    font-family: var(--font-outfit);
+                    font-weight: 700;
+                    font-size: 0.9rem;
+                    text-decoration: none;
+                    border-radius: 1rem;
+                    transition: all 0.2s;
+                }
+                .view-all-btn:hover {
+                    background: var(--color-brand);
+                    color: white;
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(88,49,126,0.2);
                 }
 
                 .agenda-loading, .agenda-empty {

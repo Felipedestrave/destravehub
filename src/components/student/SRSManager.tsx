@@ -37,8 +37,12 @@ export const SRSManager: React.FC = () => {
           const scheduled = new Date(milestone.scheduledDate);
           const scheduledDay = new Date(scheduled.getFullYear(), scheduled.getMonth(), scheduled.getDate());
 
-          // Se o dia chegou ou passou, e ainda está pendente e não notificado
-          if (milestone.status === 'pending' && today >= scheduledDay && !milestone.notified) {
+          const lastNotified = milestone.lastNotifiedAt ? new Date(milestone.lastNotifiedAt) : null;
+          const isAlreadyNotifiedToday = lastNotified && 
+            lastNotified.toDateString() === now.toDateString();
+
+          // Se o dia chegou ou passou, e ainda está pendente e não notificado HOJE
+          if (milestone.status === 'pending' && today >= scheduledDay && !isAlreadyNotifiedToday) {
             
             // Enviar Notificação Interna
             await notificationService.sendNotification(
@@ -51,8 +55,9 @@ export const SRSManager: React.FC = () => {
 
             toast('Revisão disponível! Verifique seu sininho.', { icon: '🔔' });
 
-            // Marcar como notificado
+            // Marcar como notificado com data
             updatedRepetition[i].notified = true;
+            updatedRepetition[i].lastNotifiedAt = now.toISOString();
             needsUpdate = true;
           }
         }

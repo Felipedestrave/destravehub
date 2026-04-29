@@ -252,6 +252,29 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 
 ---
 
+### Fase 9: A Grande Gamificação & Foco do Aluno (29/04/2026) 🏆
+- **O Tabuleiro Mágico ("Meu Caminho")**:
+  - Transformação da lista "Meu Caminho" em um autêntico tabuleiro S-Curve (estilo jogo de tabuleiro).
+  - O "Buddy" (Avatar equipado do aluno) avança dinamicamente pelas casas, pousando sempre na primeira casa pendente.
+  - Alertas visuais e broncas do Sensei se o aluno pular tarefas e deixar "buracos" para trás.
+  - Navegação "1-Click": Clicar na casa da missão leva direto ao exercício.
+- **Sistema Híbrido de Baús (Moedas)**:
+  - A cada 8 etapas, o sistema injeta um Baú de Recompensa.
+  - **Baú de Prata**: Ao chegar na casa, o aluno ganha 20 moedas (mesmo se pulou algo).
+  - **Baú de Ouro**: Se as 8 casas anteriores estiverem 100% completas, o baú evolui pagando +50 moedas totais.
+- **Revisão Espaçada Explícita (SRS)**:
+  - Criação da aba "A Magia da Revisão" no manual do caminho, explicando a Curva de Ebbinghaus e os dias (1, 5, 10, 16, 25).
+  - Tooltips de ajuda `[?]` nos minicards e penalidade inteligente de moedas (100% no prazo, 50% em atraso, 0 se perder a janela).
+  - Mensagem especial do Sensei ativada automaticamente quando a tarefa atual for de revisão.
+  - Modal adaptado com responsividade extrema (`max-height: 90vh` e `overflow-y` interno).
+- **Linha do Tempo de Foco (Activities Timeline)**:
+  - Nova página `/dashboard/minhas-atividades` que substitui o antigo botão "Ver tudo" da agenda.
+  - Um algoritmo cronológico inteligente que mostra exatamente o recorte do momento de vida do aluno: **15 tarefas passadas** e **34 futuras**.
+  - Auto-scroll automático focando o centro da tela na Atividade Atual (First Pending).
+  - Totalmente acoplado ao motor global de **Temas (Mercado Destrave)** via variáveis CSS.
+
+---
+
 ## ⏭️ Próximos Passos (Próxima Sessão)
 
 1. ✅ **[PRIORIDADE MÁXIMA] Portal de Captura (Lead Magnet)**: Criado e finalizado!
