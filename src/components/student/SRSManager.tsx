@@ -13,11 +13,21 @@ export const SRSManager: React.FC = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      // 1. Buscar missões com cronograma SRS pendente
+      // 0. Buscar o ID interno do aluno vinculado ao usuário logado
+      const { data: studentRecord } = await supabase
+        .from('students')
+        .select('id')
+        .eq('student_id', session.user.id)
+        .maybeSingle();
+
+      if (!studentRecord) return;
+
+      // 1. Buscar missões com cronograma SRS pendente APENAS para este aluno
       const { data: assignments, error } = await supabase
         .from('assignments')
         .select('id, result_data, activities(title)')
-        .eq('status', 'completed') // Só missões já feitas uma vez
+        .eq('student_id', studentRecord.id)
+        .eq('status', 'completed')
         .not('result_data', 'is', null);
 
       if (error) throw error;
