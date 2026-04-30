@@ -380,7 +380,7 @@ export default function AgencyCalendar() {
             const lessonLogData = {
                 student_id: studentInternalId,
                 teacher_id: userId,
-                topics: logTopics,
+                topics: [logTopics], // Send as an array
                 notes: JSON.stringify({
                     engagement: logEngagement,
                     duration: logRealDuration,
