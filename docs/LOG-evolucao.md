@@ -152,6 +152,9 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
         - [x] Adicionado botão "Voltar" no cabeçalho de exercícios (`Destrave1Player`).
         - [x] Adicionado botão de retorno na tela final de missões.
         - [x] Implementados botões de "Voltar" na Linha do Tempo de Atividades e no Roadmap de Aventura para garantir fluxo contínuo.
+    - [x] **Transparência de Recompensas**: 
+        - [x] Unificado bônus de SRS ao total de `rewards` no backend.
+        - [x] Implementado "Extrato de Ganhos" (tooltip) na tela de resultados para detalhar bônus de revisão.
     - [x] **Fix de Tipagem**: Resolvido erro de referência `selectedIndex` no orquestrador de missões.
 
 

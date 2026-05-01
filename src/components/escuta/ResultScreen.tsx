@@ -71,12 +71,27 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ result, onRestart, o
                     {/* Ganho de Gamificação */}
                     {rewards && (
                         <>
-                            <div className="bg-amber-50 rounded-2xl p-4 border border-amber-200 animate-bounce-subtle">
+                            <div className="bg-amber-50 rounded-2xl p-4 border border-amber-200 animate-bounce-subtle relative group">
                                 <div className="flex justify-center mb-1">
                                     <Coins size={16} className="text-amber-500" />
                                 </div>
                                 <p className="font-outfit font-extrabold text-2xl text-amber-600">+{rewards.coinsGain}</p>
                                 <p className="text-[10px] font-outfit uppercase tracking-wider text-amber-700 mt-1">Destrave Coins</p>
+                                
+                                {/* Breakdown Tooltip/Mini-list */}
+                                {rewards.bonuses && rewards.bonuses.length > 0 && (
+                                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-white border border-slate-border rounded-xl shadow-xl p-3 z-50 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none hidden md:block">
+                                        <p className="text-[10px] font-bold text-slate-mid uppercase tracking-widest mb-2 border-b border-slate-border pb-1">Extrato de Ganhos</p>
+                                        <div className="flex flex-col gap-1.5 pt-1">
+                                            {rewards.bonuses.map((b, i) => (
+                                                <div key={i} className="flex justify-between items-center text-[11px] font-inter">
+                                                    <span className="text-slate-dark">{b.name}</span>
+                                                    <span className="font-bold text-amber-600">+{b.amount}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                             <div className="bg-indigo-50 rounded-2xl p-4 border border-indigo-200">
                                 <div className="flex justify-center mb-1">
@@ -149,10 +164,25 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ result, onRestart, o
 
                     {rewards && (
                         <div className="flex justify-center gap-3 my-6 animate-fade-up">
-                            <div className="bg-amber-50 rounded-2xl p-4 border border-amber-200 flex flex-col items-center min-w-[120px]">
+                            <div className="bg-amber-50 rounded-2xl p-4 border border-amber-200 flex flex-col items-center min-w-[120px] relative group">
                                 <Coins size={20} className="text-amber-500 mb-1" />
                                 <p className="font-outfit font-extrabold text-2xl text-amber-600">+{rewards.coinsGain}</p>
                                 <p className="text-[10px] font-outfit uppercase tracking-wider text-amber-700">Moedas</p>
+
+                                {/* Breakdown Tooltip */}
+                                {rewards.bonuses && rewards.bonuses.length > 0 && (
+                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-white border border-slate-border rounded-xl shadow-xl p-3 z-50 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none hidden md:block">
+                                        <p className="text-[10px] font-bold text-slate-mid uppercase tracking-widest mb-2 border-b border-slate-border pb-1">Extrato de Ganhos</p>
+                                        <div className="flex flex-col gap-1.5 pt-1">
+                                            {rewards.bonuses.map((b, i) => (
+                                                <div key={i} className="flex justify-between items-center text-[11px] font-inter">
+                                                    <span className="text-slate-dark">{b.name}</span>
+                                                    <span className="font-bold text-amber-600">+{b.amount}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                             <div className="bg-indigo-50 rounded-2xl p-4 border border-indigo-200 flex flex-col items-center min-w-[120px]">
                                 <Zap size={20} className="text-indigo-500 mb-1" />

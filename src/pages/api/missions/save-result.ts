@@ -139,7 +139,7 @@ export const POST: APIRoute = async ({ request }) => {
                     is_practice: true
                 };
 
-                // Se houve recompensa de repetição, adiciona ao perfil
+                // Se houve recompensa de repetição, adiciona ao perfil e ao objeto de retorno para o frontend
                 if (repetitionReward > 0 && profileId) {
                     await supabaseAdmin.rpc('increment_gamification', { 
                         user_id: profileId, 
@@ -147,6 +147,18 @@ export const POST: APIRoute = async ({ request }) => {
                         coins_gain: repetitionReward 
                     });
                     
+                    // ATUALIZAÇÃO CRÍTICA: Incluir o bônus de SRS no objeto 'rewards' para transparência no frontend
+                    if (rewards) {
+                        rewards.coinsGain += repetitionReward;
+                        rewards.xpGain += repetitionReward;
+                        rewards.bonuses.push({
+                            name: 'Bônus de Revisão',
+                            amount: repetitionReward,
+                            type: 'completion' as any,
+                            reason: 'Você revisou este conteúdo no prazo!'
+                        });
+                    }
+
                     // Notificação interna
                     await notificationService.sendNotification(
                         profileId,
