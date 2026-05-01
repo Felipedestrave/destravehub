@@ -10,7 +10,7 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - [x] **Correção RLS:** Permissões de banco ajustadas para compartilhamento de perfil seguro.
 - [x] **Infraestrutura SSR:** Adaptador Vercel configurado e deploy em produção realizado com sucesso.
 - **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Gestão Destrave Draw (OK) | Vozes do Buddy (90/90 - OK).
-- **Última Atualização:** 29/04/2026 (08:40h)
+- **Última Atualização:** 01/05/2026 (06:45h)
 - **GitHub:** `https://github.com/Felipedestrave/destravehub.git` (Branch `main`)
 
 ---
@@ -145,6 +145,14 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
     - [x] **Atalhos de Aula:** Implementado controle total via teclado (`Espaço/Enter` para virar, `1/2` ou `Setas` para feedback).
     - [x] **Visual Premium (Cards):** Ampliação do tamanho dos cards e verso com identidade visual da marca (Roxo/Branco).
     - [x] **Animações Cinematográficas:** Chuva de confetes, brilho (glow) e efeitos de escala para vitórias e encorajamento.
+- [x] **Eficácia Pedagógica & Navegação (01/05/2026) 🧠:**
+    - [x] **Randomização de Alternativas**: Implementada lógica de *Shuffling* (Fisher-Yates) para opções de múltipla escolha em `Destrave1Player` e `EscutaApp`. O aluno agora precisa focar no conteúdo, não na posição (A/B/C/D).
+    - [x] **Feedback de Recompensas**: Tela de resultados (`ResultScreen`) atualizada para exibir moedas (DC) e XP de forma proeminente com animações.
+    - [x] **Navegação Sem "Nós Cegos"**:
+        - [x] Adicionado botão "Voltar" no cabeçalho de exercícios (`Destrave1Player`).
+        - [x] Adicionado botão de retorno na tela final de missões.
+        - [x] Implementados botões de "Voltar" na Linha do Tempo de Atividades e no Roadmap de Aventura para garantir fluxo contínuo.
+    - [x] **Fix de Tipagem**: Resolvido erro de referência `selectedIndex` no orquestrador de missões.
 
 
 ---

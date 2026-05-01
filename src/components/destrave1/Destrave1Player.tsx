@@ -32,6 +32,7 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
   const [buddyMessage, setBuddyMessage] = useState<string | null>(null);
   const [buddyAvatarUrl, setBuddyAvatarUrl] = useState<string>('/assets/avatars/tanuki-novato.png');
   const [buddyAvatarId, setBuddyAvatarId] = useState<string | null>(null);
+  const [shuffledOptions, setShuffledOptions] = useState<{ text: string, originalIndex: number }[]>([]);
 
   // Carrega o avatar equipado do perfil do aluno
   useEffect(() => {
@@ -48,6 +49,19 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
     });
   }, []);
 
+  // Randomize options when current question changes
+  useEffect(() => {
+    if (currentQuestion?.type === 'multiple_choice' && currentQuestion.options) {
+      const opts = currentQuestion.options.map((opt, idx) => ({
+        text: opt,
+        originalIndex: idx
+      }));
+      setShuffledOptions(shuffleArray(opts));
+    } else {
+      setShuffledOptions([]);
+    }
+  }, [currentIndex, shuffledQuestions]);
+
   const triggerBuddy = (state: BuddyState, type?: 'success' | 'error') => {
     setBuddyStatus(state);
     if (type) setBuddyMessage(getBuddyPhrase(buddyAvatarId, type));
@@ -62,10 +76,11 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
 
   const currentScore = answers.filter(a => a.isCorrect).length;
 
-  const handleMultipleChoice = (selectedIndex: number) => {
+  const handleMultipleChoice = (shuffledIndex: number) => {
     if (currentQuestion.type !== 'multiple_choice') return;
 
-    const isCorrect = selectedIndex === currentQuestion.correctOptionIndex;
+    const selectedOption = shuffledOptions[shuffledIndex];
+    const isCorrect = selectedOption.originalIndex === currentQuestion.correctOptionIndex;
     
     // Animate buddy
     triggerBuddy(isCorrect ? 'success' : 'error', isCorrect ? 'success' : 'error');
@@ -74,7 +89,7 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
     const newAnswer: Destrave1UserAnswer = {
       questionId: currentQuestion.id,
       questionType: 'multiple_choice',
-      selectedOptionIndex: selectedIndex,
+      selectedOptionIndex: selectedOption.originalIndex,
       isCorrect,
       answeredAt: new Date().toISOString()
     };
@@ -221,9 +236,18 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
       <div className="flex-1 flex flex-col gap-6 animate-fade-in">
         {/* Cabeçalho */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-[var(--color-slate-border)] flex items-center justify-between">
-            <h2 className="text-xl font-bold font-outfit text-[var(--color-slate-dark)]">
-              {activityTitle || 'Atividade'}
-            </h2>
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => window.history.back()}
+                className="p-2 hover:bg-[var(--color-ice)] rounded-xl transition-colors text-[var(--color-slate-mid)]"
+                title="Voltar"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+              </button>
+              <h2 className="text-xl font-bold font-outfit text-[var(--color-slate-dark)]">
+                {activityTitle || 'Atividade'}
+              </h2>
+            </div>
             <div className="bg-[var(--color-ice)] text-[var(--color-brand)] font-bold px-4 py-2 rounded-xl text-sm">
               Progresso: {currentIndex + 1} / {shuffledQuestions.length}
             </div>
@@ -245,16 +269,16 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
              {currentQuestion.question}
            </p>
 
-           {/* Alternativas (Múltipla Escolha) */}
+           {/* Alternativas (Múltipla Escolha) Shuffled */}
            {currentQuestion.type === 'multiple_choice' && (
              <div className="flex flex-col gap-3 mt-auto">
-               {currentQuestion.options.map((opt, i) => (
+               {shuffledOptions.map((opt, i) => (
                   <button 
                     key={i}
                     onClick={() => handleMultipleChoice(i)}
                     className="text-left w-full p-4 rounded-xl border-2 border-[var(--color-slate-border)] hover:border-[var(--color-brand)] hover:bg-[var(--color-ice)] transition-all font-medium text-[var(--color-slate-dark)] shadow-sm"
                   >
-                    {opt}
+                    {opt.text}
                   </button>
                ))}
              </div>

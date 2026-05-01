@@ -21,6 +21,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     const [showHint, setShowHint] = useState(false);
     const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
     const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
+    const [shuffledOptions, setShuffledOptions] = useState<{ text: string, originalIndex: number }[]>([]);
 
     const audioContextRef = useRef<AudioContext | null>(null);
     const sourceRef = useRef<AudioBufferSourceNode | null>(null);
@@ -48,6 +49,16 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         };
 
         setup();
+
+        // Shuffling options
+        if (data.question.options) {
+            const optsWithIndex = data.question.options.map((opt, idx) => ({ text: opt, originalIndex: idx }));
+            // Using a simple shuffle since we don't have access to lib/utils here directly without import
+            // But actually, we can just sort random
+            const shuffled = [...optsWithIndex].sort(() => Math.random() - 0.5);
+            setShuffledOptions(shuffled);
+        }
+
         return () => stopAudio();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data]);
@@ -98,10 +109,11 @@ export const GameScreen: React.FC<GameScreenProps> = ({
 
     const togglePlay = () => (isPlaying ? stopAudio() : playAudio());
 
-    const handleOption = (idx: number) => {
+    const handleOption = (shuffledIdx: number) => {
         if (isAnswered) return;
-        setSelectedIdx(idx);
-        onAnswer(idx, showHint);
+        setSelectedIdx(shuffledIdx);
+        const originalIdx = shuffledOptions[shuffledIdx].originalIndex;
+        onAnswer(originalIdx, showHint);
     };
 
     const getOptionStyle = (idx: number): string => {
@@ -112,7 +124,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                     : 'bg-white border-slate-border text-slate-dark hover:border-brand/40 hover:bg-brand/4'
                 }`;
         }
-        if (idx === data.question.correct_index) return `${base} bg-emerald-50 border-emerald-400 text-emerald-800`;
+        const originalIdx = shuffledOptions[idx].originalIndex;
+        if (originalIdx === data.question.correct_index) return `${base} bg-emerald-50 border-emerald-400 text-emerald-800`;
         if (selectedIdx === idx) return `${base} bg-red-50 border-red-400 text-red-800 opacity-80`;
         return `${base} bg-white border-slate-border text-slate-mid opacity-40`;
     };
@@ -127,7 +140,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     };
 
     const speeds = [0.8, 0.9, 1.0, 1.2];
-    const isCorrect = selectedIdx === data.question.correct_index;
+    const isCorrect = selectedIdx !== null && shuffledOptions[selectedIdx]?.originalIndex === data.question.correct_index;
 
     return (
         <div className="max-w-2xl mx-auto w-full py-6 px-4">
@@ -187,7 +200,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
             <div className="mb-6">
                 <h3 className="font-outfit font-bold text-slate-dark text-xl mb-4">O que foi dito?</h3>
                 <div className="flex flex-col gap-3">
-                    {data.question.options.map((opt, idx) => (
+                    {shuffledOptions.map((opt, idx) => (
                         <button
                             key={idx}
                             disabled={isAnswered}
@@ -195,11 +208,11 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                             className={getOptionStyle(idx)}
                         >
                             <div className="flex items-center justify-between">
-                                <span>{opt}</span>
-                                {isAnswered && idx === data.question.correct_index && (
+                                <span>{opt.text}</span>
+                                {isAnswered && opt.originalIndex === data.question.correct_index && (
                                     <Check size={18} className="text-emerald-600 shrink-0" />
                                 )}
-                                {isAnswered && selectedIdx === idx && idx !== data.question.correct_index && (
+                                {isAnswered && selectedIdx === idx && opt.originalIndex !== data.question.correct_index && (
                                     <X size={18} className="text-red-500 shrink-0" />
                                 )}
                             </div>
