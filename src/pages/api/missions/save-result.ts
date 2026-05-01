@@ -109,15 +109,15 @@ export const POST: APIRoute = async ({ request }) => {
                             nextMilestone?.scheduledDate
                         );
 
-                        if (review.coins > 0) {
-                            repetitionReward = review.coins;
-                            // Atualizar o status do marco no cronograma
-                            old.repetition[repetitionMilestoneIndex].status = 'completed';
-                            old.repetition[repetitionMilestoneIndex].completedAt = now;
-                            old.repetition[repetitionMilestoneIndex].earnedCoins = repetitionReward;
-                            
-                            console.log(`[SRS] Student completed milestone ${milestone.milestone}. Reward: ${repetitionReward} DC.`);
-                        }
+                        repetitionReward = review.coins;
+                        
+                        // ATUALIZAÇÃO CRÍTICA: Sempre marcar como concluído para permitir o progresso no Roadmap,
+                        // mesmo que a recompensa seja 0 (por atraso ou prática fora da janela).
+                        old.repetition[repetitionMilestoneIndex].status = 'completed';
+                        old.repetition[repetitionMilestoneIndex].completedAt = now;
+                        old.repetition[repetitionMilestoneIndex].earnedCoins = repetitionReward;
+                        
+                        console.log(`[SRS] Student completed milestone ${milestone.milestone}. Reward: ${repetitionReward} DC.`);
                     }
                 }
 

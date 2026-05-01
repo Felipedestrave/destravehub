@@ -155,6 +155,7 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
     - [x] **Transparência de Recompensas**: 
         - [x] Unificado bônus de SRS ao total de `rewards` no backend.
         - [x] Implementado "Extrato de Ganhos" (tooltip) na tela de resultados para detalhar bônus de revisão.
+    - [x] **Correção de Fluxo SRS**: Removida trava que impedia a conclusão de etapas de revisão quando a recompensa era 0 (atraso). Agora o progresso no Roadmap é garantido após a prática.
     - [x] **Fix de Tipagem**: Resolvido erro de referência `selectedIndex` no orquestrador de missões.
 
 
