@@ -9,8 +9,8 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - [x] **Conexão Imersiva:** Aluno agora vê foto e nome do professor no topo do dashboard.
 - [x] **Correção RLS:** Permissões de banco ajustadas para compartilhamento de perfil seguro.
 - [x] **Infraestrutura SSR:** Adaptador Vercel configurado e deploy em produção realizado com sucesso.
-- **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Gestão Destrave Draw (OK) | Vozes do Buddy (90/90 - OK).
-- **Última Atualização:** 01/05/2026 (06:45h)
+- **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Gestão Destrave Draw (OK) | Vozes do Buddy (90/90 - OK) | Laser Real-time (OK).
+- **Última Atualização:** 04/05/2026 (11:20h)
 - **GitHub:** `https://github.com/Felipedestrave/destravehub.git` (Branch `main`)
 
 ---
@@ -157,6 +157,12 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
         - [x] Implementado "Extrato de Ganhos" (tooltip) na tela de resultados para detalhar bônus de revisão.
     - [x] **Correção de Fluxo SRS**: Removida trava que impedia a conclusão de etapas de revisão quando a recompensa era 0 (atraso). Agora o progresso no Roadmap é garantido após a prática.
     - [x] **Fix de Tipagem**: Resolvido erro de referência `selectedIndex` no orquestrador de missões.
+
+
+- [x] **Aulas Conectadas (Laser Real-time) (04/05/2026) 🔦:**
+    - [x] **Sincronização Laser**: Implementado canal de Broadcast via Supabase Realtime para que o aluno visualize o cursor do professor em tempo real.
+    - [x] **Tracking Global**: Refatoração do rastreio do ponteiro para nível global (`window`), garantindo que o laser funcione sem bloquear cliques nos slides ou no dicionário.
+    - [x] **UX de Aula**: Inclusão de sincronização de cor e lógica de auto-hide (laser_hide) para uma experiência de apresentação profissional.
 
 
 ---

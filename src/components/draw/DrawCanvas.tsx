@@ -7,11 +7,10 @@ interface DrawCanvasProps {
     strokes: DrawingStroke[];
     onStrokeComplete: (stroke: DrawingStroke) => void;
     onEraserAction: (x: number, y: number) => void;
-    onLaserMove: (x: number, y: number) => void;
 }
 
 export const DrawCanvas: React.FC<DrawCanvasProps> = ({
-    tool, activeColor, strokes, onStrokeComplete, onEraserAction, onLaserMove
+    tool, activeColor, strokes, onStrokeComplete, onEraserAction
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const activeCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -123,7 +122,6 @@ export const DrawCanvas: React.FC<DrawCanvasProps> = ({
     };
 
     const handlePointerMove = (e: React.PointerEvent) => {
-        onLaserMove(e.clientX, e.clientY);
         if (tool === 'eraser' && currentStroke) onEraserAction(e.clientX, e.clientY);
         else if (currentStroke) {
             let pos = { x: e.clientX, y: e.clientY + window.scrollY, p: e.pressure || 1 };

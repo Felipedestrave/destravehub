@@ -91,6 +91,82 @@ export default function DrawApp({ isReadOnly = false, senseiData = null }: DrawA
     const [activeColor, setActiveColor] = useState(THEME_COLORS[0].value);
     const [strokes, setStrokes] = useState<DrawingStroke[]>([]);
     const [laserPos, setLaserPos] = useState({ x: -100, y: -100 });
+    const [laserColor, setLaserColor] = useState(THEME_COLORS[0].value);
+    const [isLaserVisible, setIsLaserVisible] = useState(false);
+
+    // --- Realtime Sync ---
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('edit') || params.get('play');
+        if (!id) return;
+
+        const channel = supabase.channel(`lesson-${id}`, {
+            config: { broadcast: { self: false } }
+        });
+
+        channel
+            .on('broadcast', { event: 'laser' }, ({ payload }) => {
+                if (isReadOnly) {
+                    setLaserPos(payload.pos);
+                    setLaserColor(payload.color); 
+                    setIsLaserVisible(true);
+                }
+            })
+            .on('broadcast', { event: 'laser_hide' }, () => {
+                if (isReadOnly) setIsLaserVisible(false);
+            })
+            .subscribe();
+
+        return () => {
+            channel.unsubscribe();
+        };
+    }, [isReadOnly]);
+
+    // --- Global Pointer Move (Laser Tracking) ---
+    useEffect(() => {
+        let lastBroadcast = 0;
+        const handlePointerMove = (e: PointerEvent) => {
+            if (!isReadOnly && tool === 'laser') {
+                const pos = { x: e.clientX, y: e.clientY };
+                setLaserPos(pos);
+                setIsLaserVisible(true);
+
+                // Throttled broadcast (max 30fps / ~33ms)
+                const now = Date.now();
+                if (now - lastBroadcast > 33) {
+                    const params = new URLSearchParams(window.location.search);
+                    const id = params.get('edit') || params.get('play');
+                    if (id) {
+                        supabase.channel(`lesson-${id}`).send({
+                            type: 'broadcast',
+                            event: 'laser',
+                            payload: { pos, color: activeColor }
+                        });
+                        lastBroadcast = now;
+                    }
+                }
+            }
+        };
+
+        window.addEventListener('pointermove', handlePointerMove);
+        return () => window.removeEventListener('pointermove', handlePointerMove);
+    }, [isReadOnly, tool]);
+
+    useEffect(() => {
+        if (!isReadOnly && tool !== 'laser') {
+            setIsLaserVisible(false);
+            // Opcional: Broadcast para o aluno sumir com o laser imediatamente
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('edit') || params.get('play');
+            if (id) {
+                supabase.channel(`lesson-${id}`).send({
+                    type: 'broadcast',
+                    event: 'laser_hide',
+                    payload: {}
+                });
+            }
+        }
+    }, [tool, isReadOnly]);
 
     // --- Estados de IA e Efeitos ---
     const [dictionary, setDictionary] = useState<DictionaryResult | null>(null);
@@ -540,11 +616,17 @@ export default function DrawApp({ isReadOnly = false, senseiData = null }: DrawA
                         </div>
                     )}
 
-                    {/* Indicador de Laser */}
-                    {!isReadOnly && tool === 'laser' && (
+                    {/* Indicador de Laser (Visível para ambos se houver movimento) */}
+                    {isLaserVisible && (
                         <div
                             className="fixed pointer-events-none z-[3500] w-8 h-8 md:w-12 md:h-12 rounded-full blur-[4px] shadow-2xl transition-transform"
-                            style={{ left: laserPos.x, top: laserPos.y, transform: 'translate(-50%, -50%)', backgroundColor: activeColor, boxShadow: `0 0 40px ${activeColor}` }}
+                            style={{ 
+                                left: laserPos.x, 
+                                top: laserPos.y, 
+                                transform: 'translate(-50%, -50%)', 
+                                backgroundColor: isReadOnly ? laserColor : activeColor, 
+                                boxShadow: `0 0 40px ${isReadOnly ? laserColor : activeColor}` 
+                            }}
                         />
                     )}
 
@@ -566,7 +648,6 @@ export default function DrawApp({ isReadOnly = false, senseiData = null }: DrawA
                                     return Math.hypot(p.x - x, p.y + offsetY - (y + scrollY)) < 30;
                                 })));
                             }}
-                            onLaserMove={(x, y) => setLaserPos({ x, y })}
                         />
                     )}
 
