@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Trophy, Target, Lightbulb, RotateCcw, CheckCircle2, XCircle, Save, Loader2 } from 'lucide-react';
 import type { MrpConfig, MrpQuestion, MrpUserAnswer } from '../../types/mrp';
+import { FinalizeMissionButton } from '../shared/FinalizeMissionButton';
 
 interface ResultScreenProps {
     config: MrpConfig;
@@ -13,6 +14,7 @@ interface ResultScreenProps {
     hideActions?: boolean;
     rewards?: any;
     senseiWhatsapp?: string | null;
+    onFinalize?: () => Promise<void>;
 }
 
 const RANK_LEVELS = [
@@ -22,7 +24,7 @@ const RANK_LEVELS = [
     { min: 0, label: '🌱 Iniciante', color: '#dc2626', bg: 'rgba(220,38,38,0.08)', border: 'rgba(220,38,38,0.2)' },
 ];
 
-export const ResultScreen: React.FC<ResultScreenProps> = ({ config, questions, answers, onRestart, onSave, isSaving, initialTitle, hideActions, rewards, senseiWhatsapp }) => {
+export const ResultScreen: React.FC<ResultScreenProps> = ({ config, questions, answers, onRestart, onSave, isSaving, initialTitle, hideActions, rewards, senseiWhatsapp, onFinalize }) => {
     const totalScore = answers.reduce((acc, a) => acc + a.scoreEarned, 0);
     const maxPossible = questions.reduce((acc, q) => acc + q.points, 0);
     const correctCount = answers.filter((a) => a.isCorrect).length;
@@ -146,21 +148,30 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ config, questions, a
                     <p className="text-slate-mid mb-2 px-4">
                         Você atingiu <strong className="text-slate-dark">{percentage}%</strong> de desempenho — Rank: <strong className="text-slate-dark">{rank.label}</strong>
                     </p>
-                    {senseiWhatsapp ? (
+                    {onFinalize && !rewards ? (
+                        <FinalizeMissionButton onFinalize={onFinalize} />
+                    ) : (
                         <>
                             <p className="text-slate-mid mb-5 px-4 text-sm">Gostou do desafio? Clique abaixo para contar como foi para o Sensei!</p>
-                            <a
-                                href={`/api/contact/sensei?teacherId=${senseiWhatsapp}&text=${encodeURIComponent(`Oi Sensei! Acabei de completar o Role Play e atingi ${percentage}% de desempenho (${rank.label}). Quero saber mais sobre as aulas! 🎭`)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl font-outfit font-bold text-white text-base transition-all hover:-translate-y-0.5"
-                                style={{ background: '#25D366', boxShadow: '0 4px 14px rgba(37,211,102,0.35)', textDecoration: 'none' }}
-                            >
-                                💬 Falar com o Sensei no WhatsApp
-                            </a>
+                            {senseiWhatsapp ? (
+                                <a
+                                    href={`/api/contact/sensei?teacherId=${senseiWhatsapp}&text=${encodeURIComponent(`Oi Sensei! Acabei de completar o Role Play e atingi ${percentage}% de desempenho (${rank.label}). Quero saber mais sobre as aulas! 🎭`)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl font-outfit font-bold text-white text-base transition-all hover:-translate-y-0.5"
+                                    style={{ background: '#25D366', boxShadow: '0 4px 14px rgba(37,211,102,0.35)', textDecoration: 'none' }}
+                                >
+                                    💬 Falar com o Sensei no WhatsApp
+                                </a>
+                            ) : (
+                                <button 
+                                    onClick={() => window.location.href = '/dashboard'}
+                                    className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl font-outfit font-bold text-white text-base transition-all bg-brand hover:-translate-y-0.5"
+                                >
+                                    Voltar ao Dashboard
+                                </button>
+                            )}
                         </>
-                    ) : (
-                        <p className="text-slate-mid mt-4 px-4 text-sm">Seus resultados foram registrados. O Sensei entrará em contato em breve!</p>
                     )}
                 </div>
             )}

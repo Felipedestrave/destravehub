@@ -148,71 +148,62 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
     }, 2000);
   };
 
-  const finishGame = async (finalAnswers: Destrave1UserAnswer[]) => {
-    try {
-      const finalScore = finalAnswers.filter(a => a.isCorrect).length;
-      const stats = {
-        score: finalScore,
-        total: shuffledQuestions.length,
-        history: finalAnswers.map(a => {
-          const q = shuffledQuestions.find(question => question.id === a.questionId);
-          return {
-            correct: a.isCorrect,
-            points: a.isCorrect ? 10 : 0,
-            questionData: {
-              question: {
-                japanese_sentence: q?.question || 'Questão',
-                context_name: 'Destrave 1.0'
-              }
-            },
-            usedHint: false
-          };
-        }),
+  const finishGame = (finalAnswers: Destrave1UserAnswer[]) => {
+    const finalScore = finalAnswers.filter(a => a.isCorrect).length;
+    const stats = {
+      score: finalScore,
+      total: shuffledQuestions.length,
+      history: finalAnswers.map(a => {
+        const q = shuffledQuestions.find(question => question.id === a.questionId);
+        return {
+          correct: a.isCorrect,
+          points: a.isCorrect ? 10 : 0,
+          questionData: {
+            question: {
+              japanese_sentence: q?.question || 'Questão',
+              context_name: 'Destrave 1.0'
+            }
+          },
+          usedHint: false
+        };
+      }),
+      timeSpent: 0,
+      targetTime: 0
+    };
+
+    setGameResult(stats);
+  };
+
+  const handleFinalize = async () => {
+    if (!gameResult || !assignmentId) return;
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) return;
+
+    const res = await fetch('/api/missions/save-result', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`
+      },
+      body: JSON.stringify({
+        assignmentId,
+        score: gameResult.score,
+        totalQuestions: gameResult.total,
+        history: answers,
         timeSpent: 0,
-        targetTime: 0
-      };
+        targetTime: 0,
+        title: activityTitle || 'Destrave 1.0'
+      }),
+    });
 
-      setGameResult(stats);
-
-      if (!assignmentId) {
-        console.log('No assignmentId, skipping result save');
-        return;
-      }
-
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-
-      if (!token) {
-        console.log('No session token, skipping result save');
-        return;
-      }
-
-      const res = await fetch('/api/missions/save-result', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({
-          assignmentId,
-          score: finalScore,
-          totalQuestions: shuffledQuestions.length,
-          history: finalAnswers,
-          timeSpent: 0,
-          targetTime: 0,
-          title: activityTitle || 'Destrave 1.0'
-        }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        if (data.rewards) {
-          setRewards(data.rewards);
-        }
-      }
-    } catch (err) {
-      console.error('Failed to save result', err);
+    if (!res.ok) {
+      const errData = await res.json();
+      throw new Error(errData.error || 'Erro ao salvar resultados');
     }
+
+    const data = await res.json();
+    if (data.rewards) setRewards(data.rewards);
   };
 
   if (shuffledQuestions.length === 0) {
@@ -226,6 +217,7 @@ export const Destrave1Player: React.FC<Destrave1PlayerProps> = ({ questions, ass
         onRestart={() => window.location.reload()}
         hideActions={true}
         rewards={rewards}
+        onFinalize={handleFinalize}
       />
     );
   }

@@ -37,7 +37,7 @@ export const POST: APIRoute = async ({ request }) => {
             // 1. Fetch current assignment to check for existing results
             const { data: current, error: fetchError } = await supabaseAdmin
                 .from('assignments')
-                .select('result_data, status')
+                .select('result_data, status, student_id')
                 .eq('id', assignmentId)
                 .single();
 
@@ -53,11 +53,15 @@ export const POST: APIRoute = async ({ request }) => {
             // 2. Calculate Gamification Rewards (XP/Coins)
             // But only if we have a registered student (with an official profile)
             let profileId: string | null = null;
-            if (studentId) {
+            const effectiveStudentId = (studentId && studentId !== 'undefined' && studentId !== 'null') 
+                ? studentId 
+                : current?.student_id;
+            
+            if (effectiveStudentId) {
                 const { data: studentRecord } = await supabaseAdmin
                     .from('students')
                     .select('student_id')
-                    .eq('id', studentId)
+                    .eq('id', effectiveStudentId)
                     .single();
                 profileId = studentRecord?.student_id || null;
             }
@@ -82,11 +86,13 @@ export const POST: APIRoute = async ({ request }) => {
                 );
 
                 if (profileError) {
-                    console.error(`[Gamification] Error updating profile ${profileId}:`, profileError);
-                    // We don't block the save if gamification fails, but we log it
-                } else {
-                    console.log(`[Gamification] Awarded ${rewards.coinsGain} DC and ${rewards.xpGain} XP to profile ${profileId}.`);
+                    console.error(`[Gamification ERROR] Failed to update profile ${profileId}:`, profileError);
+                    return new Response(JSON.stringify({ 
+                        error: 'Erro ao creditar recompensas no banco de dados.',
+                        details: profileError.message 
+                    }), { status: 500 });
                 }
+                console.log(`[Gamification SUCCESS] Awarded ${rewards.coinsGain} DC and ${rewards.xpGain} XP to profile ${profileId}.`);
             }
 
             if (isReplay) {
@@ -141,11 +147,21 @@ export const POST: APIRoute = async ({ request }) => {
 
                 // Se houve recompensa de repetição, adiciona ao perfil e ao objeto de retorno para o frontend
                 if (repetitionReward > 0 && profileId) {
-                    await supabaseAdmin.rpc('increment_gamification', { 
-                        user_id: profileId, 
-                        xp_gain: 0, 
-                        coins_gain: repetitionReward 
+                    console.log(`[SRS-BONUS] Crediting SRS bonus: ${repetitionReward} DC to user ${profileId}`);
+                    const { error: srsRpcError } = await supabaseAdmin.rpc('increment_gamification', {
+                        user_id: profileId,
+                        xp_gain: 0,
+                        coins_gain: repetitionReward
                     });
+
+                    if (srsRpcError) {
+                        console.error('[SRS RPC ERROR]:', srsRpcError);
+                        return new Response(JSON.stringify({ 
+                            error: 'Erro ao creditar bônus de revisão.',
+                            details: srsRpcError.message 
+                        }), { status: 500 });
+                    }
+                    console.log(`[SRS SUCCESS] Awarded ${repetitionReward} DC bonus to ${profileId}`);
                     
                     // ATUALIZAÇÃO CRÍTICA: Incluir o bônus de SRS no objeto 'rewards' para transparência no frontend
                     if (rewards) {
@@ -200,7 +216,111 @@ export const POST: APIRoute = async ({ request }) => {
                 return new Response(JSON.stringify({ error: `Erro ao atualizar missão: ${updateError.message}` }), { status: 500 });
             }
 
-            return new Response(JSON.stringify({ success: true, assignmentId, rewards }), { status: 200 });
+            // 1. Crédito Principal da Missão (Base Coins/XP)
+            // O crédito já foi realizado acima no bloco 'if (profileId)' (linhas 75-82)
+            // ou será realizado se for um Replay via SRS Bonus. 
+            // Removemos a chamada redundante aqui para evitar duplicidade ou confusão.
+
+            // --- LÓGICA DE BAÚS DO ROADMAP (NOVO) ---
+            let chestReward = null;
+            if (studentId && profileId) {
+                try {
+                    // 1. Buscar todas as tarefas e o estado dos baús
+                    const { data: allAssignments } = await supabaseAdmin
+                        .from('assignments')
+                        .select('id, status, assigned_at')
+                        .eq('student_id', studentId)
+                        .order('assigned_at', { ascending: true });
+
+                    const { data: studentRecord } = await supabaseAdmin
+                        .from('students')
+                        .select('metadata')
+                        .eq('id', studentId)
+                        .single();
+
+                    const completedTasks = allAssignments?.filter(a => a.status === 'completed') || [];
+                    const totalCompleted = completedTasks.length;
+                    
+                    // Garantir que metadata seja um objeto válido
+                    let metadata = studentRecord?.metadata;
+                    if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
+                        metadata = {};
+                    }
+                    
+                    const claimedChests = (metadata as any).claimed_chests || {};
+                    let metadataChanged = false;
+
+                    // 2. Verificar se atingiu um novo baú (múltiplo de 8)
+                    const currentSegment = Math.floor(totalCompleted / 8);
+                    if (totalCompleted > 0 && totalCompleted % 8 === 0 && !claimedChests[currentSegment]) {
+                        const totalTasksCreated = allAssignments?.length || 0;
+                        const isPerfect = totalTasksCreated === totalCompleted;
+
+                        const amount = isPerfect ? 50 : 20;
+                        const type = isPerfect ? 'gold' : 'silver';
+
+                        console.log(`[CHEST] Crediting ${amount} to user ${profileId} (Type: ${type})`);
+
+                        const { error: rpcError } = await supabaseAdmin.rpc('increment_gamification', {
+                            user_id: profileId,
+                            xp_gain: amount,
+                            coins_gain: amount
+                        });
+
+                        if (rpcError) {
+                            console.error('[CHEST RPC ERROR]:', rpcError);
+                            return new Response(JSON.stringify({ 
+                                error: 'Erro ao creditar recompensa do baú.',
+                                details: rpcError.message 
+                            }), { status: 500 });
+                        }
+
+                        claimedChests[currentSegment] = type;
+                        metadataChanged = true;
+                        chestReward = { amount, type, segment: currentSegment };
+                    }
+
+                    // 3. Lógica Retroativa: Upgrade de Prata para Ouro
+                    for (const seg of Object.keys(claimedChests)) {
+                        if (claimedChests[seg] === 'silver') {
+                            const segmentIdx = parseInt(seg);
+                            const tasksInSegment = allAssignments?.slice(0, segmentIdx * 8);
+                            const isNowPerfect = tasksInSegment && tasksInSegment.length >= (segmentIdx * 8) && tasksInSegment.every(t => t.status === 'completed');
+
+                            if (isNowPerfect) {
+                                await supabaseAdmin.rpc('increment_gamification', {
+                                    user_id: profileId,
+                                    xp_gain: 30,
+                                    coins_gain: 30
+                                });
+                                claimedChests[seg] = 'gold';
+                                metadataChanged = true;
+                                
+                                if (!chestReward) {
+                                    chestReward = { amount: 30, type: 'upgrade', segment: segmentIdx };
+                                }
+                            }
+                        }
+                    }
+
+                    if (metadataChanged) {
+                        const newMetadata = { ...(metadata as any), claimed_chests: claimedChests };
+                        await supabaseAdmin
+                            .from('students')
+                            .update({ metadata: newMetadata })
+                            .eq('id', studentId);
+                    }
+                } catch (chestErr) {
+                    console.error('[Chest System Error]:', chestErr);
+                }
+            }
+
+            return new Response(JSON.stringify({ 
+                success: true, 
+                assignmentId, 
+                rewards, 
+                chestReward
+            }), { status: 200 });
         }
 
         // Case B: This is a new activity being created (e.g., from PDF upload)

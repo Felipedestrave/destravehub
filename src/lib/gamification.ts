@@ -75,6 +75,12 @@ export function calculateMissionRewards(params: AchievementParams): RewardResult
   // Aplicar redutor se for Replay (Estudo extra não deve inflar economia)
   if (isReplay) {
     totalCoins = Math.ceil(totalCoins * REWARDS_CONFIG.REPLAY_MULTIPLIER);
+    
+    // GARANTIA DE GANHO MÍNIMO (Regra 2026):
+    // Nunca dar menos de 5 moedas por uma revisão ou prática extra.
+    if (totalCoins < 5) {
+      totalCoins = 5;
+    }
   }
 
   // XP é acumulativo e igual ao total de moedas ganhas na vida

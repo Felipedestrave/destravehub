@@ -161,42 +161,47 @@ export const MrpApp: React.FC<MrpAppProps> = ({ userToken, assignmentId, editing
         }
     };
 
-    const handleComplete = async (userAnswers: MrpUserAnswer[]) => {
+    const handleComplete = (userAnswers: MrpUserAnswer[]) => {
         setAnswers(userAnswers);
         setStatus('RESULTS');
+    };
 
+    const handleFinalize = async () => {
         const { data: { session } } = await supabase.auth.getSession();
         const token = session?.access_token || userToken;
 
-        if (token && config) {
-            const totalScore = userAnswers.reduce((acc, a) => acc + a.scoreEarned, 0);
-            const maxPossible = questions.reduce((acc, q) => acc + q.points, 0);
-            const percentage = maxPossible > 0 ? Math.round((totalScore / maxPossible) * 100) : 0;
-            const rankLabel = percentage >= 90 ? 'Sensei' : percentage >= 70 ? 'Avançado' : percentage >= 50 ? 'Esforçado' : 'Iniciante';
+        if (!token || !config) return;
 
-            const endpoint = assignmentId ? '/api/missions/save-result' : '/api/mrp/save-result';
-            
-            fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ 
-                    assignmentId,
-                    config, 
-                    answers: userAnswers, 
-                    score: totalScore, 
-                    totalQuestions: questions.length,
-                    percentage, 
-                    rankLabel,
-                    history: userAnswers, // For compliance with generic API
-                    title: initialTitle || 'Missão Role Play'
-                }),
-            }).then(async res => {
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.rewards) setRewards(data.rewards);
-                }
-            }).catch((err) => console.error('[MrpApp] Error saving:', err));
+        const totalScore = answers.reduce((acc, a) => acc + a.scoreEarned, 0);
+        const maxPossible = questions.reduce((acc, q) => acc + q.points, 0);
+        const percentage = maxPossible > 0 ? Math.round((totalScore / maxPossible) * 100) : 0;
+        const rankLabel = percentage >= 90 ? 'Sensei' : percentage >= 70 ? 'Avançado' : percentage >= 50 ? 'Esforçado' : 'Iniciante';
+
+        const endpoint = assignmentId ? '/api/missions/save-result' : '/api/mrp/save-result';
+        
+        const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ 
+                assignmentId,
+                config, 
+                answers: answers, 
+                score: totalScore, 
+                totalQuestions: questions.length,
+                percentage, 
+                rankLabel,
+                history: answers,
+                title: initialTitle || 'Missão Role Play'
+            }),
+        });
+
+        if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.error || 'Erro ao salvar resultados');
         }
+
+        const data = await res.json();
+        if (data.rewards) setRewards(data.rewards);
     };
 
     const handleRestart = () => {
@@ -293,6 +298,7 @@ export const MrpApp: React.FC<MrpAppProps> = ({ userToken, assignmentId, editing
                     answers={answers}
                     onRestart={handleRestart}
                     onSave={(!assignmentId && !publicAccess) ? handleSaveActivity : undefined}
+                    onFinalize={handleFinalize}
                     isSaving={isSaving}
                     hideActions={!!assignmentId}
                     rewards={rewards}

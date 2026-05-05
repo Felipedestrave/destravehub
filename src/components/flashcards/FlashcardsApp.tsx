@@ -105,48 +105,65 @@ export const FlashcardsApp: React.FC<FlashcardsAppProps> = ({ userToken, assignm
         }
     };
 
-    const handleFinishGame = async (stats: { 
+    const handleFinishGame = (stats: { 
         score: number, 
         total: number, 
         history: any[], 
         timeSpent: number, 
         targetTime: number 
     }) => {
-        setGameResult(stats);
-        setStatus('RESULT');
-        
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const token = session?.access_token || userToken;
-            
-            if (token && assignmentId) {
-                const res = await fetch('/api/missions/save-result', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        assignmentId,
-                        score: stats.score,
-                        totalQuestions: stats.total,
-                        history: stats.history,
-                        timeSpent: stats.timeSpent,
-                        targetTime: stats.targetTime,
-                        title: initialTitle || deck?.title || 'Missão de Flashcards'
-                    }),
-                });
-
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.rewards) {
-                        setRewards(data.rewards);
-                    }
+        // Transform history to match ResultScreen expected format
+        const formattedHistory = stats.history.map(item => ({
+            correct: item.correct,
+            points: item.correct ? 10 : 0,
+            questionData: {
+                question: {
+                    japanese_sentence: item.card?.front || 'Card',
+                    context_name: 'Flashcard'
                 }
-            }
-        } catch (err) {
-            console.error('[Flashcards] Error saving result:', err);
+            },
+            usedHint: false
+        }));
+
+        setGameResult({
+            ...stats,
+            history: formattedHistory
+        });
+        setStatus('RESULT');
+    };
+
+    const handleFinalize = async () => {
+        if (!gameResult) return;
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token || userToken;
+        
+        if (!token || !assignmentId) return;
+
+        const res = await fetch('/api/missions/save-result', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                assignmentId,
+                score: gameResult.score,
+                totalQuestions: gameResult.total,
+                history: gameResult.history,
+                timeSpent: gameResult.timeSpent,
+                targetTime: gameResult.targetTime,
+                title: initialTitle || deck?.title || 'Missão de Flashcards'
+            }),
+        });
+
+        if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.error || 'Erro ao salvar resultados');
         }
+
+        const data = await res.json();
+        if (data.rewards) setRewards(data.rewards);
     };
 
     const reset = () => {
@@ -222,6 +239,7 @@ export const FlashcardsApp: React.FC<FlashcardsAppProps> = ({ userToken, assignm
                         onRestart={() => setStatus('PLAYING')}
                         hideActions={!!assignmentId}
                         rewards={rewards}
+                        onFinalize={handleFinalize}
                     />
                 )}
 

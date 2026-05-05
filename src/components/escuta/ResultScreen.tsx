@@ -2,6 +2,7 @@ import React from 'react';
 import { Trophy, RotateCcw, Star, CheckCircle, XCircle, Save, Coins, Zap } from 'lucide-react';
 import type { GameResult } from '../../types/escuta';
 import type { RewardResult } from '../../lib/gamification';
+import { FinalizeMissionButton } from '../shared/FinalizeMissionButton';
 
 interface ResultScreenProps {
     result: GameResult;
@@ -11,9 +12,11 @@ interface ResultScreenProps {
     hideActions?: boolean;
     rewards?: RewardResult | null;
     senseiWhatsapp?: string | null;
+    chestReward?: { amount: number; type: 'gold' | 'silver' | 'upgrade'; segment: number } | null;
+    onFinalize?: () => Promise<void>;
 }
 
-export const ResultScreen: React.FC<ResultScreenProps> = ({ result, onRestart, onSave, isSaving, hideActions, rewards, senseiWhatsapp }) => {
+export const ResultScreen: React.FC<ResultScreenProps> = ({ result, onRestart, onSave, isSaving, hideActions, rewards, senseiWhatsapp, chestReward, onFinalize }) => {
 
     const { score, total, history } = result;
     const correctCount = history.filter((h) => h.correct).length;
@@ -103,6 +106,37 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ result, onRestart, o
                         </>
                     )}
                 </div>
+
+                {/* Chest Reward Banner (Novo) */}
+                {chestReward && (
+                    <div className="mt-6 animate-bounce-subtle">
+                        <div className={`p-4 rounded-2xl border-2 flex items-center justify-between gap-4 ${
+                            chestReward.type === 'gold' ? 'bg-amber-50 border-amber-200' : 
+                            chestReward.type === 'upgrade' ? 'bg-emerald-50 border-emerald-200' :
+                            'bg-slate-50 border-slate-200'
+                        }`}>
+                            <div className="text-left">
+                                <h4 className={`font-outfit font-black text-lg ${
+                                    chestReward.type === 'gold' ? 'text-amber-700' : 
+                                    chestReward.type === 'upgrade' ? 'text-emerald-700' :
+                                    'text-slate-700'
+                                }`}>
+                                    {chestReward.type === 'gold' ? '🏆 BAÚ DE OURO ABERTO!' : 
+                                     chestReward.type === 'upgrade' ? '✨ UPGRADE DE BAÚ!' :
+                                     '🎁 BAÚ DE PRATA ABERTO!'}
+                                </h4>
+                                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                                    {chestReward.type === 'upgrade' ? `Você completou o Segmento ${chestReward.segment}!` : `Você atingiu a Etapa ${chestReward.segment * 8}!`}
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-border/50">
+                                <span className="text-2xl">{chestReward.type === 'gold' || chestReward.type === 'upgrade' ? '🥇' : '🥈'}</span>
+                                <span className="font-outfit font-black text-xl text-brand">+{chestReward.amount}</span>
+                                <Coins size={16} className="text-amber-500" />
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Question Review */}
@@ -122,10 +156,10 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ result, onRestart, o
                             </div>
                             <div className="min-w-0">
                                 <p className="font-jp text-sm text-slate-dark leading-snug truncate">
-                                    {item.questionData.question.japanese_sentence}
+                                    {item.questionData?.question?.japanese_sentence || 'Questão'}
                                 </p>
                                 <p className="text-xs text-slate-mid mt-0.5 font-inter">
-                                    {item.questionData.question.context_name} · {item.points > 0 ? `+${item.points} pts` : '+0 pts'}
+                                    {item.questionData?.question?.context_name || 'Geral'} · {item.points > 0 ? `+${item.points} pts` : '+0 pts'}
                                     {item.usedHint && ' · 💡 dica'}
                                 </p>
                             </div>
@@ -192,30 +226,30 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ result, onRestart, o
                         </div>
                     )}
 
-                    <div className="flex flex-col gap-4 mt-8">
-                        <button 
-                            onClick={() => window.history.back()}
-                            className="bg-[var(--color-brand)] text-white font-bold py-4 px-8 rounded-xl hover:bg-[var(--color-action)] transition-all shadow-md flex items-center justify-center gap-2 w-full max-w-sm mx-auto"
-                        >
-                             <RotateCcw size={18} className="rotate-180" />
-                             Voltar para a página anterior
-                        </button>
-
-                        {senseiWhatsapp && (
-                            <a
-                                href={`/api/contact/sensei?teacherId=${senseiWhatsapp}&text=${encodeURIComponent(`Oi Sensei! Acabei de completar a missão e acertei ${correctCount} de ${total} questões (${accuracy}%). Quero saber mais sobre as aulas! 🚀`)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl font-outfit font-bold text-white text-base transition-all hover:-translate-y-0.5 w-full max-w-sm mx-auto"
-                                style={{ background: '#25D366', boxShadow: '0 4px 14px rgba(37,211,102,0.35)', textDecoration: 'none' }}
+                    {onFinalize && !rewards ? (
+                        <FinalizeMissionButton onFinalize={onFinalize} />
+                    ) : (
+                        <div className="flex flex-col gap-4 mt-8">
+                            <button 
+                                onClick={() => window.location.href = '/dashboard'}
+                                className="bg-[var(--color-brand)] text-white font-bold py-4 px-8 rounded-xl hover:bg-[var(--color-action)] transition-all shadow-md flex items-center justify-center gap-2 w-full max-w-sm mx-auto"
                             >
-                                💬 Falar com o Sensei no WhatsApp
-                            </a>
-                        )}
-                    </div>
+                                <RotateCcw size={18} className="rotate-180" />
+                                Voltar para o Dashboard
+                            </button>
 
-                    {!senseiWhatsapp && (
-                        <p className="text-slate-mid mt-6 px-4 text-sm italic">Seus resultados foram registrados com sucesso!</p>
+                            {senseiWhatsapp && (
+                                <a
+                                    href={`/api/contact/sensei?teacherId=${senseiWhatsapp}&text=${encodeURIComponent(`Oi Sensei! Acabei de completar a missão e acertei ${correctCount} de ${total} questões (${accuracy}%). Quero saber mais sobre as aulas! 🚀`)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl font-outfit font-bold text-white text-base transition-all hover:-translate-y-0.5 w-full max-w-sm mx-auto"
+                                    style={{ background: '#25D366', boxShadow: '0 4px 14px rgba(37,211,102,0.35)', textDecoration: 'none' }}
+                                >
+                                    💬 Falar com o Sensei no WhatsApp
+                                </a>
+                            )}
+                        </div>
                     )}
                 </div>
             )}

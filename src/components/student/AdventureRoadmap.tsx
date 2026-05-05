@@ -386,13 +386,19 @@ export const AdventureRoadmap: React.FC = () => {
     if (activeNodeIndex >= nodes.length) activeNodeIndex = nodes.length - 1;
     if (activeNodeIndex === -1) activeNodeIndex = 0;
 
-    // Custom Sensei message for SRS (Memory check)
-    if (!senseiMsg.includes('buracos') && !senseiMsg.includes('atrasadas') && nodes[activeNodeIndex]?.type === 'srs') {
-      setSenseiMsg("Ei! Sabia que se não revisar hoje, seu cérebro vai apagar grande parte do que você aprendeu? Vamos fortalecer essa memória! 🧠");
     }
-  }
 
-  const handleNodeClick = (node: RoadmapNode) => {
+    // Buddys custom message for SRS nodes (SAFE HOOK CALL)
+    useEffect(() => {
+        if (nodes.length > 0 && nodes[activeNodeIndex]) {
+            const activeNode = nodes[activeNodeIndex];
+            if (!senseiMsg.includes('buracos') && !senseiMsg.includes('atrasadas') && activeNode.type === 'srs') {
+                setSenseiMsg("Ei! Sabia que se não revisar hoje, seu cérebro vai apagar grande parte do que você aprendeu? Vamos fortalecer essa memória! 🧠");
+            }
+        }
+    }, [nodes, activeNodeIndex, senseiMsg]);
+
+    const handleNodeClick = (node: RoadmapNode) => {
     if (node.status === 'locked') return;
     
     // 1-Click Access for pending missions/reviews

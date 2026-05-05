@@ -68,6 +68,7 @@ export const EscutaApp: React.FC<EscutaAppProps> = ({
     const [scoreAdjustment, setScoreAdjustment] = useState<number | null>(null);
     const [config, setConfig] = useState<GameConfig | null>(initialConfig || null);
     const [rewards, setRewards] = useState<any>(null);
+    const [chestReward, setChestReward] = useState<any>(null);
     
     // BUDDY COMPANION
     const [buddyState, setBuddyState] = useState<BuddyState>('idle');
@@ -248,37 +249,6 @@ export const EscutaApp: React.FC<EscutaAppProps> = ({
 
     const handleNext = useCallback(async () => {
         if (questionsQueue.length === 0) {
-            const result: GameResult = { score, total: history.length + (isAnswered ? 1 : 0), history };
-            try {
-                const { data: { session } } = await supabase.auth.getSession();
-                const token = session?.access_token || userToken;
-                
-                if (token) {
-                    const res = await fetch('/api/missions/save-result', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`,
-                        },
-                        body: JSON.stringify({
-                            assignmentId,
-                            score,
-                            totalQuestions: history.length,
-                            history: history, // Updated field name in API
-                            title: initialTitle || 'Missão de Escuta'
-                        }),
-                    });
-                    
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data.rewards) {
-                            setRewards(data.rewards);
-                        }
-                    }
-                }
-            } catch (err) {
-                console.error('Error saving result:', err);
-            }
             setStatus('RESULT');
             return;
         }
@@ -303,6 +273,37 @@ export const EscutaApp: React.FC<EscutaAppProps> = ({
             setIsGenerating(false);
         }
     }, [questionsQueue, history, score, isAnswered, assignmentId, userToken]);
+
+    const handleFinalize = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token || userToken;
+        
+        if (!token || !assignmentId) return;
+
+        const res = await fetch('/api/missions/save-result', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+                assignmentId,
+                score,
+                totalQuestions: history.length,
+                history: history,
+                title: initialTitle || 'Missão de Escuta'
+            }),
+        });
+
+        if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.error || 'Erro ao salvar resultados');
+        }
+
+        const data = await res.json();
+        if (data.rewards) setRewards(data.rewards);
+        if (data.chestReward) setChestReward(data.chestReward);
+    };
 
     const handleRestart = () => {
         setStatus('UPLOAD');
@@ -424,10 +425,12 @@ export const EscutaApp: React.FC<EscutaAppProps> = ({
                     result={{ score, total: history.length, history }}
                     onRestart={handleRestart}
                     onSave={(!assignmentId && !publicAccess) ? handleSaveActivity : undefined}
+                    onFinalize={handleFinalize}
                     isSaving={isSaving}
                     hideActions={!!assignmentId}
                     rewards={rewards}
                     senseiWhatsapp={senseiWhatsapp}
+                    chestReward={chestReward}
                 />
             )}
 

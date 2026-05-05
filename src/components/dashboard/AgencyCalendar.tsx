@@ -346,67 +346,30 @@ export default function AgencyCalendar() {
 
         setModalLoading(true);
         try {
-            // 1. Optional: Process gamification ONLY IF student has a linked profile
-            if (studentProfileId) {
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('attendance_streak, coins')
-                    .eq('id', studentProfileId)
-                    .single();
-
-                const currentStreak = profile?.attendance_streak || 0;
-                const coinsToGain = Math.min(10 + (currentStreak * 2), 20);
-                const newStreak = currentStreak + 1;
-
-                // Grant coins using RPC
-                await supabase.rpc('increment_gamification', {
-                    user_id: studentProfileId,
-                    xp_gain: 50,
-                    coins_gain: coinsToGain
-                });
-
-                // Update profile streak
-                await supabase
-                    .from('profiles')
-                    .update({ attendance_streak: newStreak })
-                    .eq('id', studentProfileId);
-                
-                toast.success(`+${coinsToGain} Coins (Streak: ${newStreak})`);
-            } else {
-                toast.success('Presença registrada (Sem bônus: aluno não possui conta ativa).');
-            }
-
-            // 4. Create Lesson Log
-            const lessonLogData = {
-                student_id: studentInternalId,
-                teacher_id: userId,
-                topics: [logTopics], // Send as an array
-                notes: JSON.stringify({
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            const response = await fetch('/api/teacher/log-presence', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token}`
+                },
+                body: JSON.stringify({
+                    appointmentId: logAppointment.id,
+                    studentInternalId,
+                    studentProfileId,
+                    topics: logTopics,
                     engagement: logEngagement,
                     duration: logRealDuration,
-                    general_notes: logNotes,
-                    next_class_plan: logNextPlan
+                    notes: logNotes,
+                    nextPlan: logNextPlan,
+                    selectedMaterials
                 })
-            } as any;
-            
-            const { error: logError } = await supabase.from('lesson_logs').insert(lessonLogData);
-            if (logError) throw logError;
+            });
 
-            // 5. Share Materials
-            if (selectedMaterials.length > 0) {
-                const { error: matError } = await supabase
-                    .from('materials')
-                    .update({ student_id: studentInternalId })
-                    .in('id', selectedMaterials);
-                if (matError) throw matError;
-            }
+            const result = await response.json();
 
-            // 6. Update appointment to mark as attended
-            const { error: appError } = await supabase
-                .from('appointments')
-                .update({ description: (logAppointment.description || '') + ' [PRESENÇA]' })
-                .eq('id', logAppointment.id);
-            if (appError) throw appError;
+            if (!response.ok) throw new Error(result.error || 'Erro ao salvar log');
 
             // Update local state
             setAppointments(prev => prev.map(a => a.id === logAppointment.id ? { 
@@ -414,7 +377,7 @@ export default function AgencyCalendar() {
                 description: (a.description || '') + ' [PRESENÇA]' 
             } : a));
 
-            toast.success('Aula registrada com sucesso!');
+            toast.success(result.message || 'Aula registrada com sucesso!');
             setShowLogModal(false);
         } catch (err: any) {
             console.error('SaveLog Error:', err);
