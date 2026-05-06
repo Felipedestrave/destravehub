@@ -10,7 +10,7 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - [x] **Correção RLS:** Permissões de banco ajustadas para compartilhamento de perfil seguro.
 - [x] **Infraestrutura SSR:** Adaptador Vercel configurado e deploy em produção realizado com sucesso.
 - **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Gestão Destrave Draw (OK) | Vozes do Buddy (90/90 - OK) | Laser Real-time (OK).
-- **Última Atualização:** 04/05/2026 (11:20h)
+- **Última Atualização:** 06/05/2026 (14:50h)
 - **GitHub:** `https://github.com/Felipedestrave/destravehub.git` (Branch `main`)
 
 ---
@@ -290,6 +290,25 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
   - Um algoritmo cronológico inteligente que mostra exatamente o recorte do momento de vida do aluno: **15 tarefas passadas** e **34 futuras**.
   - Auto-scroll automático focando o centro da tela na Atividade Atual (First Pending).
   - Totalmente acoplado ao motor global de **Temas (Mercado Destrave)** via variáveis CSS.
+
+---
+
+### Fase 10: UX Pro Max & Hub de Atividades (06/05/2026) ✅
+- **Reorganização de Navegação (Sidebar)**:
+  - **Professor**: Consolidado em 4 grupos (Gestão, Pedagógico, Configurações, Mercado).
+  - **Aluno**: Consolidado em 3 grupos (Minha Jornada, Recursos, Mercado).
+  - **Limpeza Visual**: Removidos links individuais de ferramentas do sidebar, reduzindo a carga cognitiva.
+- **Hub de Atividades (Central de Criação)**:
+  - Implementado painel de "Acesso Rápido" no topo da Central de Atividades.
+  - 5 cards vibrantes com gradientes para: Draw, Escuta, MRP, Cards e 1.0.
+  - Botão "Criar Nova" direto para cada gerador de IA.
+- **Refinamento de Agenda & Presença**:
+  - **Context Menu Fix**: Corrigido clipping (z-index/overflow) nas ações da agenda.
+  - **Remarcação Flexível**: Adicionado campo de Data no modal de agendamento, permitindo trocar o dia da aula sem precisar excluir e criar outra.
+  - **Confirmação Educativa**: Mensagem de falta agora explica claramente o reset do Streak (🔥) e a perda temporária de bônus, incentivando a presença.
+- **Auditoria de Gamificação**:
+  - Removido texto obsoleto de penalidade de 20 moedas no Manual da Jornada (`AdventureRoadmap.tsx`).
+  - Validado no backend que não há subtração de moedas por inatividade, apenas bloqueio de novos ganhos.
 
 ---
 

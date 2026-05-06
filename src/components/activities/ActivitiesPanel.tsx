@@ -428,6 +428,32 @@ export default function ActivitiesPanel() {
 
     return (
         <>
+            {/* TOOLS HUB */}
+            <div className="ap-tools-hub">
+                <h3 className="ap-tools-title">🚀 Ferramentas de Criação</h3>
+                <p className="ap-tools-subtitle">Crie novas missões diretamente pelas ferramentas abaixo.</p>
+                <div className="ap-tools-grid">
+                    {[
+                        { label: 'Destrave Draw', desc: 'Aulas com slides interativos', emoji: '🎨', color: '#58317e', href: '/draw' },
+                        { label: 'Destrave a Escuta', desc: 'Exercícios de compreensão auditiva', emoji: '🎧', color: '#8b5cf6', href: '/dashboard/missions/escuta' },
+                        { label: 'Destrave MRP', desc: 'Múltipla escolha e produção textual', emoji: '🎭', color: '#0ea5e9', href: '/dashboard/missions/mrp' },
+                        { label: 'Destrave Cards', desc: 'Flashcards de vocabulário e kanji', emoji: '🃏', color: '#f97316', href: '/dashboard/missions/flashcards' },
+                        { label: 'Destrave 1.0', desc: 'Lições estruturadas com texto', emoji: '📖', color: '#10b981', href: '/dashboard/missions/destrave1' },
+                    ].map(tool => (
+                        <a key={tool.label} href={tool.href} className="ap-tool-card" style={{ '--tool-color': tool.color } as any}>
+                            <div className="ap-tool-emoji">{tool.emoji}</div>
+                            <div className="ap-tool-info">
+                                <h4 className="ap-tool-name">{tool.label}</h4>
+                                <p className="ap-tool-desc">{tool.desc}</p>
+                            </div>
+                            <span className="ap-tool-btn">Criar Nova →</span>
+                        </a>
+                    ))}
+                </div>
+            </div>
+
+            <div className="ap-divider" />
+
             <div className="ap-header">
                 <div>
                     <h2 className="ap-title">Central de Atividades</h2>
@@ -756,6 +782,22 @@ export default function ActivitiesPanel() {
                 .ap-spinner { width: 38px; height: 38px; border: 3px solid #e2e8f0; border-top-color: #58317e; border-radius: 50%; animation: ap-spin 0.7s linear infinite; }
                 .ap-spinner.sm { width: 16px; height: 16px; border-width: 2px; }
                 @keyframes ap-spin { to { transform: rotate(360deg); } }
+
+                .ap-tools-hub { margin-bottom: 2rem; }
+                .ap-tools-title { font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0 0 0.25rem; }
+                .ap-tools-subtitle { font-size: 0.9rem; color: #64748b; margin: 0 0 1.25rem; }
+                .ap-tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.875rem; }
+                .ap-tool-card { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.25rem; border-radius: 1rem; border: 1.5px solid #e2e8f0; background: white; text-decoration: none; color: inherit; transition: all 0.2s; position: relative; overflow: hidden; }
+                .ap-tool-card::before { content: ''; position: absolute; inset: 0; background: var(--tool-color); opacity: 0; transition: opacity 0.2s; }
+                .ap-tool-card:hover { border-color: var(--tool-color); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+                .ap-tool-card:hover::before { opacity: 0.04; }
+                .ap-tool-emoji { font-size: 2rem; line-height: 1; flex-shrink: 0; position: relative; }
+                .ap-tool-info { flex: 1; min-width: 0; position: relative; }
+                .ap-tool-name { font-size: 0.9rem; font-weight: 800; color: #0f172a; margin: 0 0 0.15rem; }
+                .ap-tool-desc { font-size: 0.75rem; color: #64748b; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                .ap-tool-btn { font-size: 0.7rem; font-weight: 800; color: var(--tool-color); white-space: nowrap; position: relative; opacity: 0; transition: opacity 0.2s; }
+                .ap-tool-card:hover .ap-tool-btn { opacity: 1; }
+                .ap-divider { border: none; border-top: 1.5px solid #e2e8f0; margin: 0 0 2rem; }
 
                 .ap-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap; }
                 .ap-title { font-size: 1.875rem; font-weight: 800; color: #0f172a; margin: 0 0 0.25rem; }

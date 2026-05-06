@@ -595,7 +595,7 @@ export const AdventureRoadmap: React.FC = () => {
                         <div className="penalty-item"><span>7 dias</span> <p>Perda do bônus de pontualidade</p></div>
                         <div className="penalty-item"><span>15 dias</span> <p>Multa de -5 moedas no saldo</p></div>
                         <div className="penalty-item alert"><span>21 dias</span> <p>Mercado Destrave bloqueado por 1 semana</p></div>
-                        <div className="penalty-item danger"><span>30+ dias</span> <p>Perda de 20 moedas + Bloqueio de acúmulo por 1 semana</p></div>
+                        <div className="penalty-item danger"><span>30+ dias</span> <p>Bloqueio de acúmulo por 1 semana</p></div>
                       </div>
                     </section>
                   </>

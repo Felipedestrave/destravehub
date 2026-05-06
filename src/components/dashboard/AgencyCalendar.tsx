@@ -45,6 +45,7 @@ export default function AgencyCalendar() {
     const [formTitle, setFormTitle] = useState('');
     const [formStudentId, setFormStudentId] = useState('');
     const [formStartTime, setFormStartTime] = useState('09:00');
+    const [formDate, setFormDate] = useState(new Date().toISOString().split('T')[0]);
     const [formDuration, setFormDuration] = useState('60'); // minutes
     const [formRecurrence, setFormRecurrence] = useState<'none' | 'weekly' | 'biweekly' | 'monthly'>('none');
     const [formRecurrenceCount, setFormRecurrenceCount] = useState('4');
@@ -158,6 +159,7 @@ export default function AgencyCalendar() {
         setFormTitle('');
         setFormStudentId('');
         setFormStartTime('09:00');
+        setFormDate(selectedDate.toISOString().split('T')[0]);
         setFormDuration('60');
         setFormRecurrence('none');
         setFormMeetingLink('');
@@ -173,6 +175,7 @@ export default function AgencyCalendar() {
         setFormStudentId(app.student_id || '');
         const date = new Date(app.start_time);
         setFormStartTime(`${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`);
+        setFormDate(date.toISOString().split('T')[0]);
         
         const duration = (new Date(app.end_time).getTime() - date.getTime()) / 60000;
         setFormDuration(duration.toString());
@@ -198,7 +201,7 @@ export default function AgencyCalendar() {
                 return date;
             });
         } else {
-            const start = new Date(selectedDate);
+            const start = new Date(formDate + 'T12:00:00');
             start.setHours(hours, mins, 0, 0);
             targetDates.push(start);
 
@@ -409,7 +412,7 @@ export default function AgencyCalendar() {
     };
 
     const handleMarkAbsence = async (app: CalendarEvent) => {
-        if (!confirm(`Confirmar falta para ${app.student?.name}? Isso resetará o bônus de moedas dele para zero.`)) return;
+        if (!confirm(`Confirmar falta para ${app.student?.name}? Isso zerará a sequência de presença (streak). O aluno perderá os bônus acumulados e voltará a ganhar apenas as 10 moedas base na próxima aula.`)) return;
 
         const studentProfileId = app.student?.student_id;
         setModalLoading(true);
@@ -583,6 +586,7 @@ export default function AgencyCalendar() {
                                     animate={{ opacity: 1, y: 0 }}
                                     key={app.id} 
                                     className="appointment-item"
+                                    style={{ zIndex: activeMenuId === app.id ? 50 : 1 }}
                                 >
                                     <div className="app-info">
                                         <h4 className="student-name">
@@ -700,6 +704,17 @@ export default function AgencyCalendar() {
                                         value={formTitle}
                                         onChange={e => setFormTitle(e.target.value)}
                                         className="f-input"
+                                    />
+                                </div>
+                                
+                                <div className="f-group">
+                                    <label>Data</label>
+                                    <input
+                                        type="date"
+                                        value={formDate}
+                                        onChange={e => setFormDate(e.target.value)}
+                                        className="f-input"
+                                        required
                                     />
                                 </div>
 
@@ -1005,7 +1020,7 @@ export default function AgencyCalendar() {
                     border-radius: 1.5rem;
                     border: 1px solid var(--color-slate-border);
                     box-shadow: var(--shadow-card);
-                    overflow: hidden;
+                    position: relative;
                 }
 
                 .side-calendar {
