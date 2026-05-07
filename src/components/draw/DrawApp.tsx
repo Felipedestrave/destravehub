@@ -46,6 +46,23 @@ export default function DrawApp({ isReadOnly = false, senseiData = null }: DrawA
     const [lessonItems, setLessonItems] = useState<LessonItem[]>([]);
     const [currentIndex, setCurrentIndex] = useState(-1);
     const [fontSizeMultiplier, setFontSizeMultiplier] = useState(1.0);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+    const handleFontSizeChange = useCallback((delta: number) => {
+        setFontSizeMultiplier(prev => {
+            const next = Math.round((prev + delta) * 10) / 10;
+            return Math.min(2.0, Math.max(0.5, next));
+        });
+    }, []);
+
+    const handleToggleSidebar = useCallback(() => {
+        setIsSidebarCollapsed(prev => {
+            const next = !prev;
+            window.dispatchEvent(new CustomEvent('draw-sidebar-toggle', { detail: { collapsed: next } }));
+            return next;
+        });
+    }, []);
+
     // --- Initialization & Loading ---
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -381,6 +398,11 @@ export default function DrawApp({ isReadOnly = false, senseiData = null }: DrawA
                 e.preventDefault();
                 setStrokes(prev => prev.slice(0, -1));
             }
+            // Font size shortcuts: Shift+= to grow, Shift+- to shrink
+            if (e.shiftKey && e.key === '+') { e.preventDefault(); handleFontSizeChange(0.1); }
+            if (e.shiftKey && e.key === '_') { e.preventDefault(); handleFontSizeChange(-0.1); }
+            // Sidebar toggle: F key
+            if (e.key === 'f' || e.key === 'F') handleToggleSidebar();
             // Atalhos para animações (1-5)
             if (e.key === '1') triggerEffect('matsuri');
             if (e.key === '2') triggerEffect('rocket');
@@ -390,7 +412,7 @@ export default function DrawApp({ isReadOnly = false, senseiData = null }: DrawA
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isConfigMode, showNext, showPrev, isReadOnly]);
+    }, [isConfigMode, showNext, showPrev, isReadOnly, handleFontSizeChange, handleToggleSidebar]);
 
     return (
         <div className={`draw-app-container min-h-screen bg-ice text-slate-dark font-hand ${!isConfigMode ? 'presentation-mode' : ''}`}>
@@ -425,7 +447,13 @@ export default function DrawApp({ isReadOnly = false, senseiData = null }: DrawA
                                 <span className="whitespace-nowrap">{isSaving ? 'Salvando...' : 'Salvar'}</span>
                             </button>
                             <button
-                                onClick={() => lessonItems.length > 0 ? setIsConfigMode(false) : alert('Adicione slides!')}
+                                onClick={() => {
+                                    if (lessonItems.length === 0) { alert('Adicione slides!'); return; }
+                                    setIsConfigMode(false);
+                                    // Auto-collapse sidebar on lesson start
+                                    setIsSidebarCollapsed(true);
+                                    window.dispatchEvent(new CustomEvent('draw-sidebar-toggle', { detail: { collapsed: true } }));
+                                }}
                                 className="flex-1 sm:flex-none px-4 md:px-8 py-3 bg-action text-white rounded-2xl font-bold shadow-btn hover:bg-action-hover transition-all flex items-center justify-center gap-2"
                             >
                                 <Play className="w-4 h-4 fill-white flex-shrink-0" /> <span className="whitespace-nowrap">Iniciar Aula</span>
@@ -557,7 +585,16 @@ export default function DrawApp({ isReadOnly = false, senseiData = null }: DrawA
                             activeColor={activeColor}
                             setActiveColor={setActiveColor}
                             onUndo={() => setStrokes(prev => prev.slice(0, -1))}
-                            onOpenSettings={() => setIsConfigMode(true)}
+                            onOpenSettings={() => {
+                                setIsConfigMode(true);
+                                // Restore sidebar when going back to config
+                                setIsSidebarCollapsed(false);
+                                window.dispatchEvent(new CustomEvent('draw-sidebar-toggle', { detail: { collapsed: false } }));
+                            }}
+                            fontSizeMultiplier={fontSizeMultiplier}
+                            onFontSizeChange={handleFontSizeChange}
+                            isSidebarCollapsed={isSidebarCollapsed}
+                            onToggleSidebar={handleToggleSidebar}
                         />
                     )}
 
@@ -686,6 +723,28 @@ export default function DrawApp({ isReadOnly = false, senseiData = null }: DrawA
                 .animate-slide-in { animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
                 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
                 @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+                /* Typing animations */
+                .animate-typing-word { animation: wordPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+                .animate-typing-cursor { animation: cursorBlink 0.8s step-end infinite; }
+                @keyframes wordPop { from { opacity: 0; transform: translateY(8px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+                @keyframes cursorBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+                /* Draw Toolbar: responsive positioning via data attribute */
+                @media (min-width: 768px) {
+                    [data-sidebar-collapsed="false"] {
+                        left: 256px !important;
+                        top: 50% !important;
+                        transform: translateY(-50%) !important;
+                        transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                    }
+                    [data-sidebar-collapsed="true"] {
+                        left: 16px !important;
+                        top: 50% !important;
+                        transform: translateY(-50%) !important;
+                        transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                    }
+                }
             `}</style>
         </div>
     );

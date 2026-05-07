@@ -1,7 +1,7 @@
 import React from 'react';
 import {
     MousePointer2, Pen, Highlighter, Eraser,
-    BookOpen, Undo2, Settings
+    BookOpen, Undo2, Settings, ZoomIn, ZoomOut, PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import type { ToolType } from './types.ts';
 
@@ -20,13 +20,27 @@ interface DrawToolbarProps {
     setActiveColor: (color: string) => void;
     onUndo: () => void;
     onOpenSettings: () => void;
+    fontSizeMultiplier: number;
+    onFontSizeChange: (delta: number) => void;
+    isSidebarCollapsed: boolean;
+    onToggleSidebar: () => void;
 }
 
 export const DrawToolbar: React.FC<DrawToolbarProps> = ({
-    tool, setTool, activeColor, setActiveColor, onUndo, onOpenSettings
+    tool, setTool, activeColor, setActiveColor, onUndo, onOpenSettings,
+    fontSizeMultiplier, onFontSizeChange, isSidebarCollapsed, onToggleSidebar
 }) => {
     return (
-        <div className="fixed bottom-[88px] md:bottom-auto left-1/2 -translate-x-1/2 md:left-[280px] md:translate-x-0 md:top-1/2 md:-translate-y-1/2 z-[4000] flex flex-row md:flex-col items-center gap-2 md:gap-3 p-2 md:p-4 bg-white/95 backdrop-blur-xl rounded-[24px] md:rounded-[40px] shadow-2xl border-2 md:border-4 border-slate-900 max-w-[95vw] md:max-h-[90vh] overflow-x-auto md:overflow-y-auto no-scrollbar">
+        <div
+            className="fixed bottom-[88px] md:bottom-auto left-1/2 md:left-auto z-[4000] flex flex-row md:flex-col items-center gap-2 md:gap-3 p-2 md:p-4 bg-white/95 backdrop-blur-xl rounded-[24px] md:rounded-[40px] shadow-2xl border-2 md:border-4 border-slate-900 max-w-[95vw] md:max-h-[90vh] overflow-x-auto md:overflow-y-auto no-scrollbar"
+            style={{
+                transform: 'translateX(-50%)',
+                top: undefined,
+                // The media-query-aware version: on md+ override transform and left
+                // We use a data attribute + CSS to handle the responsive left
+            }}
+            data-sidebar-collapsed={isSidebarCollapsed ? 'true' : 'false'}
+        >
             <button
                 onClick={() => setTool('laser')}
                 className={`p-2 md:p-4 rounded-[16px] md:rounded-[24px] transition-all ${tool === 'laser' ? 'bg-slate-900 text-white shadow-lg scale-110' : 'text-slate-600 hover:bg-slate-100'}`}
@@ -69,6 +83,33 @@ export const DrawToolbar: React.FC<DrawToolbarProps> = ({
 
             <div className="w-8 md:w-10 h-px bg-slate-200 my-1" />
 
+            {/* Font Size Controls */}
+            <button
+                onClick={() => onFontSizeChange(0.1)}
+                disabled={fontSizeMultiplier >= 2.0}
+                className="p-2 md:p-3 rounded-[12px] md:rounded-[18px] text-slate-600 hover:bg-green-50 hover:text-green-600 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Aumentar Fonte (Shift+Equal)"
+            >
+                <ZoomIn className="w-5 h-5 md:w-6 md:h-6" />
+            </button>
+
+            <div className="px-1 py-0.5 rounded-lg bg-slate-100 text-center min-w-[2rem]">
+                <span className="text-[10px] font-black text-slate-500 tabular-nums">
+                    {Math.round(fontSizeMultiplier * 100)}%
+                </span>
+            </div>
+
+            <button
+                onClick={() => onFontSizeChange(-0.1)}
+                disabled={fontSizeMultiplier <= 0.5}
+                className="p-2 md:p-3 rounded-[12px] md:rounded-[18px] text-slate-600 hover:bg-red-50 hover:text-red-500 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Diminuir Fonte (Shift+Minus)"
+            >
+                <ZoomOut className="w-5 h-5 md:w-6 md:h-6" />
+            </button>
+
+            <div className="w-8 md:w-10 h-px bg-slate-200 my-1" />
+
             <button
                 onClick={onUndo}
                 className="p-2 md:p-3 rounded-[12px] md:rounded-[18px] text-slate-600 hover:bg-slate-100 hover:text-orange-500 transition-all"
@@ -88,6 +129,23 @@ export const DrawToolbar: React.FC<DrawToolbarProps> = ({
                     />
                 ))}
             </div>
+
+            <div className="w-8 md:w-10 h-px bg-slate-200 my-1" />
+
+            {/* Sidebar Toggle */}
+            <button
+                onClick={onToggleSidebar}
+                className={`p-2 md:p-3 rounded-[12px] md:rounded-[18px] transition-all ${
+                    isSidebarCollapsed
+                        ? 'bg-blue-500 text-white shadow-md'
+                        : 'text-slate-400 hover:bg-blue-50 hover:text-blue-500'
+                }`}
+                title={isSidebarCollapsed ? 'Mostrar Menu (F)' : 'Recolher Menu (F)'}
+            >
+                {isSidebarCollapsed
+                    ? <PanelLeftOpen className="w-5 h-5 md:w-6 md:h-6" />
+                    : <PanelLeftClose className="w-5 h-5 md:w-6 md:h-6" />}
+            </button>
 
             <button
                 onClick={onOpenSettings}

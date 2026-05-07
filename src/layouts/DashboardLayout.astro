@@ -361,6 +361,16 @@ const {
 
   toggleBtn?.addEventListener('click', toggleSidebar);
   backdrop?.addEventListener('click', toggleSidebar);
+
+  // --- 4. Draw Lesson Mode: Sidebar Collapse ---
+  window.addEventListener('draw-sidebar-toggle', (e: any) => {
+    const { collapsed } = e.detail;
+    if (collapsed) {
+      sidebar?.classList.add('lesson-collapsed');
+    } else {
+      sidebar?.classList.remove('lesson-collapsed');
+    }
+  });
 </script>
 
 <style is:global>
@@ -542,9 +552,19 @@ const {
       flex-shrink: 0;
       box-shadow: none;
       display: block;
+      transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                  opacity 0.35s ease,
+                  transform 0.35s ease;
+      overflow: hidden;
+    }
+    .sidebar.lesson-collapsed {
+      width: 0;
+      opacity: 0;
+      pointer-events: none;
     }
     .sidebar-content {
       box-shadow: none;
+      min-width: 240px; /* prevents content squish during animation */
     }
     .sidebar-backdrop {
       display: none;

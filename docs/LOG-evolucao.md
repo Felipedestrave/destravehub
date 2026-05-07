@@ -10,7 +10,7 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - [x] **Correção RLS:** Permissões de banco ajustadas para compartilhamento de perfil seguro.
 - [x] **Infraestrutura SSR:** Adaptador Vercel configurado e deploy em produção realizado com sucesso.
 - **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Gestão Destrave Draw (OK) | Vozes do Buddy (90/90 - OK) | Laser Real-time (OK).
-- **Última Atualização:** 06/05/2026 (14:50h)
+- **Última Atualização:** 07/05/2026 (14:55h)
 - **GitHub:** `https://github.com/Felipedestrave/destravehub.git` (Branch `main`)
 
 ---
@@ -53,6 +53,8 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
     - [x] **Ajuste de Layout:** Reposicionamento da toolbar para evitar conflito com a sidebar lateral do dashboard (offset de 280px).
     - [x] **Reações Rápidas:** Inclusão do efeito de "Suor/Esforço" (💦) completando o set de 5 animações.
     - [x] **Atalhos de Teclado:** Teclas `1` a `5` agora disparam reações instantâneas para maior dinamismo na aula.
+    - [x] **Escala de Aula Dinâmica:** Implementado controle de fonte/imagens (`A+` / `A-`) e atalhos (`Shift + + / -`).
+    - [x] **Modo Aula Inteligente:** O dashboard lateral agora recolhe automaticamente ao iniciar a aula para ganhar espaço.
 - [x] **Qualidade de Áudio:** Implementação de `createWavHeader` para compatibilidade total de TTS nos navegadores.
 - [x] **Gestão de Alunos (LMS):**
     - [x] Página dedicada de cadastro (`/dashboard/students/new`).
@@ -314,17 +316,20 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 
 ## ⏭️ Próximos Passos (Próxima Sessão)
 
-1. ✅ **[PRIORIDADE MÁXIMA] Portal de Captura (Lead Magnet)**: Criado e finalizado!
-2. ✅ **Vozes do Buddy**: Finalizado! (90/90 áudios gerados com cabeçalho WAV).
-3. ✅ **Mecânica de Streaks (Fogo)**: Implementada lógica de presença consecutiva com bônus de moedas.
-4. 🔔 **Notificações In-App [BACKLOG]**: Sistema de alertas visuais para novas missões atribuídas ou avisos do professor.
-5. [x] **Finalização das Vozes do Buddy (90/90 concluídos) ✅**
-6. [x] **Mecânica de Streaks (Sequência de aulas com bônus progressivo) ✅**
-7. [ ] **Sistema de Alertas de Missões Críticas (Vencimento de revisões)**
-8. [ ] **Backlog de Testes (Semana que vem):**
-   - [ ] Validar bônus progressivo (+2 moedas) até o limite de 20.
-   - [ ] Confirmar reset do fogo (🔥) ao registrar falta.
-   - [ ] Testar formatação de convites Zoom no WhatsApp mobile.
+1. 💰 **[PRIORIDADE] Sistema Financeiro (Gestão)**:
+   - Implementar controle de pagamentos e mensalidades dos alunos.
+   - Dashboard de receita mensal para o professor.
+   - Histórico de transações e lembretes de cobrança via WhatsApp.
+2. 🎯 **[PRIORIDADE] Novas Atividades**:
+   - Expandir o Hub de Atividades com novos motores de exercício.
+   - Explorar atividades de Escrita (Handwriting recognition) ou Fala (Speech-to-text).
+3. 🔔 **Notificações & Alertas (Foco Aluno)**:
+   - Alertas in-app para missões críticas (Vencimento de revisões SRS).
+   - Notificações de novas missões atribuídas.
+4. 📈 **Relatórios de Desempenho (Analytics)**:
+   - Painel para o professor identificar dificuldades recorrentes da turma (Kanjis/Gramática).
+5. 🏆 **Gamificação Social**:
+   - Sistema de Conquistas (Badges) e Ranking Semanal.
 
 ---
 
