@@ -1,0 +1,17 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import FinancePanel from '../../components/dashboard/FinancePanel';
+---
+
+<DashboardLayout title="Central Financeira | Destrave Hub" activePath="/dashboard/finance">
+  <div class="p-4 md:p-8 pt-20 md:pt-8 w-full max-w-6xl mx-auto">
+    <div class="mb-8 animate-fade-in">
+      <h1 class="font-outfit text-3xl md:text-4xl font-black text-slate-dark tracking-tight">Financeiro</h1>
+      <p class="text-slate-mid mt-2 font-medium max-w-2xl">
+        Controle de mensalidades, pacotes e alunos inadimplentes.
+      </p>
+    </div>
+
+    <FinancePanel client:load />
+  </div>
+</DashboardLayout>

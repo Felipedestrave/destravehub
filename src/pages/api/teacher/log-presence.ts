@@ -81,8 +81,51 @@ export const POST: APIRoute = async ({ request }) => {
         });
 
         if (logError) throw logError;
+        
+        // --- 4. Package Counting & Auto-Billing ---
+        try {
+            const { data: student } = await supabaseAdmin
+                .from('students' as any)
+                .select('billing_type, billing_package_size, billing_package_start_date, billing_amount, billing_currency')
+                .eq('id', studentInternalId)
+                .single();
 
-        // 4. Share Materials
+            if (student?.billing_type === 'pacote' && student.billing_package_start_date) {
+                // Count lessons since start date (inclusive)
+                const { count } = await supabaseAdmin
+                    .from('lesson_logs')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('student_id', studentInternalId)
+                    .gte('created_at', student.billing_package_start_date);
+
+                const currentCount = (count || 0);
+                const limit = parseInt(String(student.billing_package_size || '4'));
+
+                if (currentCount >= limit) {
+                    // Generate new charge for the NEXT package
+                    await supabaseAdmin.from('payments' as any).insert({
+                        teacher_id: teacher.id,
+                        student_id: studentInternalId,
+                        amount: student.billing_amount || 0,
+                        currency: student.billing_currency || 'BRL',
+                        due_date: new Date().toISOString().split('T')[0],
+                        status: 'pending',
+                        description: `Novo Pacote de ${limit} Aulas`,
+                    });
+
+                    // Update cycle start date to today to begin counting the next package
+                    await supabaseAdmin
+                        .from('students' as any)
+                        .update({ billing_package_start_date: new Date().toISOString().split('T')[0] })
+                        .eq('id', studentInternalId);
+                }
+            }
+        } catch (e) {
+            console.error('[Package Logic Error]:', e);
+            // Don't fail the whole request if finance automation fails
+        }
+
+        // --- 5. Share Materials ---
         if (selectedMaterials && selectedMaterials.length > 0) {
             await supabaseAdmin
                 .from('materials')

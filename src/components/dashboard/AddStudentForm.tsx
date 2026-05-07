@@ -40,7 +40,13 @@ export default function AddStudentForm({ editId }: Props) {
         password: '',
         language: 'Japonês',
         level: 'Iniciante',
-        notes: ''
+        notes: '',
+        billing_type: 'mensalidade' as 'mensalidade' | 'pacote' | 'avulsa',
+        billing_amount: '',
+        billing_currency: 'BRL',
+        billing_day: '',
+        billing_package_size: '4',
+        billing_package_start_date: new Date().toISOString().split('T')[0],
     });
 
     // --- Fetch Data for Editing ---
@@ -60,11 +66,16 @@ export default function AddStudentForm({ editId }: Props) {
                 if (student) {
                     setFormData({
                         name: student.name,
-                        email: '', // Email not stored in profiles table
-                        password: '', // Don't show password
+                        email: '',
+                        password: '',
                         language: student.language || 'Japonês',
                         level: student.level || 'Iniciante',
-                        notes: (student.metadata as any)?.notes || ''
+                        notes: (student.metadata as any)?.notes || '',
+                        billing_type: student.billing_type || 'mensalidade',
+                        billing_amount: student.billing_amount ? String(student.billing_amount) : '',
+                        billing_currency: student.billing_currency || 'BRL',
+                        billing_day: student.billing_day ? String(student.billing_day) : '',
+                        billing_package_size: student.billing_package_size ? String(student.billing_package_size) : '4',
                     });
 
                     const fullWpp = (student.profiles as any)?.whatsapp || '';
@@ -148,7 +159,13 @@ export default function AddStudentForm({ editId }: Props) {
                 language: formData.language,
                 level: formData.level,
                 whatsapp: fullWhatsapp,
-                metadata: { notes: formData.notes }
+                metadata: { notes: formData.notes },
+                billing_type: formData.billing_type,
+                billing_amount: formData.billing_amount ? parseFloat(formData.billing_amount) : null,
+                billing_currency: formData.billing_currency,
+                billing_day: formData.billing_day ? parseInt(formData.billing_day) : null,
+                billing_package_size: formData.billing_package_size ? parseInt(formData.billing_package_size) : null,
+                billing_package_start_date: formData.billing_package_start_date || null,
             };
 
             const response = await fetch(endpoint, {
@@ -311,6 +328,104 @@ export default function AddStudentForm({ editId }: Props) {
                     </div>
                 </div>
 
+                <div className="form-divider" />
+
+                {/* === CONTRATO FINANCEIRO === */}
+                <div className="form-section">
+                    <h3 className="section-title">Contrato Financeiro</h3>
+                    <p className="section-desc">Defina como e quanto este aluno paga. Isso alimenta o painel financeiro.</p>
+
+                    <div className="field-group">
+                        <label className="field-label">Tipo de Cobrança *</label>
+                        <select
+                            name="billing_type"
+                            value={formData.billing_type}
+                            onChange={handleChange}
+                            className="field-input"
+                        >
+                            <option value="mensalidade">🗓️ Mensalidade (Vencimento mensal fixo)</option>
+                            <option value="pacote">📦 Pacote de Aulas (Ex: 4, 8 ou 12 aulas)</option>
+                            <option value="avulsa">⚡ Aula Avulsa (Sem recorrência)</option>
+                        </select>
+                    </div>
+
+                    <div className="field-grid">
+                        <div className="field-group">
+                            <label className="field-label">Valor Acordado</label>
+                            <div className="amount-input-row">
+                                <select
+                                    name="billing_currency"
+                                    value={formData.billing_currency}
+                                    onChange={handleChange}
+                                    className="currency-selector"
+                                >
+                                    <option value="BRL">R$ (BRL)</option>
+                                    <option value="JPY">¥ (JPY)</option>
+                                    <option value="USD">$ (USD)</option>
+                                    <option value="EUR">€ (EUR)</option>
+                                </select>
+                                <input
+                                    type="number"
+                                    name="billing_amount"
+                                    value={formData.billing_amount}
+                                    onChange={handleChange}
+                                    className="field-input amount-field"
+                                    placeholder="0,00"
+                                    min="0"
+                                    step="0.01"
+                                />
+                            </div>
+                        </div>
+
+                        {formData.billing_type === 'mensalidade' && (
+                            <div className="field-group">
+                                <label className="field-label">Dia do Vencimento</label>
+                                <input
+                                    type="number"
+                                    name="billing_day"
+                                    value={formData.billing_day}
+                                    onChange={handleChange}
+                                    className="field-input"
+                                    placeholder="Ex: 5"
+                                    min="1"
+                                    max="28"
+                                />
+                                <p className="field-hint">Entre 1 e 28 para evitar problemas em fevereiro.</p>
+                            </div>
+                        )}
+
+                        {formData.billing_type === 'pacote' && (
+                            <div className="field-grid">
+                                <div className="field-group">
+                                    <label className="field-label">Tamanho do Pacote</label>
+                                    <select
+                                        name="billing_package_size"
+                                        value={formData.billing_package_size}
+                                        onChange={handleChange}
+                                        className="field-input"
+                                    >
+                                        <option value="4">4 aulas</option>
+                                        <option value="8">8 aulas</option>
+                                        <option value="12">12 aulas</option>
+                                        <option value="16">16 aulas</option>
+                                    </select>
+                                </div>
+                                <div className="field-group">
+                                    <label className="field-label">Data de Início do Ciclo</label>
+                                    <input
+                                        type="date"
+                                        name="billing_package_start_date"
+                                        value={formData.billing_package_start_date}
+                                        onChange={handleChange}
+                                        className="field-input"
+                                    />
+                                    <p className="field-hint">A contagem de aulas começa a partir desta data.</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
                 {error && (
                     <div className="form-error">
                         <span className="error-icon">⚠️</span>
@@ -426,6 +541,24 @@ export default function AddStudentForm({ editId }: Props) {
                     color: var(--color-slate-mid);
                     font-weight: 500;
                     margin-top: -0.25rem;
+                }
+
+                .amount-input-row {
+                    display: flex;
+                    gap: 0.5rem;
+                }
+                .currency-selector {
+                    width: 120px;
+                    padding: 0.75rem;
+                    border-radius: 0.75rem;
+                    border: 1px solid var(--color-slate-border);
+                    background: var(--color-ice);
+                    font-weight: 600;
+                    font-size: 0.85rem;
+                    outline: none;
+                }
+                .amount-field {
+                    flex: 1;
                 }
 
                 .form-error {

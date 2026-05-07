@@ -23,7 +23,8 @@ export const POST: APIRoute = async ({ request }) => {
 
         // 2. Parse Data
         const body = await request.json();
-        const { name, email, password, language, level, metadata } = body;
+        const { name, email, password, language, level, metadata,
+                billing_type, billing_amount, billing_currency, billing_day, billing_package_size, billing_package_start_date } = body;
 
         if (!name || !email || !password) {
             return new Response(JSON.stringify({ error: 'Nome, e-mail e senha são obrigatórios.' }), { status: 400 });
@@ -58,10 +59,16 @@ export const POST: APIRoute = async ({ request }) => {
             .insert({
                 teacher_id: teacher.id,
                 student_id: studentAuth.id,
-                name: name,
+                name,
                 level: level || 'Iniciante',
                 language: language || 'Japonês',
-                metadata: metadata || {}
+                metadata: metadata || {},
+                billing_type: billing_type || 'mensalidade',
+                billing_amount: billing_amount || null,
+                billing_currency: billing_currency || 'BRL',
+                billing_day: billing_day || null,
+                billing_package_size: billing_package_size || null,
+                billing_package_start_date: billing_package_start_date || null,
             })
             .select()
             .single();

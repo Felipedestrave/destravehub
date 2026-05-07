@@ -19,7 +19,8 @@ export const POST: APIRoute = async ({ request }) => {
 
         // 2. Parse Data
         const body = await request.json();
-        const { id, name, email, language, level, whatsapp, metadata } = body;
+        const { id, name, email, language, level, whatsapp, metadata,
+                billing_type, billing_amount, billing_currency, billing_day, billing_package_size, billing_package_start_date } = body;
 
         if (!id || !name) {
             return new Response(JSON.stringify({ error: 'ID e Nome são obrigatórios.' }), { status: 400 });
@@ -68,7 +69,13 @@ export const POST: APIRoute = async ({ request }) => {
                 name,
                 level: level || 'Iniciante',
                 language: language || 'Japonês',
-                metadata: metadata || {}
+                metadata: metadata || {},
+                billing_type: billing_type || 'mensalidade',
+                billing_amount: billing_amount ?? null,
+                billing_currency: billing_currency || 'BRL',
+                billing_day: billing_day ?? null,
+                billing_package_size: billing_package_size ?? null,
+                billing_package_start_date: billing_package_start_date ?? null,
             })
             .eq('id', id)
             .select()

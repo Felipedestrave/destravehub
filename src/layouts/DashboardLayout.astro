@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 
 interface Props {
   title?: string;
-  activeNav?: 'students' | 'leads' | 'activities' | 'draw' | 'calendar' | 'escuta' | 'mrp' | 'flashcards' | 'destrave1' | 'settings' | 'store' | 'materials' | 'notifications' | 'history' | 'reviews' | 'roadmap' | 'inventory';
+  activeNav?: 'students' | 'leads' | 'activities' | 'draw' | 'calendar' | 'escuta' | 'mrp' | 'flashcards' | 'destrave1' | 'settings' | 'store' | 'materials' | 'notifications' | 'history' | 'reviews' | 'roadmap' | 'inventory' | 'finance';
 }
 
 const {
@@ -60,6 +60,10 @@ const {
           <a href="/dashboard/leads" class={`sidebar-link ${activeNav === 'leads' ? 'active' : ''}`}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8l2 2 4-4"/></svg>
             Leads
+          </a>
+          <a href="/dashboard/finance" class={`sidebar-link ${activeNav === 'finance' ? 'active' : ''}`}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            Financeiro
           </a>
           <a href="/dashboard/calendar" class={`sidebar-link ${activeNav === 'calendar' ? 'active' : ''}`}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -278,8 +282,34 @@ const {
           const { data: studentData, error: studentError } = await supabase
             .from('students')
             .select('teacher_id')
-            .eq('student_id', session.user.id) // Corrigido: usando student_id em vez de id
+            .eq('student_id', session.user.id)
             .maybeSingle();
+
+          // --- FINANCE GUARD ---
+          try {
+              const overdueRes = await fetch('/api/finance/check-overdue', {
+                  headers: { Authorization: `Bearer ${session.access_token}` }
+              });
+              const { isOverdue } = await overdueRes.json();
+              if (isOverdue) {
+                  document.body.innerHTML = `
+                    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#0F172A;color:white;font-family:system-ui, sans-serif;padding:2rem;text-align:center;">
+                        <div style="font-size:3.5rem;margin-bottom:1.5rem;">⚠️</div>
+                        <h1 style="font-size:1.75rem;font-weight:900;margin-bottom:1rem;color:#F8FAFC;">Acesso Temporariamente Pausado</h1>
+                        <p style="color:#94A3B8;margin-bottom:2rem;max-width:400px;line-height:1.6;font-size:1.1rem;">
+                            Oi! Notamos que há uma pendência financeira em aberto há mais de 30 dias.<br/><br/>
+                            Por favor, entre em contato com o seu Sensei para regularizar e voltar aos estudos.
+                        </p>
+                        <button id="block-logout-btn" style="padding:0.75rem 2rem;background:#8B5CF6;border:none;border-radius:0.75rem;color:white;font-weight:bold;cursor:pointer;font-size:1rem;transition:background 0.2s;">Sair da Conta</button>
+                    </div>
+                  `;
+                  document.getElementById('block-logout-btn')?.addEventListener('click', async () => {
+                      await supabase.auth.signOut();
+                      window.location.href = '/auth/login';
+                  });
+                  return; // Stop rendering dashboard
+              }
+          } catch (e) { console.error('Finance check failed', e); }
 
           if (studentError) {
               console.error('[Dashboard] Erro ao buscar vínculo do aluno:', studentError);
