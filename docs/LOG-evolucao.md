@@ -9,8 +9,8 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - [x] **Conexão Imersiva:** Aluno agora vê foto e nome do professor no topo do dashboard.
 - [x] **Correção RLS:** Permissões de banco ajustadas para compartilhamento de perfil seguro.
 - [x] **Infraestrutura SSR:** Adaptador Vercel configurado e deploy em produção realizado com sucesso.
-- **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Gestão Destrave Draw (OK) | Vozes do Buddy (90/90 - OK) | Laser Real-time (OK).
-- **Última Atualização:** 07/05/2026 (14:55h)
+- **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Gestão Financeira (OK) | Gestão Destrave Draw (OK) | Vozes do Buddy (90/90 - OK) | Laser Real-time (OK).
+- **Última Atualização:** 08/05/2026 (07:45h)
 - **GitHub:** `https://github.com/Felipedestrave/destravehub.git` (Branch `main`)
 
 ---
@@ -312,15 +312,37 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
   - Removido texto obsoleto de penalidade de 20 moedas no Manual da Jornada (`AdventureRoadmap.tsx`).
   - Validado no backend que não há subtração de moedas por inatividade, apenas bloqueio de novos ganhos.
 
+- [x] **Módulo Financeiro (Gestão & Inteligência) (07/05/2026) 💰:**
+    - [x] **Contratos Flexíveis**: Implementado suporte a 3 modelos de cobrança (Mensalidade Fixa, Pacotes de Aulas e Aulas Avulsas).
+    - [x] **Configuração de Pacotes**: Nova funcionalidade de "Data de Início do Ciclo" para pacotes, permitindo que o sistema conte aulas automaticamente a partir de um marco inicial.
+    - [x] **Automação de Cobrança**: 
+        - [x] Geração automática de mensalidades no primeiro dia do mês.
+        - [x] Geração automática de novo pacote quando o limite de aulas (4, 8, 12) é atingido.
+    - [x] **Dashboard Financeiro (Professor)**:
+        - [x] Métricas de Faturamento Mensal, Pendente e Atrasado.
+        - [x] Navegação por meses independentes.
+        - [x] Ações rápidas: Marcar como Pago, Reverter Pagamento (Undo) e Lembrete via WhatsApp.
+    - [x] **"Smart Ledger" (Security Guard)**:
+        - [x] Middleware global que bloqueia o acesso do aluno se houver pendências com mais de 30 dias de atraso.
+        - [x] Tela de bloqueio personalizada com instruções de regularização.
+    - [x] **Infraestrutura SQL**: Criada tabela `payments` com RLS e novas colunas financeiras na tabela `students`.
+    - [x] **Refinamento & Controle (08/05/2026) 🛠️**:
+        - [x] **Fim da Auto-geração Indesejada**: Removida a criação automática de cobranças no simples ato de visualizar o painel.
+        - [x] **Botão "Gerar Mensalidades"**: Implementada funcionalidade manual e explícita para gerar as cobranças do mês atual de forma controlada.
+        - [x] **Precisão de Datas**: Corrigido o bug de "vazamento" entre meses (bleeding) usando cálculo dinâmico de fim de mês.
+        - [x] **Exclusão Individual**: Adicionado botão de exclusão de cobranças com popup de confirmação de segurança.
+        - [x] **Fix de Tipagem**: Resolvidos erros de TypeScript na nova API de geração de mensalidades.
+
+---
+
 ---
 
 ## ⏭️ Próximos Passos (Próxima Sessão)
 
-1. 💰 **[PRIORIDADE] Sistema Financeiro (Gestão)**:
-   - Implementar controle de pagamentos e mensalidades dos alunos.
-   - Dashboard de receita mensal para o professor.
-   - Histórico de transações e lembretes de cobrança via WhatsApp.
-2. 🎯 **[PRIORIDADE] Novas Atividades**:
+1. 📊 **Expansão Financeira**:
+   - Gestão de Despesas do Professor.
+   - Emissão de Recibos em PDF.
+2. 🎯 **Novas Atividades**:
    - Expandir o Hub de Atividades com novos motores de exercício.
    - Explorar atividades de Escrita (Handwriting recognition) ou Fala (Speech-to-text).
 3. 🔔 **Notificações & Alertas (Foco Aluno)**:

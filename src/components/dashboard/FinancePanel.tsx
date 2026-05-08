@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import {
     ChevronLeft, ChevronRight, CheckCircle2, MessageCircle,
-    Plus, TrendingUp, Clock, AlertTriangle, DollarSign, X, Loader2, RotateCcw
+    Plus, TrendingUp, Clock, AlertTriangle, DollarSign, X, Loader2, RotateCcw, Trash2
 } from 'lucide-react';
 
 const MONTHS_PT = [
@@ -66,6 +66,8 @@ export default function FinancePanel() {
     const [markingPending, setMarkingPending] = useState<string | null>(null);
     const [showNewCharge, setShowNewCharge] = useState(false);
     const [savingCharge, setSavingCharge] = useState(false);
+    const [generating, setGenerating] = useState(false);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
     const [newCharge, setNewCharge] = useState<NewChargeForm>({
         student_id: '', amount: '', currency: 'BRL',
         due_date: new Date().toISOString().split('T')[0],
@@ -144,8 +146,50 @@ export default function FinancePanel() {
         const msg = encodeURIComponent(
             `Olá, ${student.name}! 😊\n\nPassando para lembrar que temos um pagamento de *${amount}* com vencimento em *${due}*.\n\n${payment.description}\n\nQualquer dúvida, é só falar! Arigato! 🙏`
         );
-        // Try to get student whatsapp
         window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
+    };
+
+    const handleDeletePayment = async (paymentId: string) => {
+        if (!confirm('Deseja realmente excluir esta cobrança? Esta ação não pode ser desfeita.')) return;
+        
+        setDeletingId(paymentId);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return;
+            const res = await fetch('/api/finance/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+                body: JSON.stringify({ payment_id: paymentId })
+            });
+            if (res.ok) {
+                await fetchData();
+            }
+        } finally {
+            setDeletingId(null);
+        }
+    };
+
+    const handleGenerateMonthly = async () => {
+        if (!confirm(`Deseja gerar as cobranças de mensalidade para ${MONTHS_PT[month - 1]} de ${year}?`)) return;
+        setGenerating(true);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return;
+            const res = await fetch('/api/finance/generate-monthly', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+                body: JSON.stringify({ month, year })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert(`${data.createdCount} cobranças geradas com sucesso!`);
+                await fetchData();
+            } else {
+                alert('Erro ao gerar cobranças: ' + data.error);
+            }
+        } finally {
+            setGenerating(false);
+        }
     };
 
     const handleCreateCharge = async (e: React.FormEvent) => {
@@ -236,9 +280,20 @@ export default function FinancePanel() {
             {/* ── Action Bar ── */}
             <div className="action-bar">
                 <h2 className="section-title">Cobranças de {MONTHS_PT[month - 1]}</h2>
-                <button onClick={() => setShowNewCharge(true)} className="btn-new-charge">
-                    <Plus size={16} /> Nova Cobrança
-                </button>
+                <div className="action-btns">
+                    <button 
+                        onClick={handleGenerateMonthly} 
+                        disabled={generating || loading}
+                        className="btn-generate"
+                        title="Gerar mensalidades para todos os alunos 'Mensalidade' neste mês"
+                    >
+                        {generating ? <Loader2 size={16} className="animate-spin" /> : <RotateCcw size={16} />}
+                        Gerar Mensalidades
+                    </button>
+                    <button onClick={() => setShowNewCharge(true)} className="btn-new-charge">
+                        <Plus size={16} /> Nova Cobrança
+                    </button>
+                </div>
             </div>
 
             {/* ── Payments List ── */}
@@ -313,6 +368,14 @@ export default function FinancePanel() {
                                             title="Enviar lembrete via WhatsApp"
                                         >
                                             <MessageCircle size={16} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeletePayment(payment.id)}
+                                            disabled={deletingId === payment.id}
+                                            className="btn-delete"
+                                            title="Excluir Cobrança"
+                                        >
+                                            {deletingId === payment.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
                                         </button>
                                     </div>
                                 </div>
@@ -408,10 +471,14 @@ export default function FinancePanel() {
                 .metric-value { font-family: var(--font-outfit); font-size: 1.15rem; font-weight: 900; color: var(--color-slate-dark); }
 
                 /* Action Bar */
-                .action-bar { display: flex; justify-content: space-between; align-items: center; }
+                .action-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+                .action-btns { display: flex; gap: 0.75rem; }
                 .section-title { font-family: var(--font-outfit); font-size: 1.25rem; font-weight: 800; color: var(--color-slate-dark); }
                 .btn-new-charge { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.25rem; background: var(--color-brand); color: white; border: none; border-radius: 0.875rem; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; }
                 .btn-new-charge:hover { filter: brightness(1.1); transform: translateY(-1px); }
+                .btn-generate { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.25rem; background: white; color: var(--color-slate-dark); border: 1.5px solid var(--color-slate-border); border-radius: 0.875rem; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; }
+                .btn-generate:hover { border-color: var(--color-brand); color: var(--color-brand); }
+                .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; }
 
                 /* Loading / Empty */
                 .loading-state { display: flex; justify-content: center; padding: 3rem 0; }
@@ -444,6 +511,10 @@ export default function FinancePanel() {
                 .btn-revert:disabled { opacity: 0.5; cursor: not-allowed; }
                 .btn-whatsapp { display: flex; align-items: center; justify-content: center; padding: 0.4rem; border-radius: 0.5rem; border: none; background: #DCFCE7; color: #16A34A; cursor: pointer; transition: all 0.2s; }
                 .btn-whatsapp:hover { background: #16A34A; color: white; }
+
+                .btn-delete { display: flex; align-items: center; justify-content: center; padding: 0.4rem; border-radius: 0.5rem; border: none; background: #FEE2E2; color: #DC2626; cursor: pointer; transition: all 0.2s; }
+                .btn-delete:hover { background: #DC2626; color: white; }
+                .btn-delete:disabled { opacity: 0.5; cursor: not-allowed; }
 
                 /* Modal */
                 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 1rem; }

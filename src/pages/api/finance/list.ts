@@ -15,45 +15,11 @@ export const GET: APIRoute = async ({ request }) => {
         const month = parseInt(url.searchParams.get('month') || String(new Date().getMonth() + 1));
         const year = parseInt(url.searchParams.get('year') || String(new Date().getFullYear()));
 
-        // --- Auto-generate monthly charges for mensalidade students ---
-        const { data: mensalidadeStudents } = await supabaseAdmin
-            .from('students' as any)
-            .select('id, name, billing_amount, billing_currency, billing_day')
-            .eq('teacher_id', teacher.id)
-            .eq('billing_type', 'mensalidade')
-            .not('billing_amount', 'is', null);
-
-        for (const student of mensalidadeStudents || []) {
-            if (!student.billing_day || !student.billing_amount) continue;
-
-            const dueDate = `${year}-${String(month).padStart(2, '0')}-${String(student.billing_day).padStart(2, '0')}`;
-
-            // Check if payment already exists for this month
-            const { data: existing } = await supabaseAdmin
-                .from('payments' as any as any)
-                .select('id')
-                .eq('student_id', student.id)
-                .eq('teacher_id', teacher.id)
-                .gte('due_date', `${year}-${String(month).padStart(2, '0')}-01`)
-                .lte('due_date', `${year}-${String(month).padStart(2, '0')}-31`)
-                .maybeSingle();
-
-            if (!existing) {
-                await supabaseAdmin.from('payments' as any as any).insert({
-                    teacher_id: teacher.id,
-                    student_id: student.id,
-                    amount: student.billing_amount,
-                    currency: student.billing_currency || 'BRL',
-                    due_date: dueDate,
-                    status: 'pending',
-                    description: `Mensalidade ${month}/${year}`,
-                });
-            }
-        }
-
         // --- Fetch all payments for this teacher in the selected month ---
+        // We use a more robust date range to avoid "bleeding" between months
         const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
-        const endDate = `${year}-${String(month).padStart(2, '0')}-31`;
+        const lastDay = new Date(year, month, 0).getDate(); // month is 1-indexed in JS Date constructor for '0' day trick
+        const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
         const { data: rawPayments, error: paymentsError } = await supabaseAdmin
             .from('payments' as any)
