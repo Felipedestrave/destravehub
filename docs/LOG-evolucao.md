@@ -337,21 +337,33 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 
 ---
 
-## ⏭️ Próximos Passos (Próxima Sessão)
+### Fase 11: Refinamento Pedagógico & Visualização (11/05/2026) ✅
+- **Interpretador do Registro do Sensei**:
+    - [x] Implementado `formatNotes` no `StudentDetail.tsx`.
+    - [x] O sistema agora decodifica automaticamente o JSON salvo na marcação de presença.
+    - [x] Visualização premium com ícones para Engajamento (🔥), Duração (⏱️) e Próximo Passo (🎯).
+    - [x] Compatibilidade garantida para registros de texto simples (Fallback).
 
-1. 📊 **Expansão Financeira**:
-   - Gestão de Despesas do Professor.
-   - Emissão de Recibos em PDF.
-2. 🎯 **Novas Atividades**:
-   - Expandir o Hub de Atividades com novos motores de exercício.
-   - Explorar atividades de Escrita (Handwriting recognition) ou Fala (Speech-to-text).
-3. 🔔 **Notificações & Alertas (Foco Aluno)**:
-   - Alertas in-app para missões críticas (Vencimento de revisões SRS).
-   - Notificações de novas missões atribuídas.
-4. 📈 **Relatórios de Desempenho (Analytics)**:
-   - Painel para o professor identificar dificuldades recorrentes da turma (Kanjis/Gramática).
-5. 🏆 **Gamificação Social**:
-   - Sistema de Conquistas (Badges) e Ranking Semanal.
+---
+
+## ⏭️ Próximos Passos (Estratégico & Sugestões)
+
+1. 💰 **Consolidação Financeira & Gestão**:
+   - **Painel de Controle de Pacotes**: Interface para acompanhar o consumo de aulas de cada aluno em tempo real.
+   - **Emissão de Recibos**: Geração de PDF para pagamentos confirmados.
+   - **Smart Ledger**: Ativação total da trava de segurança para inadimplência > 30 dias.
+
+2. 📈 **Retenção & Analytics (Experiência do Aluno)**:
+   - **Dashboard de Evolução Visual**: Gráficos de linha mostrando o crescimento de XP e frequência de aulas por mês.
+   - **Analytics para o Sensei**: Painel para identificar dificuldades recorrentes da turma (Kanjis/Gramática).
+
+3. 🔔 **Comunicação & Engajamento**:
+   - **Automação Pós-Aula (WhatsApp)**: Envio automático de resumo da aula (Engajamento + Tópicos + Próximo Passo) via API após o log de presença.
+   - **Alertas In-App**: Notificações para missões críticas e vencimento de revisões SRS.
+
+4. ✍️ **Novos Motores Pedagógicos**:
+   - **Escrita (Handwriting)**: Reconhecimento de escrita de Kanjis.
+   - **Fala (Speech-to-text)**: Prática de conversação com IA.
 
 ---
 
