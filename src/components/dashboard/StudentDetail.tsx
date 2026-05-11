@@ -169,6 +169,60 @@ export const StudentDetail: React.FC<Props> = ({ studentId }) => {
     }
   };
 
+  const formatNotes = (notes: string | null) => {
+    if (!notes) return null;
+    
+    try {
+      const parsed = JSON.parse(notes);
+      
+      // Verifica se é o formato estruturado da API
+      if (parsed && typeof parsed === 'object' && ('engagement' in parsed || 'duration' in parsed)) {
+        return (
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-3">
+              {parsed.engagement && (
+                <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-border shadow-sm">
+                   <span className="text-xs">🔥</span>
+                   <span className="text-[10px] font-black uppercase text-slate-mid tracking-tight">Engajamento:</span>
+                   <span className="text-[11px] font-bold text-brand">{parsed.engagement}</span>
+                </div>
+              )}
+              {parsed.duration && (
+                <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-border shadow-sm">
+                   <span className="text-xs">⏱️</span>
+                   <span className="text-[10px] font-black uppercase text-slate-mid tracking-tight">Duração:</span>
+                   <span className="text-[11px] font-bold text-blue-600">{parsed.duration} min</span>
+                </div>
+              )}
+            </div>
+            
+            {parsed.general_notes && (
+              <div className="text-slate-dark text-sm leading-relaxed font-medium">
+                {parsed.general_notes}
+              </div>
+            )}
+            
+            {parsed.next_class_plan && (
+              <div className="mt-2 pt-3 border-t border-slate-border/50">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs">🎯</span>
+                  <span className="text-[10px] font-black text-brand uppercase tracking-widest">Próximo Passo</span>
+                </div>
+                <p className="text-xs text-slate-mid font-bold italic leading-relaxed">
+                  {parsed.next_class_plan}
+                </p>
+              </div>
+            )}
+          </div>
+        );
+      }
+    } catch (e) {
+      // Se não for JSON, segue para o retorno padrão de texto
+    }
+    
+    return <p className="text-slate-dark text-sm leading-relaxed">{notes}</p>;
+  };
+
   if (loading) return <div className="p-8 text-center text-slate-mid">Carregando mestre...</div>;
   if (!student) return <div className="p-8 text-center text-red-500">Aluno não encontrado.</div>;
 
@@ -287,7 +341,7 @@ export const StudentDetail: React.FC<Props> = ({ studentId }) => {
                       </button>
                     </div>
                     
-                    <div className="flex flex-wrap gap-2 mb-3">
+                    <div className="flex flex-wrap gap-2 mb-4">
                       {parseTopics(log.topics).map((t, idx) => (
                         <span key={idx} className="bg-brand/5 text-brand text-[10px] uppercase font-black px-2 py-0.5 rounded border border-brand/10">
                           {t}
@@ -296,9 +350,9 @@ export const StudentDetail: React.FC<Props> = ({ studentId }) => {
                     </div>
 
                     {log.notes && (
-                      <p className="text-slate-dark text-sm leading-relaxed bg-ice p-3 rounded-xl border border-slate-border/50">
-                        {log.notes}
-                      </p>
+                      <div className="bg-ice/50 p-4 rounded-xl border border-slate-border/50">
+                        {formatNotes(log.notes)}
+                      </div>
                     )}
                   </div>
                 ))
