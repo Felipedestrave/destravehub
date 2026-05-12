@@ -14,6 +14,9 @@ interface CalendarEvent extends Appointment {
         display_name: string | null;
         full_name: string | null;
     };
+    type?: 'class' | 'revision';
+    milestone?: number;
+    assignment_id?: string;
 }
 
 type StudentWithProfile = Student & {
@@ -31,6 +34,7 @@ export default function AgencyCalendar() {
     const [userId, setUserId] = useState<string | null>(null);
     const [userRole, setUserRole] = useState<'teacher' | 'student'>('teacher');
     const [loading, setLoading] = useState(true);
+    const [showRevisions, setShowRevisions] = useState(true);
 
     // Modal states
     const [showModal, setShowModal] = useState(false);
@@ -94,14 +98,45 @@ export default function AgencyCalendar() {
                     .eq('student_id', uid)
                     .single();
 
-                if (studentRecord) {
-                    // Fetch student's own appointments
-                    const { data: apps } = await supabase
-                        .from('appointments')
-                        .select('*, student:students(*), teacher:profiles!appointments_teacher_id_fkey(display_name, full_name)')
-                        .eq('student_id', studentRecord.id);
-                    setAppointments(apps as any[] || []);
-                }
+                    if (studentRecord) {
+                        // Fetch student's own appointments
+                        const { data: apps } = await supabase
+                            .from('appointments')
+                            .select('*, student:students(*), teacher:profiles!appointments_teacher_id_fkey(display_name, full_name)')
+                            .eq('student_id', studentRecord.id);
+                        
+                        // Fetch student's revisions (assignments)
+                        const { data: missions } = await supabase
+                            .from('assignments')
+                            .select('*, activities(title, type)')
+                            .eq('student_id', studentRecord.id);
+
+                        const revisionEvents: CalendarEvent[] = [];
+                        missions?.forEach(miss => {
+                            const title = (miss.activities as any)?.title || 'Missão';
+                            const res = miss.result_data as any;
+                            if (res?.repetition) {
+                                res.repetition.forEach((m: any) => {
+                                    const date = new Date(m.scheduledDate);
+                                    // Map to a pseudo-appointment structure
+                                    revisionEvents.push({
+                                        id: `${miss.id}-srs-${m.milestone}`,
+                                        title: `Revisão: ${title}`,
+                                        start_time: date.toISOString(),
+                                        end_time: date.toISOString(), // Revisions are all-day/flexible
+                                        student_id: studentRecord.id,
+                                        teacher_id: '',
+                                        type: 'revision',
+                                        milestone: m.milestone,
+                                        assignment_id: miss.id,
+                                        status: m.status === 'completed' ? 'completed' : 'pending'
+                                    } as any);
+                                });
+                            }
+                        });
+
+                        setAppointments([...(apps as any[] || []), ...revisionEvents]);
+                    }
             }
         } catch (err) {
             console.error('Error fetching calendar data:', err);
@@ -465,9 +500,15 @@ export default function AgencyCalendar() {
     };
 
     const selectedDayEvents = appointments.filter(app => {
+        if (!showRevisions && app.type === 'revision') return false;
         const appDate = new Date(app.start_time);
         return appDate.toDateString() === selectedDate.toDateString();
-    }).sort((a, b) => a.start_time.localeCompare(b.start_time));
+    }).sort((a, b) => {
+        // Revisions come first (pinned at top), then classes by time
+        if (a.type === 'revision' && b.type !== 'revision') return -1;
+        if (a.type !== 'revision' && b.type === 'revision') return 1;
+        return a.start_time.localeCompare(b.start_time);
+    });
 
     const renderCalendarGrid = () => {
         const year = viewDate.getFullYear();
@@ -486,6 +527,7 @@ export default function AgencyCalendar() {
             const isSelected = selectedDate.toDateString() === date.toDateString();
             
             const hasEvents = appointments.some(app => {
+                if (!showRevisions && app.type === 'revision') return false;
                 const appDate = new Date(app.start_time);
                 return appDate.toDateString() === date.toDateString();
             });
@@ -529,7 +571,7 @@ export default function AgencyCalendar() {
                             : 'Visualize seus horários de aula e compromissos.'}
                     </p>
                 </div>
-                {userRole === 'teacher' && (
+                {userRole === 'teacher' ? (
                     <div className="action-buttons">
                         <button onClick={openCreateModal} className="btn-primary">
                             <CalendarIcon size={18} />
@@ -538,6 +580,17 @@ export default function AgencyCalendar() {
                         <button className="btn-ghost">
                             <Check size={18} />
                             Marcar Presenças
+                        </button>
+                    </div>
+                ) : (
+                    <div className="action-buttons">
+                        <button 
+                            onClick={() => setShowRevisions(!showRevisions)} 
+                            className={`btn-ghost ${showRevisions ? 'active-filter' : ''}`}
+                            style={{ gap: '0.75rem' }}
+                        >
+                            <div className={`filter-dot ${showRevisions ? 'active' : ''}`} />
+                            {showRevisions ? 'Esconder Revisões' : 'Ver Revisões'}
                         </button>
                     </div>
                 )}
@@ -596,17 +649,35 @@ export default function AgencyCalendar() {
                                             }
                                         </h4>
                                         <div className="app-meta">
-                                            <span><Clock size={14} /> {new Date(app.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(app.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                            {app.description?.includes('[PRESENÇA]') && (
-                                                <span className="status-badge attended"><Check size={12} /> Presença Marcada</span>
-                                            )}
-                                            {app.description?.includes('[FALTA]') && (
-                                                <span className="status-badge attended" style={{ background: '#fee2e2', color: '#dc2626' }}><X size={12} /> Faltou</span>
+                                            {app.type === 'revision' ? (
+                                                <span className="revision-tag">
+                                                    <BookOpen size={12} />
+                                                    Etapa {app.milestone} • SRS Científico
+                                                </span>
+                                            ) : (
+                                                <>
+                                                    <span><Clock size={14} /> {new Date(app.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(app.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                    {app.description?.includes('[PRESENÇA]') && (
+                                                        <span className="status-badge attended"><Check size={12} /> Presença Marcada</span>
+                                                    )}
+                                                    {app.description?.includes('[FALTA]') && (
+                                                        <span className="status-badge attended" style={{ background: '#fee2e2', color: '#dc2626' }}><X size={12} /> Faltou</span>
+                                                    )}
+                                                </>
                                             )}
                                         </div>
                                     </div>
                                     
-                                    {userRole === 'teacher' && (
+                                    {app.type === 'revision' ? (
+                                        <div className="app-actions">
+                                            <button 
+                                                onClick={() => window.location.href = `/dashboard/roadmap`}
+                                                className="btn-action-mini"
+                                            >
+                                                Ver no Mapa
+                                            </button>
+                                        </div>
+                                    ) : userRole === 'teacher' && (
                                         <div className="app-actions" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                                             {!app.description?.includes('[PRESENÇA]') && !app.description?.includes('[FALTA]') && (
                                                 <button 
@@ -1197,6 +1268,50 @@ export default function AgencyCalendar() {
                 .status-badge.attended {
                     background: #DCFCE7;
                     color: #166534;
+                }
+
+                .revision-tag {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.4rem;
+                    background: #F0F9FF;
+                    color: #0369A1;
+                    padding: 0.2rem 0.6rem;
+                    border-radius: 0.5rem;
+                    font-weight: 700;
+                    font-size: 0.75rem;
+                    border: 1px solid #BAE6FD;
+                }
+
+                .btn-action-mini {
+                    background: var(--color-brand);
+                    color: white;
+                    border: none;
+                    padding: 0.4rem 0.8rem;
+                    border-radius: 0.6rem;
+                    font-size: 0.75rem;
+                    font-weight: 800;
+                    font-family: var(--font-outfit);
+                    cursor: pointer;
+                    transition: transform 0.2s;
+                }
+                .btn-action-mini:hover { transform: scale(1.05); }
+
+                .filter-dot {
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 50%;
+                    background: var(--color-slate-border);
+                    transition: all 0.2s;
+                }
+                .filter-dot.active {
+                    background: #0ea5e9;
+                    box-shadow: 0 0 8px #0ea5e988;
+                }
+                .active-filter {
+                    border-color: #0ea5e9 !important;
+                    color: #0369a1 !important;
+                    background: #f0f9ff !important;
                 }
 
                 .menu-item.highlight {

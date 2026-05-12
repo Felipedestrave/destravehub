@@ -10,7 +10,7 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - [x] **Correção RLS:** Permissões de banco ajustadas para compartilhamento de perfil seguro.
 - [x] **Infraestrutura SSR:** Adaptador Vercel configurado e deploy em produção realizado com sucesso.
 - **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Gestão Financeira (OK) | Gestão Destrave Draw (OK) | Vozes do Buddy (90/90 - OK) | Laser Real-time (OK).
-- **Última Atualização:** 08/05/2026 (07:45h)
+- **Última Atualização:** 12/05/2026 (13:45h)
 - **GitHub:** `https://github.com/Felipedestrave/destravehub.git` (Branch `main`)
 
 ---
@@ -343,6 +343,21 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
     - [x] O sistema agora decodifica automaticamente o JSON salvo na marcação de presença.
     - [x] Visualização premium com ícones para Engajamento (🔥), Duração (⏱️) e Próximo Passo (🎯).
     - [x] Compatibilidade garantida para registros de texto simples (Fallback).
+
+
+### Fase 12: Otimização de Navegação & Agenda Inteligente (12/05/2026) ✅
+- [x] **Meu Caminho (Roadmap) 2.0**:
+    - [x] **Navegação por Capítulos**: Divisão da trilha em blocos de 9 etapas (8 missões + 1 baú) para eliminar o scroll infinito.
+    - [x] **Foco Automático**: O sistema agora abre o capítulo onde o aluno está atualmente (Active Node).
+    - [x] **Responsividade Mobile**: Implementada "Linha Reta Vertical" centralizada para celulares, garantindo visibilidade total dos nós.
+    - [x] **UI Minimalista**: Remoção de elementos decorativos poluentes para foco total na jornada.
+- [x] **Agenda Unificada (SRS + Aulas)**:
+    - [x] **Integração de Revisões**: O calendário agora exibe automaticamente as missões de revisão (SRS) programadas.
+    - [x] **Badge Científico**: Identificação visual clara ("SRS Científico") e priorização no topo da lista diária.
+    - [x] **Filtro Dinâmico**: Botão para mostrar/esconder revisões, permitindo que o aluno alterne entre visão de compromissos e visão de estudos.
+    - [x] **Navegação Direta**: Atalho "Ver no Mapa" dentro do evento da agenda para execução imediata da atividade.
+- [x] **Correções Técnicas**:
+    - [x] **Fix de Tipagem**: Resolvido erro de prop `activePath` no layout financeiro.
 
 ---
 

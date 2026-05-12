@@ -18,9 +18,17 @@ interface RoadmapNode {
 
 // ─── Math Helpers for S-Curve ────────────────────────────────────────────────
 
-function getNodePosition(index: number) {
+function getNodePosition(index: number, isMobile: boolean = false) {
   // Winding path logic using pixel coordinates for a 800px wide board
   const spacingY = 160;
+  
+  if (isMobile) {
+    // Straight vertical line for mobile
+    const x = 400; // Center of the 800px viewBox
+    const y = index * spacingY + 100;
+    return { x, y };
+  }
+
   const amplitude = 260; // Swings left/right by 260px
   const frequency = 0.5; // Frequency of the S-curve
   
@@ -37,9 +45,10 @@ const MapNode: React.FC<{
   index: number;
   isBuddyHere: boolean;
   buddyAvatarUrl: string;
+  isMobile?: boolean;
   onClick: (node: RoadmapNode) => void;
-}> = ({ node, index, isBuddyHere, buddyAvatarUrl, onClick }) => {
-  const { x, y } = getNodePosition(index);
+}> = ({ node, index, isBuddyHere, buddyAvatarUrl, isMobile = false, onClick }) => {
+  const { x, y } = getNodePosition(index, isMobile);
 
   const bgColor = {
     completed: 'linear-gradient(135deg, #22c55e, #16a34a)',
@@ -218,6 +227,16 @@ export const AdventureRoadmap: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'regras' | 'srs'>('regras');
   const [senseiMsg, setSenseiMsg] = useState('');
   const [buddyAvatarUrl, setBuddyAvatarUrl] = useState('/assets/avatars/tanuki-novato.png');
+  const [isMobile, setIsMobile] = useState(false);
+  const [currentChapter, setCurrentChapter] = useState(0);
+  const nodesPerPage = 8; // Each chapter has 8 steps + 1 chest
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     loadRoadmap();
@@ -345,6 +364,18 @@ export const AdventureRoadmap: React.FC = () => {
 
       setNodes(nodesWithChests);
 
+      // Auto-select chapter with active buddy
+      let lastComp = -1;
+      for (let i = nodesWithChests.length - 1; i >= 0; i--) {
+        if (nodesWithChests[i].status === 'completed') {
+          lastComp = i;
+          break;
+        }
+      }
+      const activeIdx = Math.min(lastComp + 1, nodesWithChests.length - 1);
+      const activeChapter = Math.floor(activeIdx / (nodesPerPage + 1));
+      setCurrentChapter(activeChapter);
+
       // Determine Sensei message based on gaps
       let lastCompletedIdx = -1;
       for (let i = nodesWithChests.length - 1; i >= 0; i--) {
@@ -451,10 +482,36 @@ export const AdventureRoadmap: React.FC = () => {
         </div>
       </div>
 
+      {/* CHAPTER NAVIGATION */}
+      <div className="chapter-nav">
+         <button 
+           disabled={currentChapter === 0}
+           onClick={() => setCurrentChapter(prev => prev - 1)}
+           className="chapter-nav-btn"
+         >
+           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+           Anterior
+         </button>
+         
+         <div className="chapter-indicator">
+            <span className="chapter-label">Capítulo</span>
+            <span className="chapter-number">{currentChapter + 1}</span>
+         </div>
+
+         <button 
+           disabled={(currentChapter + 1) * (nodesPerPage + 1) >= nodes.length}
+           onClick={() => setCurrentChapter(prev => prev + 1)}
+           className="chapter-nav-btn"
+         >
+           Próximo
+           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+         </button>
+      </div>
+
       {/* GAME BOARD MAP */}
-      <div className="game-board" style={{ height: nodes.length * 160 + 300 }}>
+      <div className="game-board" style={{ height: (nodesPerPage + 1) * 160 + 300 }}>
         {/* SVG Path line - 2 layers for border effect */}
-        <svg className="map-svg-line" viewBox={`0 0 800 ${nodes.length * 160 + 300}`}>
+        <svg className="map-svg-line" viewBox={`0 0 800 ${(nodesPerPage + 1) * 160 + 300}`}>
           <defs>
             <linearGradient id="trackGrad" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="var(--color-brand)" />
@@ -468,8 +525,8 @@ export const AdventureRoadmap: React.FC = () => {
           
           {/* Outer thick border */}
           <path
-            d={nodes.map((_, i) => {
-              const { x, y } = getNodePosition(i);
+            d={nodes.slice(currentChapter * (nodesPerPage + 1), (currentChapter + 1) * (nodesPerPage + 1)).map((_, i) => {
+              const { x, y } = getNodePosition(i, isMobile);
               return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
             }).join(' ')}
             fill="none"
@@ -482,8 +539,8 @@ export const AdventureRoadmap: React.FC = () => {
           
           {/* Inner colored track */}
           <path
-            d={nodes.map((_, i) => {
-              const { x, y } = getNodePosition(i);
+            d={nodes.slice(currentChapter * (nodesPerPage + 1), (currentChapter + 1) * (nodesPerPage + 1)).map((_, i) => {
+              const { x, y } = getNodePosition(i, isMobile);
               return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
             }).join(' ')}
             fill="none"
@@ -494,24 +551,21 @@ export const AdventureRoadmap: React.FC = () => {
           />
         </svg>
 
-        {/* Decorative elements */}
-        <div style={{ position: 'absolute', top: '8%', left: '12%', fontSize: '3.5rem', opacity: 0.3, transform: 'rotate(-15deg)', pointerEvents: 'none' }}>📚</div>
-        <div style={{ position: 'absolute', top: '25%', right: '15%', fontSize: '4rem', opacity: 0.25, transform: 'rotate(10deg)', pointerEvents: 'none' }}>🖌️</div>
-        <div style={{ position: 'absolute', top: '45%', left: '15%', fontSize: '3rem', opacity: 0.3, transform: 'rotate(-5deg)', pointerEvents: 'none' }}>🎌</div>
-        <div style={{ position: 'absolute', top: '65%', right: '12%', fontSize: '3.5rem', opacity: 0.25, transform: 'rotate(20deg)', pointerEvents: 'none' }}>📝</div>
-        <div style={{ position: 'absolute', top: '82%', left: '18%', fontSize: '3.5rem', opacity: 0.3, transform: 'rotate(-10deg)', pointerEvents: 'none' }}>🧠</div>
-        <div style={{ position: 'absolute', bottom: '8%', right: '15%', fontSize: '3.5rem', opacity: 0.3, transform: 'rotate(15deg)', pointerEvents: 'none' }}>🍵</div>
 
-        {nodes.map((node, i) => (
-          <MapNode 
-            key={node.id} 
-            node={node} 
-            index={i} 
-            isBuddyHere={i === activeNodeIndex} 
-            buddyAvatarUrl={buddyAvatarUrl}
-            onClick={handleNodeClick} 
-          />
-        ))}
+        {nodes.slice(currentChapter * (nodesPerPage + 1), (currentChapter + 1) * (nodesPerPage + 1)).map((node, i) => {
+          const globalIdx = currentChapter * (nodesPerPage + 1) + i;
+          return (
+            <MapNode 
+              key={node.id} 
+              node={node} 
+              index={i} 
+              isBuddyHere={globalIdx === activeNodeIndex} 
+              buddyAvatarUrl={buddyAvatarUrl}
+              isMobile={isMobile}
+              onClick={handleNodeClick} 
+            />
+          );
+        })}
       </div>
 
       {/* FIXED SENSEI GUIDE */}
@@ -685,6 +739,57 @@ export const AdventureRoadmap: React.FC = () => {
         }
         .rules-btn:hover { border-color: var(--color-brand); color: var(--color-brand); }
 
+        .chapter-nav {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background: white;
+          padding: 0.75rem 1.5rem;
+          border-radius: 1.5rem;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+          margin-bottom: 2rem;
+          border: 1px solid var(--color-slate-border);
+        }
+        .chapter-nav-btn {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          background: var(--color-ice);
+          border: none;
+          padding: 0.6rem 1rem;
+          border-radius: 1rem;
+          font-weight: 800;
+          color: var(--color-brand);
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .chapter-nav-btn:hover:not(:disabled) {
+          background: var(--color-brand);
+          color: white;
+        }
+        .chapter-nav-btn:disabled {
+          opacity: 0.3;
+          cursor: not-allowed;
+        }
+        .chapter-indicator {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        .chapter-label {
+          font-size: 0.6rem;
+          font-weight: 900;
+          text-transform: uppercase;
+          color: var(--color-slate-mid);
+          letter-spacing: 0.05em;
+        }
+        .chapter-number {
+          font-size: 1.2rem;
+          font-weight: 900;
+          color: var(--color-brand);
+          font-family: var(--font-outfit);
+        }
+
         .global-progress { margin-bottom: 3rem; }
         .progress-track { background: var(--color-ice); height: 10px; border-radius: 10px; overflow: hidden; }
         .progress-fill { height: 100%; background: linear-gradient(90deg, var(--color-brand), #22c55e); }
@@ -750,6 +855,17 @@ export const AdventureRoadmap: React.FC = () => {
         .sensei-avatar-container { display: flex; flex-direction: column; align-items: center; }
         .sensei-avatar-container img { width: 90px; height: 90px; object-fit: contain; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.2)); }
         .sensei-name { font-size: 0.7rem; font-weight: 900; color: var(--color-slate-mid); text-transform: uppercase; margin-top: 0.5rem; }
+
+        @media (max-width: 768px) {
+          .roadmap-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+          .header-right { width: 100%; }
+          .rules-btn { width: 100%; justify-content: center; }
+          .sensei-fixed-guide { bottom: 1rem; right: 1rem; }
+          .sensei-bubble { max-width: 180px; padding: 0.75rem; }
+          .sensei-bubble p { font-size: 0.8rem; }
+          .sensei-avatar-container img { width: 60px; height: 60px; }
+          .game-board { mask-image: none; -webkit-mask-image: none; }
+        }
 
         .modal-overlay {
           position: fixed; inset: 0; background: rgba(0,0,0,0.6);
