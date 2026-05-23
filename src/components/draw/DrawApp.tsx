@@ -296,7 +296,12 @@ export default function DrawApp({ isReadOnly = false, senseiData = null }: DrawA
 
         setIsLoading(true);
         try {
-            const fileName = `lesson-images/${Date.now()}-${file.name}`;
+            const sanitizedName = file.name
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+                .replace(/[^a-zA-Z0-9.-]/g, '_'); // Substitui tudo que não for letra, número, ponto ou traço por underline
+
+            const fileName = `lesson-images/${Date.now()}-${sanitizedName}`;
             const { data, error } = await supabase.storage
                 .from('materials')
                 .upload(fileName, file);
