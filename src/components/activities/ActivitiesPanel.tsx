@@ -82,7 +82,7 @@ export default function ActivitiesPanel() {
                 if (!actRes.ok) {
                     setError(actData.error || 'Erro ao carregar atividades do servidor.');
                 } else {
-                    setActivities(actData.activities ?? []);
+                    setActivities((actData.activities ?? []).sort((a, b) => a.title.localeCompare(b.title, 'pt-BR', { numeric: true })));
                     if (actData.students) setStudents(actData.students);
                 }
             } catch (aErr) {

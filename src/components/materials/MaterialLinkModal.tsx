@@ -34,10 +34,10 @@ export const MaterialLinkModal: React.FC<MaterialLinkModalProps> = ({ activityId
                     .from('materials')
                     .select('id, name, type')
                     .eq('teacher_id', session.user.id)
-                    .order('created_at', { ascending: false });
+                    .order('name', { ascending: true });
 
                 if (matError) throw matError;
-                setMaterials(allMaterials || []);
+                setMaterials((allMaterials || []).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR', { numeric: true })));
 
                 // 2. Fetch current links for this activity
                 const { data: links, error: linkError } = await supabase

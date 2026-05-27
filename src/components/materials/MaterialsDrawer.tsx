@@ -73,7 +73,7 @@ export const MaterialsDrawer: React.FC<Props> = ({ isOpen, onClose, activityId }
         .from('materials')
         .select('*')
         .eq('teacher_id', actualTeacherId)
-        .order('created_at', { ascending: false });
+        .order('name', { ascending: true });
 
       // Filtro de Aluno (se não for professor e não houver atividade específica)
       if (!isTeacher && studentInternalId && !activityId) {
@@ -93,7 +93,7 @@ export const MaterialsDrawer: React.FC<Props> = ({ isOpen, onClose, activityId }
 
       const { data, error } = await query;
       if (error) throw error;
-      setMaterials(data || []);
+      setMaterials((data || []).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR', { numeric: true })));
     } catch (err) {
       console.error('Erro ao buscar materiais na drawer:', err);
     } finally {

@@ -111,7 +111,7 @@ export const MaterialsManager: React.FC = () => {
       let query = supabase
         .from('materials')
         .select('*, activities(title)')
-        .order('created_at', { ascending: false });
+        .order('name', { ascending: true });
 
       if (userIsTeacher) {
         query = query.eq('teacher_id', userId);
@@ -157,7 +157,7 @@ export const MaterialsManager: React.FC = () => {
 
       const { data, error } = await query;
       if (error) throw error;
-      setMaterials(data || []);
+      setMaterials((data || []).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR', { numeric: true })));
     } catch (err) {
       console.error('Erro ao buscar materiais:', err);
       toast.error('Não foi possível carregar os materiais.');

@@ -28,7 +28,7 @@ export const GET: APIRoute = async ({ request }) => {
             material_count:activity_materials(count)
         `)
         .eq('teacher_id', user.id)
-        .order('created_at', { ascending: false });
+        .order('title', { ascending: true });
 
     if (dbError) {
         console.error('[API List Activities] DB Error (activities):', dbError);

@@ -366,9 +366,10 @@ export default function AgencyCalendar() {
             .from('materials')
             .select('*')
             .eq('teacher_id', userId)
-            .is('student_id', null); // Only show unshared/private ones in list
+            .is('student_id', null)
+            .order('name', { ascending: true }); // Only show unshared/private ones in list
 
-        setAllTeacherMaterials(mats || []);
+        setAllTeacherMaterials((mats || []).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR', { numeric: true })));
         setShowLogModal(true);
         setActiveMenuId(null);
     };
