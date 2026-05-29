@@ -10,7 +10,7 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - [x] **Correção RLS:** Permissões de banco ajustadas para compartilhamento de perfil seguro.
 - [x] **Infraestrutura SSR:** Adaptador Vercel configurado e deploy em produção realizado com sucesso.
 - **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Gestão Financeira (OK) | Gestão Destrave Draw (OK) | Vozes do Buddy (90/90 - OK) | Laser Real-time (OK).
-- **Última Atualização:** 12/05/2026 (13:45h)
+- **Última Atualização:** 29/05/2026 (10:25h)
 - **GitHub:** `https://github.com/Felipedestrave/destravehub.git` (Branch `main`)
 
 ---
@@ -358,6 +358,10 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
     - [x] **Navegação Direta**: Atalho "Ver no Mapa" dentro do evento da agenda para execução imediata da atividade.
 - [x] **Correções Técnicas**:
     - [x] **Fix de Tipagem**: Resolvido erro de prop `activePath` no layout financeiro.
+- [x] **Refinamento do Módulo MRP (29/05/2026)**:
+    - [x] **Geração Dinâmica de IA**: O gerador do MRP agora respeita o modo "Discursiva", instruindo a IA a não criar múltiplas escolhas e focando apenas no gabarito.
+    - [x] **Revisão Aprimorada**: A tela de revisão (`ReviewScreen`) exibe claramente o "Gabarito" quando a missão é gerada no formato discursivo.
+    - [x] **Jogo (GameScreen)**: Input de texto nativo validado e operante para testes práticos e auto-avaliação do aluno.
 
 ---
 
