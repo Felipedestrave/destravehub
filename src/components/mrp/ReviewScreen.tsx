@@ -69,13 +69,20 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
                             <div className="mrp-card-context">
                                 <strong>Dica:</strong> {q.hint || 'Nenhuma dica disponível.'}
                             </div>
-                            {q.options && q.options.length > 0 && (
+                            {q.options && q.options.length > 0 ? (
                                 <div className="mrp-options-preview">
                                     {q.options.map((opt, oIdx) => (
                                         <div key={oIdx} className={`mrp-opt-p ${opt === q.correctAnswer ? 'correct' : ''}`}>
                                             {opt} {opt === q.correctAnswer && '✓'}
                                         </div>
                                     ))}
+                                </div>
+                            ) : (
+                                <div className="mrp-options-preview" style={{ gridTemplateColumns: '1fr' }}>
+                                    <div className="mrp-opt-p correct" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                        <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.8 }}>Resposta Esperada (Gabarito):</span>
+                                        <span style={{ fontSize: '0.95rem' }}>{q.correctAnswer}</span>
+                                    </div>
                                 </div>
                             )}
                         </div>
