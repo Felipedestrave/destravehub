@@ -9,8 +9,8 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - [x] **Conexão Imersiva:** Aluno agora vê foto e nome do professor no topo do dashboard.
 - [x] **Correção RLS:** Permissões de banco ajustadas para compartilhamento de perfil seguro.
 - [x] **Infraestrutura SSR:** Adaptador Vercel configurado e deploy em produção realizado com sucesso.
-- **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Gestão Financeira (OK) | Gestão Destrave Draw (OK) | Vozes do Buddy (90/90 - OK) | Laser Real-time (OK).
-- **Última Atualização:** 29/05/2026 (10:25h)
+- **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Gestão Financeira (OK) | Gestão Destrave Draw (OK) | Vozes do Buddy (90/90 - OK) | Laser Real-time (OK) | Edição de Revisão MRP/Escuta (OK).
+- **Última Atualização:** 30/05/2026 (06:50h)
 - **GitHub:** `https://github.com/Felipedestrave/destravehub.git` (Branch `main`)
 
 ---
@@ -362,6 +362,26 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
     - [x] **Geração Dinâmica de IA**: O gerador do MRP agora respeita o modo "Discursiva", instruindo a IA a não criar múltiplas escolhas e focando apenas no gabarito.
     - [x] **Revisão Aprimorada**: A tela de revisão (`ReviewScreen`) exibe claramente o "Gabarito" quando a missão é gerada no formato discursivo.
     - [x] **Jogo (GameScreen)**: Input de texto nativo validado e operante para testes práticos e auto-avaliação do aluno.
+
+---
+
+### Fase 13: Edição de Revisão & Layout Fix (30/05/2026) ✅
+- [x] **Fix de Layout — Destrave Draw 🎨:**
+    - [x] **Menu Direito (Efeitos):** Aumentada margem direita (`md:right-8 lg:right-10`) para evitar sobreposição com a scrollbar no Windows.
+    - [x] **Menu Esquerdo (Ferramentas):** Adicionado `max-height: calc(100vh - 120px)` para evitar que a toolbar ultrapasse os limites verticais da tela.
+- [x] **Revisão Editável — Destrave MRP 🎭:**
+    - [x] **Estado Editável Local:** `ReviewScreen.tsx` reescrito com `editableQuestions` em vez de props read-only.
+    - [x] **Edição Inline:** Botão ✏️ por card ativa campos editáveis para Cenário, Tarefa, Dica, Alternativas e Gabarito.
+    - [x] **Seleção de Resposta Correta:** Botão circular verde ao lado de cada alternativa permite trocar a resposta certa.
+    - [x] **Deleção de Cenários:** Botão 🗑️ remove a questão inteira da lista.
+    - [x] **Propagação de Edições:** `MrpApp.tsx` atualizado para que `onSave` e `onStartGame` recebam as questões editadas.
+- [x] **Revisão Editável — Destrave Escuta 🎧:**
+    - [x] **Estado Editável Local:** `EscutaReview.tsx` reescrito com namespacing CSS (`esc-rv-*`) para evitar conflitos com estilos globais.
+    - [x] **Edição Inline:** Botão ✏️ por card ativa campos editáveis para Frase Japonesa, Dica e Alternativas.
+    - [x] **Seleção de Resposta Correta:** Botão circular verde ao lado de cada alternativa permite trocar o `correct_index`.
+    - [x] **Deleção de Questões:** Botão 🗑️ remove a questão inteira.
+    - [x] **Fix de Roteamento:** Corrigido `useEffect` em `EscutaApp.tsx` que sobrescrevia o status `REVIEW` com `PLAYING` quando `editingId` estava presente.
+    - [x] **Propagação de Edições:** `EscutaApp.tsx` atualizado para que `onSave` e `onStartGame` recebam as questões editadas.
 
 ---
 

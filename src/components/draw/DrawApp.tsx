@@ -605,7 +605,7 @@ export default function DrawApp({ isReadOnly = false, senseiData = null }: DrawA
 
                     {/* Controles Rápidos de Efeitos (Direita/Topo) - Somente Professores */}
                     {!isReadOnly && (
-                        <div className="fixed top-4 right-4 md:top-1/2 md:right-4 md:-translate-y-1/2 z-[4000] flex flex-row md:flex-col gap-2 md:gap-3 p-2 md:p-3 bg-white/90 backdrop-blur-xl rounded-full md:rounded-[40px] shadow-2xl border-2 md:border-4 border-slate-dark">
+                        <div className="fixed top-4 right-4 md:top-1/2 md:right-8 lg:right-10 md:-translate-y-1/2 z-[4000] flex flex-row md:flex-col gap-2 md:gap-3 p-2 md:p-3 bg-white/90 backdrop-blur-xl rounded-full md:rounded-[40px] shadow-2xl border-2 md:border-4 border-slate-dark">
                             <button onClick={() => triggerEffect('matsuri')} className="p-1.5 md:p-3 bg-action/10 text-action rounded-full hover:scale-110 transition-all font-bold text-lg md:text-xl" title="Matsuri [1]">🎉</button>
                             <button onClick={() => triggerEffect('rocket')} className="p-1.5 md:p-3 bg-blue-50 text-blue-500 rounded-full hover:scale-110 transition-all font-bold text-lg md:text-xl" title="Sucesso [2]">🚀</button>
                             <button onClick={() => triggerEffect('sweat')} className="p-1.5 md:p-3 bg-blue-50 text-blue-500 rounded-full hover:scale-110 transition-all font-bold text-lg md:text-xl" title="Esforço [3]">💦</button>
@@ -741,12 +741,14 @@ export default function DrawApp({ isReadOnly = false, senseiData = null }: DrawA
                         left: 256px !important;
                         top: 50% !important;
                         transform: translateY(-50%) !important;
+                        max-height: calc(100vh - 120px) !important;
                         transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
                     }
                     [data-sidebar-collapsed="true"] {
                         left: 16px !important;
                         top: 50% !important;
                         transform: translateY(-50%) !important;
+                        max-height: calc(100vh - 120px) !important;
                         transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
                     }
                 }

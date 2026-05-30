@@ -118,8 +118,9 @@ export const MrpApp: React.FC<MrpAppProps> = ({ userToken, assignmentId, editing
         }
     };
 
-    const handleSaveActivity = async (title: string) => {
-        if (!questions.length || !config) return;
+    const handleSaveActivity = async (title: string, editedQuestions?: MrpQuestion[]) => {
+        const finalQuestions = editedQuestions ?? questions;
+        if (!finalQuestions.length || !config) return;
         setIsSaving(true);
         setError(null);
 
@@ -144,7 +145,7 @@ export const MrpApp: React.FC<MrpAppProps> = ({ userToken, assignmentId, editing
                     type: 'mrp',
                     config: {
                         ...config,
-                        questions 
+                        questions: finalQuestions
                     }
                 })
             });
@@ -250,7 +251,7 @@ export const MrpApp: React.FC<MrpAppProps> = ({ userToken, assignmentId, editing
                         questions={questions} 
                         config={config} 
                         onSave={handleSaveActivity}
-                        onStartGame={() => setStatus('PLAYING')}
+                        onStartGame={(editedQs) => { setQuestions(editedQs); setStatus('PLAYING'); }}
                         onCancel={handleRestart}
                         isSaving={isSaving}
                         initialTitle={initialTitle}

@@ -101,7 +101,7 @@ export const EscutaApp: React.FC<EscutaAppProps> = ({
     };
 
     useEffect(() => {
-        if (initialQuestions && initialQuestions.length > 0) {
+        if (initialQuestions && initialQuestions.length > 0 && !editingId) {
             const shuffled = shuffleArray(initialQuestions);
             setAllQuestions(shuffled);
             startWithQuestions(shuffled);
@@ -187,7 +187,8 @@ export const EscutaApp: React.FC<EscutaAppProps> = ({
         }
     }, []);
 
-    const handleSaveActivity = async (title?: string) => {
+    const handleSaveActivity = async (title?: string, editedQuestions?: Question[]) => {
+        const finalQuestions = editedQuestions ?? allQuestions;
         setIsSaving(true);
         try {
             const { data: { session } } = await supabase.auth.getSession();
@@ -206,7 +207,7 @@ export const EscutaApp: React.FC<EscutaAppProps> = ({
                     type: 'escuta',
                     config: {
                         ...config,
-                        questions: allQuestions
+                        questions: finalQuestions
                     }
                 })
             });
@@ -362,7 +363,10 @@ export const EscutaApp: React.FC<EscutaAppProps> = ({
                     questions={allQuestions}
                     config={config}
                     onSave={handleSaveActivity}
-                    onStartGame={() => setStatus('PLAYING')}
+                    onStartGame={(editedQs) => {
+                        setAllQuestions(editedQs);
+                        startWithQuestions(editedQs);
+                    }}
                     onCancel={handleRestart}
                     isSaving={isSaving}
                     initialTitle={initialTitle}
