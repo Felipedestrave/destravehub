@@ -5,7 +5,7 @@ import { MaterialLinkModal } from '../materials/MaterialLinkModal';
 interface Activity {
     id: string;
     title: string;
-    type: 'flashcards' | 'escuta' | 'mrp' | 'draw';
+    type: 'flashcards' | 'escuta' | 'mrp' | 'draw' | 'lego';
     created_at: string;
     config: Record<string, any>;
     folder_id: string | null;
@@ -29,6 +29,7 @@ const TYPE_LABELS: Record<string, { icon: string; label: string; color: string }
     escuta:     { icon: '🎧', label: 'Destrave a Escuta', color: '#8b5cf6' },
     mrp:        { icon: '🎭', label: 'Destrave MRP',    color: '#0ea5e9' },
     draw:       { icon: '🎨', label: 'Destrave Draw',   color: '#58317e' },
+    lego:       { icon: '🧱', label: 'Destrave Lego',   color: '#10b981' },
 };
 
 export default function ActivitiesPanel() {
@@ -51,9 +52,9 @@ export default function ActivitiesPanel() {
     const [generatingLink, setGeneratingLink] = useState(false);
     const [linkingActivity, setLinkingActivity] = useState<Activity | null>(null);
     
-    // Folder State
     const [isCreatingFolder, setIsCreatingFolder] = useState(false);
     const [newFolderName, setNewFolderName] = useState('');
+    const [movingActivity, setMovingActivity] = useState<Activity | null>(null);
 
     const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
         setToast({ msg, type });
@@ -82,7 +83,7 @@ export default function ActivitiesPanel() {
                 if (!actRes.ok) {
                     setError(actData.error || 'Erro ao carregar atividades do servidor.');
                 } else {
-                    setActivities((actData.activities ?? []).sort((a, b) => a.title.localeCompare(b.title, 'pt-BR', { numeric: true })));
+                    setActivities((actData.activities ?? []).sort((a: Activity, b: Activity) => a.title.localeCompare(b.title, 'pt-BR', { numeric: true })));
                     if (actData.students) setStudents(actData.students);
                 }
             } catch (aErr) {
@@ -401,6 +402,9 @@ export default function ActivitiesPanel() {
         } else if (a.type === 'draw') {
             const count = cfg.items?.length || 0;
             baseSub = `${count} slide${count !== 1 ? 's' : ''}`;
+        } else if (a.type === 'lego') {
+            const count = cfg.quantity || cfg.sentences?.length || 0;
+            baseSub = `${count} frase${count !== 1 ? 's' : ''}`;
         }
         
         const matCount = a.material_count?.[0]?.count || 0;
@@ -437,6 +441,7 @@ export default function ActivitiesPanel() {
                         { label: 'Destrave Draw', desc: 'Aulas com slides interativos', emoji: '🎨', color: '#58317e', href: '/draw' },
                         { label: 'Destrave a Escuta', desc: 'Exercícios de compreensão auditiva', emoji: '🎧', color: '#8b5cf6', href: '/dashboard/missions/escuta' },
                         { label: 'Destrave MRP', desc: 'Múltipla escolha e produção textual', emoji: '🎭', color: '#0ea5e9', href: '/dashboard/missions/mrp' },
+                        { label: 'Destrave Lego', desc: 'Sintaxe e estrutura', emoji: '🧱', color: '#10b981', href: '/dashboard/missions/lego' },
                         { label: 'Destrave Cards', desc: 'Flashcards de vocabulário e kanji', emoji: '🃏', color: '#f97316', href: '/dashboard/missions/flashcards' },
                         { label: 'Destrave 1.0', desc: 'Lições estruturadas com texto', emoji: '📖', color: '#10b981', href: '/dashboard/missions/destrave1' },
                     ].map(tool => (
@@ -494,6 +499,36 @@ export default function ActivitiesPanel() {
                         <div className="ap-folder-modal-actions">
                             <button className="cancel" onClick={() => setIsCreatingFolder(false)}>Cancelar</button>
                             <button className="confirm" onClick={handleCreateFolder}>Criar Pasta</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {movingActivity && (
+                <div className="ap-folder-modal-overlay" onClick={() => setMovingActivity(null)}>
+                    <div className="ap-folder-modal" onClick={e => e.stopPropagation()}>
+                        <h3>Mover "{movingActivity.title}"</h3>
+                        <div className="ap-folder-list" style={{ maxHeight: '300px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem' }}>
+                            <button 
+                                className={`ap-folder-select-btn ${!movingActivity.folder_id ? 'active' : ''}`}
+                                onClick={() => { handleMoveToFolder(movingActivity.id, null); setMovingActivity(null); }}
+                                style={{ textAlign: 'left', padding: '0.75rem', borderRadius: '0.5rem', background: !movingActivity.folder_id ? 'var(--color-ice)' : 'white', border: '1px solid var(--color-slate-border)', fontWeight: 'bold' }}
+                            >
+                                🏠 Início (Raiz)
+                            </button>
+                            {folders.map(f => (
+                                <button 
+                                    key={f.id}
+                                    className={`ap-folder-select-btn ${movingActivity.folder_id === f.id ? 'active' : ''}`}
+                                    onClick={() => { handleMoveToFolder(movingActivity.id, f.id); setMovingActivity(null); }}
+                                    style={{ textAlign: 'left', padding: '0.75rem', borderRadius: '0.5rem', background: movingActivity.folder_id === f.id ? 'var(--color-ice)' : 'white', border: '1px solid var(--color-slate-border)' }}
+                                >
+                                    📁 {f.name}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="ap-folder-modal-actions mt-4" style={{ marginTop: '1.5rem' }}>
+                            <button className="cancel" style={{ width: '100%' }} onClick={() => setMovingActivity(null)}>Cancelar</button>
                         </div>
                     </div>
                 </div>
@@ -604,6 +639,16 @@ export default function ActivitiesPanel() {
                                                     <button onClick={() => { handleRename(a.id, a.title); setActiveMenuId(null); }}>
                                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                                                         Renomear
+                                                    </button>
+                                                    {a.folder_id && (
+                                                        <button onClick={() => { handleMoveToFolder(a.id, null); setActiveMenuId(null); }}>
+                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                                                            Tirar desta pasta
+                                                        </button>
+                                                    )}
+                                                    <button onClick={() => { setMovingActivity(a); setActiveMenuId(null); }}>
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 9l4-4 4 4m-4-4v14"/></svg>
+                                                        Mover...
                                                     </button>
                                                     <div className="ap-menu-divider" />
                                                     <button className="delete" onClick={() => { handleDelete(a.id, a.title); setActiveMenuId(null); }}>

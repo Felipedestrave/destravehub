@@ -1,0 +1,113 @@
+---
+import DashboardLayout from '../../../layouts/DashboardLayout.astro';
+import { LegoApp } from '../../../components/lego/LegoApp.tsx';
+import { supabaseAdmin } from '../../../lib/supabase-admin';
+
+const assignmentId = Astro.url.searchParams.get('assignment');
+const editingId = Astro.url.searchParams.get('edit');
+const publicAccess = Astro.url.searchParams.has('public');
+const teacherId = Astro.url.searchParams.get('teacher');
+
+let initialSentences = undefined;
+let initialConfig = undefined;
+let initialTitle = undefined;
+let activityId = undefined;
+let senseiWhatsapp = teacherId; // Passed to the app for WhatsApp integration
+
+if (assignmentId) {
+    const { data: assignment } = await supabaseAdmin
+        .from('assignments')
+        .select('*, activities(*)')
+        .eq('id', assignmentId)
+        .single();
+    
+    if (assignment && assignment.activities) {
+        const rawConfig = assignment.activities.config as any;
+        initialTitle = assignment.activities.title;
+        activityId = assignment.activities.id;
+        
+        if (rawConfig?.sentences && Array.isArray(rawConfig.sentences)) {
+            initialSentences = rawConfig.sentences;
+            initialConfig = {
+               context: rawConfig.context || '',
+               quantity: rawConfig.quantity || rawConfig.sentences.length
+            };
+        }
+    }
+}
+
+if (editingId) {
+    const { data: activity } = await supabaseAdmin
+        .from('activities')
+        .select('*')
+        .eq('id', editingId)
+        .single();
+    
+    if (activity) {
+        const rawConfig = activity.config as any;
+        initialTitle = activity.title;
+        activityId = activity.id;
+        if (rawConfig?.sentences && Array.isArray(rawConfig.sentences)) {
+            initialSentences = rawConfig.sentences;
+            initialConfig = {
+               context: rawConfig.context || '',
+               quantity: rawConfig.quantity || rawConfig.sentences.length
+            };
+        }
+    }
+}
+---
+
+<DashboardLayout title="Destrave Lego — Sintaxe e Estrutura" activeNav="lego">
+  <div class="page-header">
+    <div class="breadcrumb">
+      <a href="/dashboard">Dashboard</a>
+      <span class="separator">/</span>
+      <span class="current">Destrave Lego</span>
+    </div>
+    <div class="title-section">
+      <h1 class="page-title">Destrave Lego 🧱</h1>
+      <p class="page-subtitle">
+        Crie blocos sintáticos inteligentes e ensine estrutura gramatical de forma tátil e visual.
+      </p>
+    </div>
+  </div>
+
+  <LegoApp 
+    client:only="react" 
+    initialConfig={initialConfig as any} 
+    initialSentences={initialSentences} 
+    editingId={editingId || undefined}
+    assignmentId={assignmentId || undefined}
+    initialTitle={initialTitle}
+    publicAccess={publicAccess}
+    activityId={activityId}
+    senseiWhatsapp={senseiWhatsapp}
+  />
+</DashboardLayout>
+
+<style>
+  .page-header { margin-bottom: 1.5rem; }
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-slate-mid);
+    margin-bottom: 1rem;
+  }
+  .breadcrumb a { color: var(--color-slate-mid); text-decoration: none; transition: color 150ms ease; }
+  .breadcrumb a:hover { color: var(--color-brand); }
+  .breadcrumb .separator { color: var(--color-slate-border); }
+  .breadcrumb .current { color: var(--color-slate-dark); }
+  .title-section { display: flex; flex-direction: column; gap: 0.25rem; }
+  .page-title {
+    font-family: var(--font-outfit);
+    font-size: 1.875rem;
+    font-weight: 800;
+    color: var(--color-slate-dark);
+    margin: 0;
+  }
+  .page-subtitle { font-size: 1rem; color: var(--color-slate-mid); margin: 0; }
+</style>

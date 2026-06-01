@@ -4,6 +4,7 @@ import { EscutaApp } from '@/components/escuta/EscutaApp.tsx';
 import { MrpApp } from '@/components/mrp/MrpApp.tsx';
 import { CardViewer } from '@/components/flashcards/CardViewer.tsx';
 import { Destrave1App } from '@/components/destrave1/Destrave1App.tsx';
+import { LegoApp } from '@/components/lego/LegoApp.tsx';
 import DrawApp from '@/components/draw/DrawApp.tsx';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
@@ -52,6 +53,8 @@ let initialQuestions = [];
 let initialConfig = null;
 let flashcardsCards = [];
 let destrave1Config = null;
+let legoSentences = [];
+let legoConfig = null;
 
 // Preparação de dados específica por tipo
 if (type === 'escuta' || type === 'mrp') {
@@ -66,6 +69,14 @@ if (type === 'escuta' || type === 'mrp') {
 } else if (type === 'destrave1') {
     destrave1Config = rawConfig as any;
     initialQuestions = destrave1Config?.questions || [];
+} else if (type === 'lego') {
+    if (rawConfig?.sentences) {
+        legoSentences = rawConfig.sentences;
+        legoConfig = {
+           context: rawConfig.context || '',
+           quantity: rawConfig.quantity || rawConfig.sentences.length
+        };
+    }
 }
 
 const teacherId = assignment.activities.teacher_id;
@@ -127,6 +138,20 @@ const senseiData = teacherProfile ? {
                         initialTitle={assignment.activities.title}
                         initialConfig={destrave1Config}
                         publicAccess={true}
+                    />
+                </div>
+            )}
+            {type === 'lego' && (
+                <div class="max-w-5xl mx-auto py-8">
+                    <LegoApp 
+                        client:only="react" 
+                        initialSentences={legoSentences}
+                        initialConfig={legoConfig}
+                        assignmentId={isTest ? undefined : assignment.id}
+                        initialTitle={assignment.activities.title}
+                        activityId={assignment.activities.id}
+                        publicAccess={true}
+                        senseiWhatsapp={senseiData?.whatsapp}
                     />
                 </div>
             )}

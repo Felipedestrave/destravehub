@@ -61,6 +61,8 @@ export default function MissionList() {
       case 'escuta': return '🎧';
       case 'mrp': return '🎭';
       case 'flashcards': return '🃏';
+      case 'lego': return '🧱';
+      case 'destrave1': return '📖';
       default: return '📄';
     }
   };
@@ -76,6 +78,7 @@ export default function MissionList() {
     if (type === 'mrp') window.location.href = `/dashboard/missions/mrp?assignment=${mission.id}`;
     if (type === 'flashcards') window.location.href = `/dashboard/missions/flashcards?assignment=${mission.id}`;
     if (type === 'destrave1') window.location.href = `/dashboard/missions/destrave1?assignment=${mission.id}`;
+    if (type === 'lego') window.location.href = `/dashboard/missions/lego?assignment=${mission.id}`;
   };
 
   if (loading) {
