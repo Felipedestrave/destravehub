@@ -58,6 +58,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ sentences, onComplete, o
     const [board, setBoard] = useState<LegoBlock[]>([]);
     const [score, setScore] = useState(0);
     const [attempts, setAttempts] = useState(0);
+    const [status, setStatus] = useState<'playing' | 'correct' | 'revealed'>('playing');
 
     const currentSentence = sentences[currentIndex];
 
@@ -71,22 +72,26 @@ export const GameScreen: React.FC<GameScreenProps> = ({ sentences, onComplete, o
             setAvailable(shuffleArray([...currentSentence.blocks]));
             setBoard([]);
             setAttempts(0);
+            setStatus('playing');
         }
     }, [currentSentence]);
 
     if (!currentSentence) return null;
 
     const moveToBoard = (block: LegoBlock) => {
+        if (status !== 'playing') return;
         setAvailable(prev => prev.filter(b => b.id !== block.id));
         setBoard(prev => [...prev, block]);
     };
 
     const moveToAvailable = (block: LegoBlock) => {
+        if (status !== 'playing') return;
         setBoard(prev => prev.filter(b => b.id !== block.id));
         setAvailable(prev => [...prev, block]);
     };
 
     const handleDragEnd = (event: DragEndEvent) => {
+        if (status !== 'playing') return;
         const { active, over } = event;
         if (over && active.id !== over.id) {
             setBoard((items) => {
@@ -94,6 +99,21 @@ export const GameScreen: React.FC<GameScreenProps> = ({ sentences, onComplete, o
                 const newIndex = items.findIndex(i => i.id === over.id);
                 return arrayMove(items, oldIndex, newIndex);
             });
+        }
+    };
+
+    const handleRevealAnswer = () => {
+        setBoard([...currentSentence.blocks]);
+        setAvailable([]);
+        onTriggerBuddy('error', undefined, 'Aqui está a resposta correta! Vamos continuar praticando.');
+        setStatus('revealed');
+    };
+
+    const handleNext = () => {
+        if (currentIndex + 1 < sentences.length) {
+            setCurrentIndex(prev => prev + 1);
+        } else {
+            onComplete(score);
         }
     };
 
@@ -109,14 +129,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ sentences, onComplete, o
             const points = attempts === 0 ? 20 : (attempts === 1 ? 10 : 5);
             setScore(prev => prev + points);
             onTriggerBuddy('success', 'success');
-            
-            setTimeout(() => {
-                if (currentIndex + 1 < sentences.length) {
-                    setCurrentIndex(prev => prev + 1);
-                } else {
-                    onComplete(score + points);
-                }
-            }, 2000);
+            setStatus('correct');
         } else {
             setAttempts(prev => prev + 1);
             
@@ -183,20 +196,47 @@ export const GameScreen: React.FC<GameScreenProps> = ({ sentences, onComplete, o
 
             {/* Actions */}
             <div className="flex gap-4 mt-4">
-                <button
-                    onClick={() => { setAvailable(shuffleArray([...currentSentence.blocks])); setBoard([]); }}
-                    className="flex-1 py-4 rounded-2xl bg-slate-100 text-slate-mid font-outfit font-bold text-lg flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors"
-                >
-                    <RotateCcw size={20} />
-                    Resetar
-                </button>
-                <button
-                    onClick={handleVerify}
-                    className="flex-[2] py-4 rounded-2xl bg-action text-white font-outfit font-extrabold text-lg flex items-center justify-center gap-2 hover:brightness-110 shadow-md shadow-action/20 transition-all active:scale-95"
-                >
-                    <Check size={20} />
-                    Verificar
-                </button>
+                {status === 'playing' ? (
+                    <>
+                        <button
+                            onClick={() => { setAvailable(shuffleArray([...currentSentence.blocks])); setBoard([]); }}
+                            className="flex-1 py-4 rounded-2xl bg-slate-100 text-slate-mid font-outfit font-bold text-lg flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors"
+                        >
+                            <RotateCcw size={20} />
+                            Resetar
+                        </button>
+                        
+                        {attempts >= 2 && (
+                            <button
+                                onClick={handleRevealAnswer}
+                                className="flex-[0.8] py-4 rounded-2xl bg-amber-100 text-amber-700 font-outfit font-bold text-lg flex items-center justify-center gap-2 hover:bg-amber-200 transition-colors px-2"
+                                title="Mostrar Resposta"
+                            >
+                                <SkipForward size={20} />
+                                <span className="hidden sm:inline">Pular</span>
+                            </button>
+                        )}
+
+                        <button
+                            onClick={handleVerify}
+                            className="flex-[2] py-4 rounded-2xl bg-action text-white font-outfit font-extrabold text-lg flex items-center justify-center gap-2 hover:brightness-110 shadow-md shadow-action/20 transition-all active:scale-95"
+                        >
+                            <Check size={20} />
+                            Verificar
+                        </button>
+                    </>
+                ) : (
+                    <button
+                        onClick={handleNext}
+                        className="w-full py-4 rounded-2xl bg-brand text-white font-outfit font-extrabold text-lg flex items-center justify-center gap-2 hover:brightness-110 shadow-md shadow-brand/20 transition-all active:scale-95"
+                    >
+                        {currentIndex + 1 < sentences.length ? (
+                            <>Próximo <ArrowRight size={20} /></>
+                        ) : (
+                            <>Finalizar <Check size={20} /></>
+                        )}
+                    </button>
+                )}
             </div>
         </div>
     );

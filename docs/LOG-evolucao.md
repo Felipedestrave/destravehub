@@ -10,7 +10,7 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - [x] **Correção RLS:** Permissões de banco ajustadas para compartilhamento de perfil seguro.
 - [x] **Infraestrutura SSR:** Adaptador Vercel configurado e deploy em produção realizado com sucesso.
 - **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Gestão Financeira (OK) | Gestão Destrave Draw (OK) | Vozes do Buddy (90/90 - OK) | Laser Real-time (OK) | Edição de Revisão MRP/Escuta (OK).
-- **Última Atualização:** 30/05/2026 (06:50h)
+- **Última Atualização:** 02/06/2026 (12:25h)
 - **GitHub:** `https://github.com/Felipedestrave/destravehub.git` (Branch `main`)
 
 ---
@@ -382,6 +382,9 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
     - [x] **Deleção de Questões:** Botão 🗑️ remove a questão inteira.
     - [x] **Fix de Roteamento:** Corrigido `useEffect` em `EscutaApp.tsx` que sobrescrevia o status `REVIEW` com `PLAYING` quando `editingId` estava presente.
     - [x] **Propagação de Edições:** `EscutaApp.tsx` atualizado para que `onSave` e `onStartGame` recebam as questões editadas.
+- [x] **Melhoria UX — Destrave Lego 🧩:**
+    - [x] **Avanço Manual:** Aluno agora tem controle total sobre quando avançar para a próxima etapa (botão "Próximo" explícito).
+    - [x] **Sistema de Pular (Show Answer):** Após 2 tentativas erradas, botão "Pular" é exibido. Ele organiza a frase e permite visualizar a resposta correta sem pontuar.
 
 ---
 
