@@ -9,6 +9,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -126,15 +127,30 @@ export default function AuthForm({ mode }: AuthFormProps) {
                     <label className="block text-sm font-semibold text-[var(--color-slate-dark)] mb-1.5">
                         Senha
                     </label>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        minLength={6}
-                        className="w-full px-4 py-3 rounded-xl border border-[var(--color-slate-border)] bg-[var(--color-ice)] text-[var(--color-slate-dark)] text-sm focus:outline-none focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-brand)]/10 transition-all"
-                        placeholder="••••••••"
-                    />
+                    <div className="relative">
+                        <input
+                            type={showPassword ? 'text' : 'password'}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            minLength={6}
+                            className="w-full px-4 py-3 pr-12 rounded-xl border border-[var(--color-slate-border)] bg-[var(--color-ice)] text-[var(--color-slate-dark)] text-sm focus:outline-none focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-brand)]/10 transition-all"
+                            placeholder="••••••••"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-slate-mid)] hover:text-[var(--color-slate-dark)] focus:outline-none flex items-center justify-center p-1"
+                            tabIndex={-1}
+                            title={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                        >
+                            {showPassword ? (
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                            ) : (
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            )}
+                        </button>
+                    </div>
                 </div>
 
                 <button

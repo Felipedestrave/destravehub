@@ -394,6 +394,39 @@ export const StudentDetail: React.FC<Props> = ({ studentId }) => {
                   </div>
               </div>
 
+              {/* DESTRAVE KANA PROGRESS */}
+              <h2 className="font-outfit text-xl font-black text-slate-dark flex items-center gap-2 px-2 pt-4">
+                <span className="text-base">🇯🇵</span> Destrave Kana
+              </h2>
+              <div className="bg-white rounded-3xl border-2 border-slate-border p-6 shadow-sm space-y-4">
+                  <div className="space-y-2">
+                      <div className="flex justify-between items-center text-xs font-bold text-slate-mid">
+                          <span>HIRAGANA (🎐)</span>
+                          <span>{student.metadata?.completed_kana_lessons?.hiragana?.length || 0} / 18</span>
+                      </div>
+                      <div className="h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-border">
+                          <div className="h-full bg-brand" style={{ width: `${Math.min(100, ((student.metadata?.completed_kana_lessons?.hiragana?.length || 0) / 18) * 100)}%` }} />
+                      </div>
+                  </div>
+                  <div className="space-y-2">
+                      <div className="flex justify-between items-center text-xs font-bold text-slate-mid">
+                          <span>KATAKANA (🗡️)</span>
+                          <span>{student.metadata?.completed_kana_lessons?.katakana?.length || 0} / 18</span>
+                      </div>
+                      <div className="h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-border">
+                          <div className="h-full bg-blue-500" style={{ width: `${Math.min(100, ((student.metadata?.completed_kana_lessons?.katakana?.length || 0) / 18) * 100)}%` }} />
+                      </div>
+                  </div>
+                  <div className="p-3.5 bg-ice rounded-2xl border border-slate-border/50 text-[11px] text-slate-mid font-semibold leading-relaxed">
+                      <p className="font-bold text-brand uppercase mb-1">Dica Pedagógica</p>
+                      {student.metadata?.completed_kana_lessons?.hiragana?.length > 0 || student.metadata?.completed_kana_lessons?.katakana?.length > 0 ? (
+                        <span>O aluno está progredindo. Se ele travar em alguma letra, a API de exercícios aceita parâmetros para criar revisões customizadas.</span>
+                      ) : (
+                        <span>O aluno ainda não iniciou o Destrave Kana. Incentive-o a treinar!</span>
+                      )}
+                  </div>
+              </div>
+
               {/* WALLET CONTROL */}
               <h2 className="font-outfit text-xl font-black text-slate-dark flex items-center gap-2 px-2 pt-4">
                 <TrendingUp size={20} className="text-brand" /> Central de Economia
