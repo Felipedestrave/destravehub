@@ -21,24 +21,57 @@ export const KANA_TO_ROMAJI: Record<string, string> = {
   'は': 'ha', 'ひ': 'hi', 'ふ': 'fu', 'へ': 'he', 'ほ': 'ho',
   'ま': 'ma', 'み': 'mi', 'む': 'mu', 'め': 'me', 'も': 'mo',
   'や': 'ya', 'ゆ': 'yu', 'よ': 'yo',
-  'ら': 'ra', 'ri': 'ri', 'る': 'ru', 'れ': 're', 'ro': 'ro', 'ろ': 'ro',
+  'ら': 'ra', 'り': 'ri', 'る': 'ru', 'れ': 're', 'ろ': 'ro',
   'わ': 'wa', 'を': 'wo', 'ん': 'n',
+  'が': 'ga', 'ぎ': 'gi', 'ぐ': 'gu', 'げ': 'ge', 'ご': 'go',
+  'ざ': 'za', 'じ': 'ji', 'ず': 'zu', 'ぜ': 'ze', 'ぞ': 'zo',
+  'だ': 'da', 'ぢ': 'ji', 'づ': 'zu', 'で': 'de', 'ど': 'do',
+  'ば': 'ba', 'び': 'bi', 'ぶ': 'bu', 'べ': 'be', 'ぼ': 'bo',
+  'ぱ': 'pa', 'ぴ': 'pi', 'ぷ': 'pu', 'ぺ': 'pe', 'ぽ': 'po',
+  'きゃ': 'kya', 'きゅ': 'kyu', 'きょ': 'kyo',
+  'しゃ': 'sha', 'しゅ': 'shu', 'しょ': 'sho',
+  'ちゃ': 'cha', 'ちゅ': 'chu', 'ちょ': 'cho',
+  'にゃ': 'nya', 'にゅ': 'nyu', 'にょ': 'nyo',
+  'ひゃ': 'hya', 'ひゅ': 'hyu', 'ひょ': 'hyo',
+  'みゃ': 'mya', 'みゅ': 'myu', 'みょ': 'myo',
+  'りゃ': 'rya', 'りゅ': 'ryu', 'りょ': 'ryo',
+  'ぎゃ': 'gya', 'ぎゅ': 'gyu', 'ぎょ': 'gyo',
+  'じゃ': 'ja', 'じゅ': 'ju', 'じょ': 'jo',
+  'びゃ': 'bya', 'びゅ': 'byu', 'びょ': 'byo',
+  'ぴゃ': 'pya', 'ぴゅ': 'pyu', 'ぴょ': 'pyo',
 
   // Katakana
   'ア': 'a', 'イ': 'i', 'ウ': 'u', 'エ': 'e', 'オ': 'o',
   'カ': 'ka', 'キ': 'ki', 'ク': 'ku', 'ケ': 'ke', 'コ': 'ko',
   'サ': 'sa', 'シ': 'shi', 'ス': 'su', 'セ': 'se', 'ソ': 'so',
   'タ': 'ta', 'チ': 'chi', 'ツ': 'tsu', 'テ': 'te', 'ト': 'to',
-  'ナ': 'na', 'ニ': 'ni', 'ヌ': 'nu', 'ne': 'ne', 'ネ': 'ne', 'ノ': 'no',
+  'ナ': 'na', 'ニ': 'ni', 'ヌ': 'nu', 'ネ': 'ne', 'ノ': 'no',
   'ハ': 'ha', 'ヒ': 'hi', 'フ': 'fu', 'ヘ': 'he', 'ホ': 'ho',
   'マ': 'ma', 'ミ': 'mi', 'ム': 'mu', 'メ': 'me', 'モ': 'mo',
   'ヤ': 'ya', 'ユ': 'yu', 'ヨ': 'yo',
   'ラ': 'ra', 'リ': 'ri', 'ル': 'ru', 'レ': 're', 'ロ': 'ro',
-  'ワ': 'wa', 'ヲ': 'wo', 'ン': 'n'
+  'ワ': 'wa', 'ヲ': 'wo', 'ン': 'n',
+  'ガ': 'ga', 'ギ': 'gi', 'グ': 'gu', 'ゲ': 'ge', 'ゴ': 'go',
+  'ザ': 'za', 'ジ': 'ji', 'ズ': 'zu', 'ゼ': 'ze', 'ゾ': 'zo',
+  'ダ': 'da', 'ヂ': 'ji', 'ヅ': 'zu', 'デ': 'de', 'ド': 'do',
+  'バ': 'ba', 'ビ': 'bi', 'ブ': 'bu', 'ベ': 'be', 'ボ': 'bo',
+  'パ': 'pa', 'ピ': 'pi', 'プ': 'pu', 'ペ': 'pe', 'ポ': 'po',
+  'キャ': 'kya', 'キュ': 'kyu', 'キョ': 'kyo',
+  'シャ': 'sha', 'シュ': 'shu', 'ショ': 'sho',
+  'チャ': 'cha', 'チュ': 'chu', 'チョ': 'cho',
+  'ニャ': 'nya', 'ニュ': 'nyu', 'ニョ': 'nyo',
+  'ヒャ': 'hya', 'ヒュ': 'hyu', 'ヒョ': 'hyo',
+  'ミャ': 'mya', 'ミュ': 'myu', 'ミョ': 'myo',
+  'リャ': 'rya', 'リュ': 'ryu', 'リョ': 'ryo',
+  'ギャ': 'gya', 'ギュ': 'gyu', 'ギョ': 'gyo',
+  'ジャ': 'ja', 'ジュ': 'ju', 'ジョ': 'jo',
+  'ビャ': 'bya', 'ビュ': 'byu', 'ビョ': 'byo',
+  'ピャ': 'pya', 'ピュ': 'pyu', 'ピョ': 'pyo'
 };
 
 export function KanaDraw({ char }: KanaDrawProps) {
   const [paths, setPaths] = useState<string[]>([]);
+  const [charIndices, setCharIndices] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [key, setKey] = useState(0);
@@ -49,36 +82,51 @@ export function KanaDraw({ char }: KanaDrawProps) {
   const pathRefs = useRef<(SVGPathElement | null)[]>([]);
   const cancelExportRef = useRef(false);
 
-  // Fetch and parse character stroke paths dynamically from KanjiVG via CDN
   const fetchCharacterPaths = async () => {
     try {
       setLoading(true);
       setError(false);
       setPaths([]);
+      setCharIndices([]);
       setStrokeLengths([]);
 
-      const hexCode = char.charCodeAt(0).toString(16).toLowerCase().padStart(5, '0');
-      const url = `https://cdn.jsdelivr.net/gh/kanjivg/kanjivg@master/kanji/${hexCode}.svg`;
+      const fetchCharPaths = async (c: string) => {
+        const hexCode = c.charCodeAt(0).toString(16).toLowerCase().padStart(5, '0');
+        const url = `https://cdn.jsdelivr.net/gh/kanjivg/kanjivg@master/kanji/${hexCode}.svg`;
 
-      const res = await fetch(url);
-      if (!res.ok) {
-        throw new Error('Falha ao carregar os vetores do caractere.');
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Falha ao carregar os vetores de ${c}.`);
+
+        const svgText = await res.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(svgText, 'image/svg+xml');
+        const pathElements = Array.from(doc.querySelectorAll('path'));
+
+        const strokeCoordinates = pathElements
+          .map(el => el.getAttribute('d') || '')
+          .filter(Boolean);
+
+        if (strokeCoordinates.length === 0) {
+          throw new Error(`Nenhum traço encontrado para ${c}.`);
+        }
+        return strokeCoordinates;
+      };
+
+      const allPaths: string[] = [];
+      const indices: number[] = [];
+
+      const p1 = await fetchCharPaths(char[0]);
+      allPaths.push(...p1);
+      indices.push(...Array(p1.length).fill(0));
+
+      if (char.length > 1) {
+        const p2 = await fetchCharPaths(char[1]);
+        allPaths.push(...p2);
+        indices.push(...Array(p2.length).fill(1));
       }
 
-      const svgText = await res.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(svgText, 'image/svg+xml');
-      const pathElements = Array.from(doc.querySelectorAll('path'));
-
-      const strokeCoordinates = pathElements
-        .map(el => el.getAttribute('d') || '')
-        .filter(Boolean);
-
-      if (strokeCoordinates.length === 0) {
-        throw new Error('Nenhum traço encontrado para este caractere.');
-      }
-
-      setPaths(strokeCoordinates);
+      setPaths(allPaths);
+      setCharIndices(indices);
       setKey(prev => prev + 1);
     } catch (err: any) {
       console.error('[Fetch SVG Error]:', err);
@@ -173,11 +221,23 @@ export function KanaDraw({ char }: KanaDrawProps) {
         ctx.moveTo(width/2, 0); ctx.lineTo(width/2, height);
         ctx.stroke();
 
-        let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 109 109">`;
+        const isYoon = char.length > 1;
+        const viewBoxStr = isYoon ? "0 0 145 109" : "0 0 109 109";
+        const getTransform = (charIdx: number) => {
+          if (!isYoon) return "";
+          if (charIdx === 0) return "translate(0, 5) scale(0.85)";
+          return "translate(75, 30) scale(0.6)";
+        };
+
+        let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="${viewBoxStr}">`;
         
         // Traços de fundo translúcidos
         svgContent += `<g stroke="#e2e8f0" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round">`;
-        paths.forEach(p => { svgContent += `<path d="${p}" />`; });
+        paths.forEach((p, i) => { 
+          const tf = getTransform(charIndices[i]);
+          const tfAttr = tf ? ` transform="${tf}"` : "";
+          svgContent += `<path d="${p}"${tfAttr} />`; 
+        });
         svgContent += `</g>`;
 
         // Traços desenhados progressivamente
@@ -193,7 +253,9 @@ export function KanaDraw({ char }: KanaDrawProps) {
             }
             const offset = length * (1 - progress);
             if (progress > 0) {
-                 svgContent += `<path d="${p}" stroke-dasharray="${length} ${length}" stroke-dashoffset="${offset}" />`;
+                 const tf = getTransform(charIndices[i]);
+                 const tfAttr = tf ? ` transform="${tf}"` : "";
+                 svgContent += `<path d="${p}"${tfAttr} stroke-dasharray="${length} ${length}" stroke-dashoffset="${offset}" />`;
             }
         });
         svgContent += `</g></svg>`;
@@ -320,25 +382,28 @@ export function KanaDraw({ char }: KanaDrawProps) {
             key={key}
             width="180" 
             height="180" 
-            viewBox="0 0 109 109" 
+            viewBox={char.length > 1 ? "0 0 145 109" : "0 0 109 109"}
             className="relative z-10"
           >
             {/* Guide layers (desaturated backing strokes) */}
             <g stroke="#cbd5e1" strokeWidth="5.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-              {paths.map((d, index) => (
-                <path key={`bg-${index}`} d={d} />
-              ))}
+              {paths.map((d, index) => {
+                const tf = char.length > 1 ? (charIndices[index] === 0 ? "translate(0, 5) scale(0.85)" : "translate(75, 30) scale(0.6)") : undefined;
+                return <path key={`bg-${index}`} d={d} transform={tf} />;
+              })}
             </g>
 
             {/* Animating active layers */}
             <g stroke="var(--color-slate-dark)" strokeWidth="5.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
               {strokeLengths.length > 0 && isPlaying && paths.map((d, index) => {
                  const { start, duration, length } = meta[index];
+                 const tf = char.length > 1 ? (charIndices[index] === 0 ? "translate(0, 5) scale(0.85)" : "translate(75, 30) scale(0.6)") : undefined;
                  return (
                    <path
                      key={`stroke-${index}`}
                      ref={el => pathRefs.current[index] = el}
                      d={d}
+                     transform={tf}
                      style={{
                        strokeDasharray: length,
                        strokeDashoffset: length,
@@ -350,14 +415,18 @@ export function KanaDraw({ char }: KanaDrawProps) {
               })}
               
               {/* Measurement initialization nodes */}
-              {strokeLengths.length === 0 && paths.map((d, index) => (
-                 <path
-                  key={`measure-${index}`}
-                  ref={el => pathRefs.current[index] = el}
-                  d={d}
-                  opacity="0"
-                 />
-              ))}
+              {strokeLengths.length === 0 && paths.map((d, index) => {
+                 const tf = char.length > 1 ? (charIndices[index] === 0 ? "translate(0, 5) scale(0.85)" : "translate(75, 30) scale(0.6)") : undefined;
+                 return (
+                   <path
+                    key={`measure-${index}`}
+                    ref={el => pathRefs.current[index] = el}
+                    d={d}
+                    transform={tf}
+                    opacity="0"
+                   />
+                 );
+              })}
             </g>
 
             {/* Stroke order number circles */}
@@ -367,11 +436,13 @@ export function KanaDraw({ char }: KanaDrawProps) {
               const startX = parseFloat(startMatch[1]);
               const startY = parseFloat(startMatch[2]);
               const { start } = meta[index];
+              const tf = char.length > 1 ? (charIndices[index] === 0 ? "translate(0, 5) scale(0.85)" : "translate(75, 30) scale(0.6)") : undefined;
 
               return (
                 <g
                   key={`num-${index}`}
                   className="animate-fade-in"
+                  transform={tf}
                   style={{
                     animationDelay: `${start}ms`,
                     animationFillMode: 'both'

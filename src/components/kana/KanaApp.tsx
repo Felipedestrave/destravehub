@@ -18,40 +18,40 @@ const LESSONS: Lesson[] = [
   { id: 2, name: 'Família K (か-こ)', description: 'Consoante K combinada com as vogais', chars: ['か', 'き', 'く', 'け', 'こ'], moduleType: 'hiragana' },
   { id: 3, name: 'Família S (さ-そ)', description: 'Consoante S (com sh) combinada com as vogais', chars: ['さ', 'し', 'す', 'せ', 'そ'], moduleType: 'hiragana' },
   { id: 4, name: 'Família T (た-と)', description: 'Consoante T (com ch/tsu) combinada com as vogais', chars: ['た', 'ち', 'つ', 'て', 'と'], moduleType: 'hiragana' },
-  { id: 5, name: 'Família N (な-の)', description: 'Consoante N combinada com as vogais', chars: ['na', 'ni', 'nu', 'ne', 'no'], moduleType: 'hiragana' }, // placeholder chars
-  { id: 6, name: 'Família H (は-ほ)', description: 'Consoante H (com f) combinada com as vogais', chars: ['ha', 'hi', 'fu', 'he', 'ho'], moduleType: 'hiragana' },
-  { id: 7, name: 'Família M (ま-も)', description: 'Consoante M combinada com as vogais', chars: ['ma', 'mi', 'mu', 'me', 'mo'], moduleType: 'hiragana' },
-  { id: 8, name: 'Família Y (や-よ)', description: 'Semiconsante Y (apenas 3 sons)', chars: ['ya', 'yu', 'yo'], moduleType: 'hiragana' },
-  { id: 9, name: 'Família R (ら-ろ)', description: 'Sons vibrantes do R japonês', chars: ['ra', 'ri', 'ru', 're', 'ro'], moduleType: 'hiragana' },
-  { id: 10, name: 'Família W/N (わ,を,ん)', description: 'Vogais modificadas e a consoante isolada N', chars: ['wa', 'wo', 'n'], moduleType: 'hiragana' },
-  { id: 11, name: 'Dakuten G & Z', description: 'Famílias com aspas: G (ga-go) e Z (za-zo)', chars: ['ga', 'gi', 'gu', 'ge', 'go', 'za', 'ji', 'zu', 'ze', 'zo'], moduleType: 'hiragana' },
-  { id: 12, name: 'Dakuten D & B', description: 'Famílias com aspas: D (da-do) e B (ba-bo)', chars: ['da', 'dji', 'dzu', 'de', 'do', 'ba', 'bi', 'bu', 'be', 'bo'], moduleType: 'hiragana' },
-  { id: 13, name: 'Handakuten P', description: 'Família com círculo: P (pa-po)', chars: ['pa', 'pi', 'pu', 'pe', 'po'], moduleType: 'hiragana' },
-  { id: 14, name: 'Yōon K & S', description: 'Combinações kya-kyo e sha-sho', chars: ['kya', 'kyu', 'kyo', 'sha', 'shu', 'sho'], moduleType: 'hiragana' },
-  { id: 15, name: 'Yōon T & N', description: 'Combinações cha-cho e nya-nyo', chars: ['cha', 'chu', 'cho', 'nya', 'nyu', 'nyo'], moduleType: 'hiragana' },
-  { id: 16, name: 'Yōon H & M', description: 'Combinações hya-hyo e mya-myo', chars: ['hya', 'hyu', 'hyo', 'mya', 'myu', 'myo'], moduleType: 'hiragana' },
-  { id: 17, name: 'Yōon R/G/Z', description: 'Combinações rya-ryo, gya-gyo e ja-jo', chars: ['rya', 'ryu', 'ryo', 'gya', 'gyu', 'gyo', 'ja', 'ju', 'jo'], moduleType: 'hiragana' },
-  { id: 18, name: 'Yōon D/B/P', description: 'Combinações bya-byo e pya-pyo', chars: ['bya', 'byu', 'byo', 'pya', 'pyu', 'pyo'], moduleType: 'hiragana' },
+  { id: 5, name: 'Família N (な-の)', description: 'Consoante N combinada com as vogais', chars: ['な', 'に', 'ぬ', 'ね', 'の'], moduleType: 'hiragana' },
+  { id: 6, name: 'Família H (は-ほ)', description: 'Consoante H (com f) combinada com as vogais', chars: ['は', 'ひ', 'ふ', 'へ', 'ほ'], moduleType: 'hiragana' },
+  { id: 7, name: 'Família M (ま-も)', description: 'Consoante M combinada com as vogais', chars: ['ま', 'み', 'む', 'め', 'も'], moduleType: 'hiragana' },
+  { id: 8, name: 'Família Y (や-よ)', description: 'Semiconsante Y (apenas 3 sons)', chars: ['や', 'ゆ', 'よ'], moduleType: 'hiragana' },
+  { id: 9, name: 'Família R (ら-ろ)', description: 'Sons vibrantes do R japonês', chars: ['ら', 'り', 'る', 'れ', 'ろ'], moduleType: 'hiragana' },
+  { id: 10, name: 'Família W/N (わ,を,ん)', description: 'Vogais modificadas e a consoante isolada N', chars: ['わ', 'を', 'ん'], moduleType: 'hiragana' },
+  { id: 11, name: 'Dakuten G & Z', description: 'Famílias com aspas: G (ga-go) e Z (za-zo)', chars: ['が', 'ぎ', 'ぐ', 'げ', 'ご', 'ざ', 'じ', 'ず', 'ぜ', 'ぞ'], moduleType: 'hiragana' },
+  { id: 12, name: 'Dakuten D & B', description: 'Famílias com aspas: D (da-do) e B (ba-bo)', chars: ['だ', 'ぢ', 'づ', 'で', 'ど', 'ば', 'び', 'ぶ', 'べ', 'ぼ'], moduleType: 'hiragana' },
+  { id: 13, name: 'Handakuten P', description: 'Família com círculo: P (pa-po)', chars: ['ぱ', 'ぴ', 'ぷ', 'ぺ', 'ぽ'], moduleType: 'hiragana' },
+  { id: 14, name: 'Yōon K & S', description: 'Combinações kya-kyo e sha-sho', chars: ['きゃ', 'きゅ', 'きょ', 'しゃ', 'しゅ', 'しょ'], moduleType: 'hiragana' },
+  { id: 15, name: 'Yōon T & N', description: 'Combinações cha-cho e nya-nyo', chars: ['ちゃ', 'ちゅ', 'ちょ', 'にゃ', 'にゅ', 'にょ'], moduleType: 'hiragana' },
+  { id: 16, name: 'Yōon H & M', description: 'Combinações hya-hyo e mya-myo', chars: ['ひゃ', 'ひゅ', 'ひょ', 'みゃ', 'みゅ', 'みょ'], moduleType: 'hiragana' },
+  { id: 17, name: 'Yōon R/G/Z', description: 'Combinações rya-ryo, gya-gyo e ja-jo', chars: ['りゃ', 'りゅ', 'りょ', 'ぎゃ', 'ぎゅ', 'ぎょ', 'じゃ', 'じゅ', 'じょ'], moduleType: 'hiragana' },
+  { id: 18, name: 'Yōon D/B/P', description: 'Combinações bya-byo e pya-pyo', chars: ['びゃ', 'びゅ', 'びょ', 'ぴゃ', 'ぴゅ', 'ぴょ'], moduleType: 'hiragana' },
 
   // Katakana
   { id: 1, name: 'Vogais (ア-オ)', description: 'As 5 vogais fundamentais do japonês', chars: ['ア', 'イ', 'ウ', 'エ', 'オ'], moduleType: 'katakana' },
   { id: 2, name: 'Família K (カ-コ)', description: 'Consoante K combinada com as vogais', chars: ['カ', 'キ', 'ク', 'ケ', 'コ'], moduleType: 'katakana' },
   { id: 3, name: 'Família S (サ-ソ)', description: 'Consoante S (com sh) combinada com as vogais', chars: ['サ', 'シ', 'ス', 'セ', 'ソ'], moduleType: 'katakana' },
   { id: 4, name: 'Família T (タ-ト)', description: 'Consoante T (com ch/tsu) combinada com as vogais', chars: ['タ', 'チ', 'ツ', 'テ', 'ト'], moduleType: 'katakana' },
-  { id: 5, name: 'Família N (ナ-ノ)', description: 'Consoante N combinada com as vogais', chars: ['na', 'ni', 'nu', 'ne', 'no'], moduleType: 'katakana' }, // placeholders
-  { id: 6, name: 'Família H (ハ-ホ)', description: 'Consoante H (com f) combinada com as vogais', chars: ['ha', 'hi', 'fu', 'he', 'ho'], moduleType: 'katakana' },
-  { id: 7, name: 'Família M (マ-モ)', description: 'Consoante M combinada com as vogais', chars: ['ma', 'mi', 'mu', 'me', 'mo'], moduleType: 'katakana' },
-  { id: 8, name: 'Família Y (ヤ-ヨ)', description: 'Semiconsante Y (apenas 3 sons)', chars: ['ya', 'yu', 'yo'], moduleType: 'katakana' },
-  { id: 9, name: 'Família R (ラ-ロ)', description: 'Sons vibrantes do R japonês', chars: ['ra', 'ri', 'ru', 're', 'ro'], moduleType: 'katakana' },
-  { id: 10, name: 'Família W/N (ワ,ヲ,ン)', description: 'Vogais modificadas e a consoante isolada N', chars: ['wa', 'wo', 'n'], moduleType: 'katakana' },
-  { id: 11, name: 'Dakuten G & Z', description: 'Famílias com aspas: G (ga-go) e Z (za-zo)', chars: ['ga', 'gi', 'gu', 'ge', 'go', 'za', 'ji', 'zu', 'ze', 'zo'], moduleType: 'katakana' },
-  { id: 12, name: 'Dakuten D & B', description: 'Famílias com aspas: D (da-do) e B (ba-bo)', chars: ['da', 'dji', 'dzu', 'de', 'do', 'ba', 'bi', 'bu', 'be', 'bo'], moduleType: 'katakana' },
-  { id: 13, name: 'Handakuten P', description: 'Família com círculo: P (pa-po)', chars: ['pa', 'pi', 'pu', 'pe', 'po'], moduleType: 'katakana' },
-  { id: 14, name: 'Yōon K & S', description: 'Combinações kya-kyo e sha-sho', chars: ['kya', 'kyu', 'kyo', 'sha', 'shu', 'sho'], moduleType: 'katakana' },
-  { id: 15, name: 'Yōon T & N', description: 'Combinações cha-cho e nya-nyo', chars: ['cha', 'chu', 'cho', 'nya', 'nyu', 'nyo'], moduleType: 'katakana' },
-  { id: 16, name: 'Yōon H & M', description: 'Combinações hya-hyo e mya-myo', chars: ['hya', 'hyu', 'hyo', 'mya', 'myu', 'myo'], moduleType: 'katakana' },
-  { id: 17, name: 'Yōon R/G/Z', description: 'Combinações rya-ryo, gya-gyo e ja-jo', chars: ['rya', 'ryu', 'ryo', 'gya', 'gyu', 'gyo', 'ja', 'ju', 'jo'], moduleType: 'katakana' },
-  { id: 18, name: 'Yōon D/B/P', description: 'Combinações bya-byo e pya-pyo', chars: ['bya', 'byu', 'byo', 'pya', 'pyu', 'pyo'], moduleType: 'katakana' }
+  { id: 5, name: 'Família N (ナ-ノ)', description: 'Consoante N combinada com as vogais', chars: ['ナ', 'ニ', 'ヌ', 'ネ', 'ノ'], moduleType: 'katakana' },
+  { id: 6, name: 'Família H (ハ-ホ)', description: 'Consoante H (com f) combinada com as vogais', chars: ['ハ', 'ヒ', 'フ', 'ヘ', 'ホ'], moduleType: 'katakana' },
+  { id: 7, name: 'Família M (マ-モ)', description: 'Consoante M combinada com as vogais', chars: ['マ', 'ミ', 'ム', 'メ', 'モ'], moduleType: 'katakana' },
+  { id: 8, name: 'Família Y (ヤ-ヨ)', description: 'Semiconsante Y (apenas 3 sons)', chars: ['ヤ', 'ユ', 'ヨ'], moduleType: 'katakana' },
+  { id: 9, name: 'Família R (ラ-ロ)', description: 'Sons vibrantes do R japonês', chars: ['ラ', 'リ', 'ル', 'レ', 'ロ'], moduleType: 'katakana' },
+  { id: 10, name: 'Família W/N (ワ,ヲ,ン)', description: 'Vogais modificadas e a consoante isolada N', chars: ['ワ', 'ヲ', 'ン'], moduleType: 'katakana' },
+  { id: 11, name: 'Dakuten G & Z', description: 'Famílias com aspas: G (ga-go) e Z (za-zo)', chars: ['ガ', 'ギ', 'グ', 'ゲ', 'ゴ', 'ザ', 'ジ', 'ズ', 'ゼ', 'ゾ'], moduleType: 'katakana' },
+  { id: 12, name: 'Dakuten D & B', description: 'Famílias com aspas: D (da-do) e B (ba-bo)', chars: ['ダ', 'ヂ', 'ヅ', 'デ', 'ド', 'バ', 'ビ', 'ブ', 'ベ', 'ボ'], moduleType: 'katakana' },
+  { id: 13, name: 'Handakuten P', description: 'Família com círculo: P (pa-po)', chars: ['パ', 'ピ', 'プ', 'ペ', 'ポ'], moduleType: 'katakana' },
+  { id: 14, name: 'Yōon K & S', description: 'Combinações kya-kyo e sha-sho', chars: ['キャ', 'キュ', 'キョ', 'シャ', 'シュ', 'ショ'], moduleType: 'katakana' },
+  { id: 15, name: 'Yōon T & N', description: 'Combinações cha-cho e nya-nyo', chars: ['チャ', 'チュ', 'チョ', 'ニャ', 'ニュ', 'ニョ'], moduleType: 'katakana' },
+  { id: 16, name: 'Yōon H & M', description: 'Combinações hya-hyo e mya-myo', chars: ['ヒャ', 'ヒュ', 'ヒョ', 'ミャ', 'ミュ', 'ミョ'], moduleType: 'katakana' },
+  { id: 17, name: 'Yōon R/G/Z', description: 'Combinações rya-ryo, gya-gyo e ja-jo', chars: ['リャ', 'リュ', 'リョ', 'ギャ', 'ギュ', 'ギョ', 'ジャ', 'ジュ', 'ジョ'], moduleType: 'katakana' },
+  { id: 18, name: 'Yōon D/B/P', description: 'Combinações bya-byo e pya-pyo', chars: ['ビャ', 'ビュ', 'ビョ', 'ピャ', 'ピュ', 'ピョ'], moduleType: 'katakana' }
 ];
 
 export function KanaApp() {
@@ -86,7 +86,7 @@ export function KanaApp() {
           .eq('id', session.user.id)
           .single();
           
-        const role = profile?.role || 'student';
+        const role = (profile?.role || 'student') as 'teacher' | 'student';
         setUserRole(role);
         if (role === 'teacher') {
           setIsPreviewMode(true);
@@ -295,8 +295,6 @@ export function KanaApp() {
   }
 
   if (viewState === 'study' && selectedLesson) {
-    const isPhase1Unlocked = selectedLesson.id <= 2;
-
     return (
       <div className="w-full max-w-5xl mx-auto flex flex-col gap-6">
         {isPreviewMode && (
@@ -335,51 +333,36 @@ export function KanaApp() {
         </div>
 
         {/* Study Workspace */}
-        {isPhase1Unlocked ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Chars Selector Sidebar */}
-            <div className="bg-white p-5 rounded-2xl border border-[var(--color-slate-border)] shadow-sm flex flex-col gap-4">
-              <span className="text-xs font-bold text-[var(--color-slate-mid)] uppercase tracking-wider">Selecione uma Letra:</span>
-              <div className="grid grid-cols-5 md:grid-cols-3 gap-2">
-                {selectedLesson.chars.map(c => {
-                  const romaji = KANA_TO_ROMAJI[c] || c;
-                  return (
-                    <button
-                      key={c}
-                      onClick={() => setSelectedChar(c)}
-                      className={`aspect-square rounded-xl border-2 font-bold font-outfit text-2xl flex flex-col items-center justify-center transition-all shadow-sm p-1 leading-none ${
-                        selectedChar === c
-                          ? 'border-[var(--color-brand)] bg-[var(--color-brand)]/5 text-[var(--color-brand)] ring-2 ring-[var(--color-brand)]/20'
-                          : 'border-[var(--color-slate-border)] text-[var(--color-slate-dark)] hover:border-[var(--color-brand)] hover:bg-[var(--color-ice)]'
-                      }`}
-                    >
-                      <span className="text-2xl font-black">{c}</span>
-                      <span className="text-[10px] font-bold opacity-60 uppercase mt-0.5 tracking-wider">{romaji}</span>
-                    </button>
-                  );
-                })}
-              </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Chars Selector Sidebar */}
+          <div className="bg-white p-5 rounded-2xl border border-[var(--color-slate-border)] shadow-sm flex flex-col gap-4">
+            <span className="text-xs font-bold text-[var(--color-slate-mid)] uppercase tracking-wider">Selecione uma Letra:</span>
+            <div className="grid grid-cols-5 md:grid-cols-3 gap-2">
+              {selectedLesson.chars.map(c => {
+                const romaji = KANA_TO_ROMAJI[c] || c;
+                return (
+                  <button
+                    key={c}
+                    onClick={() => setSelectedChar(c)}
+                    className={`aspect-square rounded-xl border-2 font-bold font-outfit text-2xl flex flex-col items-center justify-center transition-all shadow-sm p-1 leading-none ${
+                      selectedChar === c
+                        ? 'border-[var(--color-brand)] bg-[var(--color-brand)]/5 text-[var(--color-brand)] ring-2 ring-[var(--color-brand)]/20'
+                        : 'border-[var(--color-slate-border)] text-[var(--color-slate-dark)] hover:border-[var(--color-brand)] hover:bg-[var(--color-ice)]'
+                    }`}
+                  >
+                    <span className="text-2xl font-black">{c}</span>
+                    <span className="text-[10px] font-bold opacity-60 uppercase mt-0.5 tracking-wider">{romaji}</span>
+                  </button>
+                );
+              })}
             </div>
+          </div>
 
-            {/* Visualizer Area */}
-            <div className="md:col-span-2">
-              <KanaDraw char={selectedChar} />
-            </div>
+          {/* Visualizer Area */}
+          <div className="md:col-span-2">
+            <KanaDraw char={selectedChar} />
           </div>
-        ) : (
-          <div className="bg-white rounded-2xl p-12 shadow-sm border border-[var(--color-slate-border)] flex flex-col items-center justify-center text-center gap-4 min-h-[350px]">
-            <span className="text-5xl">🚧</span>
-            <div className="flex flex-col gap-1 max-w-md">
-              <h3 className="text-xl font-bold font-outfit text-[var(--color-slate-dark)]">Escrita em Desenvolvimento</h3>
-              <p className="text-sm text-[var(--color-slate-mid)]">
-                Para homologação da Fase 1, a animação de escrita está habilitada nas **Vogais (Lição 1)** e na **Família K (Lição 2)**.
-              </p>
-              <p className="text-xs text-[var(--color-slate-mid)] mt-3">
-                No entanto, o Sensei IA é inteligente e você pode **praticar a leitura desta lição imediatamente** clicando no botão acima!
-              </p>
-            </div>
-          </div>
-        )}
+        </div>
       </div>
     );
   }
@@ -432,7 +415,7 @@ export function KanaApp() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {LESSONS.filter(l => l.moduleType === activeTab).map(lesson => {
             const isCompleted = completedLessons[activeTab].includes(lesson.id);
-            const isInteractive = lesson.id <= 2; // Vogais and K family are fully interactive for Kakijun in Phase 1
+            const isInteractive = true;
 
             return (
               <div
