@@ -385,6 +385,10 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - [x] **Melhoria UX — Destrave Lego 🧩:**
     - [x] **Avanço Manual:** Aluno agora tem controle total sobre quando avançar para a próxima etapa (botão "Próximo" explícito).
     - [x] **Sistema de Pular (Show Answer):** Após 2 tentativas erradas, botão "Pular" é exibido. Ele organiza a frase e permite visualizar a resposta correta sem pontuar.
+- [x] **Módulo Destrave Kana 🎐:**
+    - [x] **Animação Yōon (Sílabas Compostas):** O componente KanaDraw agora suporta processamento e animação SVG de múltiplos caracteres simultaneamente com escala dinâmica (ViewBox adaptável).
+    - [x] **Liberação Total de Famílias:** Removida a limitação de Fase 1; todas as 18 lições de Hiragana e Katakana (incluindo Yōon, Dakuten e Handakuten) estão operantes com traçado interativo.
+    - [x] **Higienização do Dicionário AI:** Correção e limpeza massiva do `KANA_TO_ROMAJI` e da base do gerador, blindando o prompt do Gemini contra textos misturados.
 
 ---
 
