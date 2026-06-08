@@ -14,6 +14,8 @@ interface RoadmapNode {
   date?: Date;
   meta?: string;
   link?: string;
+  segment?: number;
+  chestType?: 'silver' | 'gold' | 'upgrade';
 }
 
 // ─── Math Helpers for S-Curve ────────────────────────────────────────────────
@@ -229,6 +231,8 @@ export const AdventureRoadmap: React.FC = () => {
   const [buddyAvatarUrl, setBuddyAvatarUrl] = useState('/assets/avatars/tanuki-novato.png');
   const [isMobile, setIsMobile] = useState(false);
   const [currentChapter, setCurrentChapter] = useState(0);
+  const [claimedChests, setClaimedChests] = useState<Record<number, string>>({});
+  const [isClaiming, setIsClaiming] = useState(false);
   const nodesPerPage = 8; // Each chapter has 8 steps + 1 chest
 
   useEffect(() => {
@@ -268,10 +272,14 @@ export const AdventureRoadmap: React.FC = () => {
       // 2. Load student & assignments
       const { data: student } = await supabase
         .from('students')
-        .select('id')
+        .select('id, metadata')
         .eq('student_id', session.user.id)
         .single();
       if (!student) return;
+
+      const metadata = student.metadata as any || {};
+      const claims = metadata.claimed_chests || {};
+      setClaimedChests(claims);
 
       const { data: assignments } = await supabase
         .from('assignments')
@@ -332,18 +340,30 @@ export const AdventureRoadmap: React.FC = () => {
           const isSegmentPerfect = segmentTasks.every(n => n.status === 'completed');
           const isChestReached = node.status === 'completed';
 
+          const segmentIndex = Math.floor((idx + 1) / 8);
+          const claimedStatus = claims[segmentIndex];
+
           let chestStatus: 'completed' | 'active' | 'upcoming' | 'locked' = 'upcoming';
           let chestTitle = 'Baú de Recompensas';
           let chestMeta = '🎁 Até 50 Moedas';
+          let chestType: 'silver' | 'gold' | 'upgrade' | undefined;
 
           if (isChestReached) {
-            chestStatus = 'completed';
-            if (isSegmentPerfect) {
-              chestTitle = 'Baú de Ouro Aberto!';
-              chestMeta = '🏆 +50 Moedas';
+            if (claimedStatus === 'gold' || (claimedStatus === 'silver' && !isSegmentPerfect)) {
+                chestStatus = 'completed';
+                chestTitle = claimedStatus === 'gold' ? 'Baú de Ouro Aberto!' : 'Baú de Prata Aberto!';
+                chestMeta = '✅ Resgatado';
             } else {
-              chestTitle = 'Baú de Prata Aberto!';
-              chestMeta = '🔓 +20 (Recupere +30!)';
+                chestStatus = 'active'; // Ready to claim!
+                if (isSegmentPerfect) {
+                  chestTitle = 'Baú de Ouro Disponível!';
+                  chestMeta = '🏆 Clique para resgatar +50 Moedas';
+                  chestType = claimedStatus === 'silver' ? 'upgrade' : 'gold';
+                } else {
+                  chestTitle = 'Baú de Prata Disponível!';
+                  chestMeta = '🔓 Clique para resgatar +20 (Recupere +30 depois!)';
+                  chestType = 'silver';
+                }
             }
           } else if (node.status === 'locked') {
             chestStatus = 'locked';
@@ -356,6 +376,8 @@ export const AdventureRoadmap: React.FC = () => {
             status: chestStatus,
             meta: chestMeta,
             date: node.date,
+            segment: segmentIndex,
+            chestType
           });
 
           segmentStartIdx = idx + 1;
@@ -440,6 +462,35 @@ export const AdventureRoadmap: React.FC = () => {
     
     // Open modal for classes, chests, or completed items
     setSelectedNode(node);
+  };
+
+  const handleClaimChest = async (node: RoadmapNode) => {
+    if (!node.segment || !node.chestType) return;
+    try {
+      setIsClaiming(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      
+      const res = await fetch('/api/gamification/claim-chest', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ segment: node.segment, type: node.chestType })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      
+      setClaimedChests(data.claimedChests);
+      setSelectedNode(null);
+      loadRoadmap(); // Reload to update map state
+    } catch (err: any) {
+      alert(`Erro ao resgatar baú: ${err.message}`);
+    } finally {
+      setIsClaiming(false);
+    }
   };
 
   if (loading) return <div className="loading-state">Desenhando o caminho...</div>;
@@ -696,8 +747,18 @@ export const AdventureRoadmap: React.FC = () => {
              <motion.div className="node-detail-card" onClick={e => e.stopPropagation()}>
                 <h3>{selectedNode.title}</h3>
                 <p>{selectedNode.meta || 'Uma etapa importante do seu aprendizado.'}</p>
-                <div className="modal-actions">
-                  {selectedNode.link && selectedNode.status !== 'completed' && (
+                 <div className="modal-actions">
+                  {selectedNode.type === 'chest' && selectedNode.status === 'active' && (
+                    <button 
+                      onClick={() => handleClaimChest(selectedNode)} 
+                      className="start-btn"
+                      disabled={isClaiming}
+                      style={{ background: '#f59e0b', borderColor: '#d97706', boxShadow: '0 4px 15px rgba(245,158,11,0.3)' }}
+                    >
+                      {isClaiming ? 'Resgatando...' : 'Resgatar Baú! 🎁'}
+                    </button>
+                  )}
+                  {selectedNode.link && selectedNode.status !== 'completed' && selectedNode.type !== 'chest' && (
                     <a href={selectedNode.link} className="start-btn">Iniciar Atividade</a>
                   )}
                   <button onClick={() => setSelectedNode(null)} className="back-btn">Voltar</button>

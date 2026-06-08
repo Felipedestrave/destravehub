@@ -221,105 +221,10 @@ export const POST: APIRoute = async ({ request }) => {
             // ou será realizado se for um Replay via SRS Bonus. 
             // Removemos a chamada redundante aqui para evitar duplicidade ou confusão.
 
-            // --- LÓGICA DE BAÚS DO ROADMAP (NOVO) ---
-            let chestReward = null;
-            if (studentId && profileId) {
-                try {
-                    // 1. Buscar todas as tarefas e o estado dos baús
-                    const { data: allAssignments } = await supabaseAdmin
-                        .from('assignments')
-                        .select('id, status, assigned_at')
-                        .eq('student_id', studentId)
-                        .order('assigned_at', { ascending: true });
-
-                    const { data: studentRecord } = await supabaseAdmin
-                        .from('students')
-                        .select('metadata')
-                        .eq('id', studentId)
-                        .single();
-
-                    const completedTasks = allAssignments?.filter(a => a.status === 'completed') || [];
-                    const totalCompleted = completedTasks.length;
-                    
-                    // Garantir que metadata seja um objeto válido
-                    let metadata = studentRecord?.metadata;
-                    if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
-                        metadata = {};
-                    }
-                    
-                    const claimedChests = (metadata as any).claimed_chests || {};
-                    let metadataChanged = false;
-
-                    // 2. Verificar se atingiu um novo baú (múltiplo de 8)
-                    const currentSegment = Math.floor(totalCompleted / 8);
-                    if (totalCompleted > 0 && totalCompleted % 8 === 0 && !claimedChests[currentSegment]) {
-                        const totalTasksCreated = allAssignments?.length || 0;
-                        const isPerfect = totalTasksCreated === totalCompleted;
-
-                        const amount = isPerfect ? 50 : 20;
-                        const type = isPerfect ? 'gold' : 'silver';
-
-                        console.log(`[CHEST] Crediting ${amount} to user ${profileId} (Type: ${type})`);
-
-                        const { error: rpcError } = await supabaseAdmin.rpc('increment_gamification', {
-                            user_id: profileId,
-                            xp_gain: amount,
-                            coins_gain: amount
-                        });
-
-                        if (rpcError) {
-                            console.error('[CHEST RPC ERROR]:', rpcError);
-                            return new Response(JSON.stringify({ 
-                                error: 'Erro ao creditar recompensa do baú.',
-                                details: rpcError.message 
-                            }), { status: 500 });
-                        }
-
-                        claimedChests[currentSegment] = type;
-                        metadataChanged = true;
-                        chestReward = { amount, type, segment: currentSegment };
-                    }
-
-                    // 3. Lógica Retroativa: Upgrade de Prata para Ouro
-                    for (const seg of Object.keys(claimedChests)) {
-                        if (claimedChests[seg] === 'silver') {
-                            const segmentIdx = parseInt(seg);
-                            const tasksInSegment = allAssignments?.slice(0, segmentIdx * 8);
-                            const isNowPerfect = tasksInSegment && tasksInSegment.length >= (segmentIdx * 8) && tasksInSegment.every(t => t.status === 'completed');
-
-                            if (isNowPerfect) {
-                                await supabaseAdmin.rpc('increment_gamification', {
-                                    user_id: profileId,
-                                    xp_gain: 30,
-                                    coins_gain: 30
-                                });
-                                claimedChests[seg] = 'gold';
-                                metadataChanged = true;
-                                
-                                if (!chestReward) {
-                                    chestReward = { amount: 30, type: 'upgrade', segment: segmentIdx };
-                                }
-                            }
-                        }
-                    }
-
-                    if (metadataChanged) {
-                        const newMetadata = { ...(metadata as any), claimed_chests: claimedChests };
-                        await supabaseAdmin
-                            .from('students')
-                            .update({ metadata: newMetadata })
-                            .eq('id', studentId);
-                    }
-                } catch (chestErr) {
-                    console.error('[Chest System Error]:', chestErr);
-                }
-            }
-
             return new Response(JSON.stringify({ 
                 success: true, 
                 assignmentId, 
-                rewards, 
-                chestReward
+                rewards
             }), { status: 200 });
         }
 
