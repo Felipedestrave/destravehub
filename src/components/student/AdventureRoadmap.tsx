@@ -79,7 +79,7 @@ const MapNode: React.FC<{
     <div
       style={{
         position: 'absolute',
-        left: `${x}px`,
+        left: `${(x / 800) * 100}%`,
         top: `${y}px`,
         transform: 'translateX(-50%)',
         zIndex: 10,
@@ -174,10 +174,14 @@ const MapNode: React.FC<{
 
       {/* Mini-Card Label */}
       <div style={{
+        position: 'absolute',
+        top: '100%',
+        left: '50%',
+        transform: 'translateX(-50%)',
         marginTop: '0.75rem',
         textAlign: 'center',
-        width: '200px',
-        marginLeft: '-65px',
+        width: isMobile ? '180px' : '200px',
+        zIndex: 5,
       }}>
         <div style={{
           background: 'white',
@@ -204,9 +208,13 @@ const MapNode: React.FC<{
             color: node.status === 'locked' ? '#94a3b8' : 'var(--color-slate-dark)',
             fontFamily: 'var(--font-outfit)',
             margin: 0,
-            whiteSpace: 'nowrap',
+            whiteSpace: isMobile ? 'normal' : 'nowrap',
+            display: isMobile ? '-webkit-box' : 'block',
+            WebkitLineClamp: isMobile ? 2 : 'unset',
+            WebkitBoxOrient: isMobile ? 'vertical' : 'unset',
             overflow: 'hidden',
-            textOverflow: 'ellipsis'
+            textOverflow: 'ellipsis',
+            lineHeight: 1.3
           }}>{node.title}</p>
           {node.meta && (
             <span style={{ fontSize: '0.65rem', color: node.type === 'chest' ? '#f59e0b' : 'var(--color-brand)', fontWeight: 800, display: 'block', marginTop: '4px' }}>
@@ -562,7 +570,7 @@ export const AdventureRoadmap: React.FC = () => {
       {/* GAME BOARD MAP */}
       <div className="game-board" style={{ height: (nodesPerPage + 1) * 160 + 300 }}>
         {/* SVG Path line - 2 layers for border effect */}
-        <svg className="map-svg-line" viewBox={`0 0 800 ${(nodesPerPage + 1) * 160 + 300}`}>
+        <svg className="map-svg-line" viewBox={`0 0 800 ${(nodesPerPage + 1) * 160 + 300}`} preserveAspectRatio="none">
           <defs>
             <linearGradient id="trackGrad" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="var(--color-brand)" />
