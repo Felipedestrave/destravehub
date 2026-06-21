@@ -67,10 +67,15 @@ export const ActivitiesTimeline: React.FC = () => {
 
       assignments?.forEach(miss => {
         const title = (miss.activities as any)?.title || 'Missão';
+        const type = (miss.activities as any)?.type;
+        const link = type === 'destrave2'
+          ? `/play/destrave2/${miss.id}`
+          : `/dashboard/missions/${type}?assignment=${miss.id}`;
+
         allNodes.push({
           id: miss.id, type: 'mission', title, date: new Date(miss.assigned_at || new Date().toISOString()),
           status: miss.status === 'completed' ? 'completed' : 'active',
-          link: `/dashboard/missions/${(miss.activities as any)?.type}?assignment=${miss.id}`
+          link
         });
 
         const res = miss.result_data as any;
@@ -80,7 +85,8 @@ export const ActivitiesTimeline: React.FC = () => {
             allNodes.push({
               id: `${miss.id}-srs-${m.milestone}`, type: 'srs', title: `Revisão: ${title}`, date,
               status: m.status === 'completed' ? 'completed' : date <= new Date() ? 'active' : 'upcoming',
-              meta: `SRS Etapa ${m.milestone}`, link: `/dashboard/missions/${(miss.activities as any)?.type}?assignment=${miss.id}`
+              meta: `SRS Etapa ${m.milestone}`,
+              link
             });
           });
         }

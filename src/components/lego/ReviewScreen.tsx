@@ -67,7 +67,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
     const addBlock = (sIdx: number) => {
         setEditableSentences(prev => prev.map((s, i) => {
             if (i !== sIdx) return s;
-            const newBlock: LegoBlock = { id: `new-${Date.now()}`, word: '', type: 'OTHER' };
+            const newBlock: LegoBlock = { id: `new-${Date.now()}`, word: '', romaji: '', type: 'OTHER' };
             return { ...s, blocks: [...s.blocks, newBlock] };
         }));
     };

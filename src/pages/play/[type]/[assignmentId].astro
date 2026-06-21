@@ -7,6 +7,7 @@ import { Destrave1App } from '@/components/destrave1/Destrave1App.tsx';
 import { LegoApp } from '@/components/lego/LegoApp.tsx';
 import DrawApp from '@/components/draw/DrawApp.tsx';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { Destrave2Player } from '@/components/destrave2/Destrave2Player.tsx';
 
 const { type, assignmentId } = Astro.params;
 const isTest = Astro.url.searchParams.get('test') === 'true';
@@ -54,7 +55,8 @@ let initialConfig = null;
 let flashcardsCards = [];
 let destrave1Config = null;
 let legoSentences = [];
-let legoConfig = null;
+let legoConfig: any = undefined;
+let destrave2Exercises = [];
 
 // Preparação de dados específica por tipo
 if (type === 'escuta' || type === 'mrp') {
@@ -77,6 +79,8 @@ if (type === 'escuta' || type === 'mrp') {
            quantity: rawConfig.quantity || rawConfig.sentences.length
         };
     }
+} else if (type === 'destrave2') {
+    destrave2Exercises = rawConfig?.exercises || [];
 }
 
 const teacherId = assignment.activities.teacher_id;
@@ -161,6 +165,20 @@ const senseiData = teacherProfile ? {
                         client:only="react" 
                         isReadOnly={true}
                         senseiData={senseiData as any}
+                    />
+                </div>
+            )}
+            {type === 'destrave2' && (
+                <div class="max-w-5xl mx-auto py-8">
+                    <Destrave2Player 
+                        client:only="react" 
+                        assignmentId={isTest ? undefined : assignment.id}
+                        activityId={assignment.activities.id}
+                        initialExercises={destrave2Exercises} 
+                        initialTitle={assignment.activities.title}
+                        publicAccess={true}
+                        senseiWhatsapp={senseiData?.whatsapp}
+                        senseiProfile={teacherProfile ? { full_name: teacherProfile.full_name, avatar_url: teacherProfile.avatar_url } : null}
                     />
                 </div>
             )}

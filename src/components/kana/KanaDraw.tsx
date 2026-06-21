@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import { RefreshCcw, Download, Loader2 } from 'lucide-react';
+// @ts-expect-error gifenc does not provide typescript types
 import { GIFEncoder, quantize, applyPalette } from 'gifenc';
 import toast from 'react-hot-toast';
 
@@ -401,7 +402,7 @@ export function KanaDraw({ char }: KanaDrawProps) {
                  return (
                    <path
                      key={`stroke-${index}`}
-                     ref={el => pathRefs.current[index] = el}
+                     ref={el => { pathRefs.current[index] = el; }}
                      d={d}
                      transform={tf}
                      style={{
@@ -420,7 +421,7 @@ export function KanaDraw({ char }: KanaDrawProps) {
                  return (
                    <path
                     key={`measure-${index}`}
-                    ref={el => pathRefs.current[index] = el}
+                    ref={el => { pathRefs.current[index] = el; }}
                     d={d}
                     transform={tf}
                     opacity="0"

@@ -1,0 +1,121 @@
+---
+import DashboardLayout from '../../../layouts/DashboardLayout.astro';
+import { Destrave2App } from '../../../components/destrave2/Destrave2App.tsx';
+import { supabaseAdmin } from '../../../lib/supabase-admin';
+
+const assignmentId = Astro.url.searchParams.get('assignment');
+const editingId = Astro.url.searchParams.get('edit');
+let initialExercises = undefined;
+let initialConfig = undefined;
+let initialTitle = undefined;
+let activityId = undefined;
+
+// Context: Student playing an assignment (if needed, but usually student starts at /play)
+if (assignmentId) {
+    const { data: assignment } = await supabaseAdmin
+        .from('assignments')
+        .select('*, activities(*)')
+        .eq('id', assignmentId)
+        .single();
+    
+    if (assignment && assignment.activities) {
+        activityId = assignment.activities.id;
+        const rawConfig = assignment.activities.config as any;
+        initialTitle = assignment.activities.title;
+        initialExercises = rawConfig?.exercises || [];
+        
+        if (Array.isArray(initialExercises) && initialExercises.length > 0) {
+            initialConfig = {
+               difficulty: rawConfig.difficulty || 'mixed',
+               count: initialExercises.length,
+               context: rawConfig.context || ''
+            };
+        }
+    }
+}
+
+// Context: Teacher editing an existing activity
+if (editingId) {
+    const { data: activity } = await supabaseAdmin
+        .from('activities')
+        .select('*')
+        .eq('id', editingId)
+        .single();
+    
+    if (activity) {
+        activityId = activity.id;
+        const rawConfig = activity.config as any;
+        initialExercises = rawConfig?.exercises || [];
+        initialTitle = activity.title;
+        initialConfig = {
+            difficulty: rawConfig.difficulty || 'mixed',
+            count: initialExercises.length,
+            context: rawConfig.context || ''
+        };
+    }
+}
+---
+
+<DashboardLayout title="Destrave 2.0 — Playlist Híbrida" activeNav="activities">
+  <div class="page-header">
+    <div class="breadcrumb">
+      <a href="/dashboard">Dashboard</a>
+      <span class="separator">/</span>
+      <span class="current">Destrave 2.0</span>
+    </div>
+    <div class="title-section">
+      <h1 class="page-title">Destrave 2.0 ⚡</h1>
+      <p class="page-subtitle">Crie playlists híbridas com exercícios mistos de Escuta, Lego e MRP baseados em qualquer PDF.</p>
+    </div>
+  </div>
+
+  <Destrave2App 
+    client:only="react" 
+    assignmentId={assignmentId || undefined} 
+    editingId={editingId || undefined}
+    activityId={activityId || undefined}
+    initialExercises={initialExercises}
+    initialConfig={initialConfig as any} 
+    initialTitle={initialTitle || undefined}
+  />
+</DashboardLayout>
+
+<style>
+  .page-header {
+    margin-bottom: 1.5rem;
+  }
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-slate-mid);
+    margin-bottom: 1rem;
+  }
+  .breadcrumb a {
+    color: var(--color-slate-mid);
+    text-decoration: none;
+    transition: color 150ms ease;
+  }
+  .breadcrumb a:hover { color: var(--color-brand); }
+  .breadcrumb .separator { color: var(--color-slate-border); }
+  .breadcrumb .current { color: var(--color-slate-dark); }
+  .title-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .page-title {
+    font-family: var(--font-outfit);
+    font-size: 1.875rem;
+    font-weight: 800;
+    color: var(--color-slate-dark);
+    margin: 0;
+  }
+  .page-subtitle {
+    font-size: 1rem;
+    color: var(--color-slate-mid);
+    margin: 0;
+  }
+</style>

@@ -84,11 +84,12 @@ export const POST: APIRoute = async ({ request }) => {
         
         // --- 4. Package Counting & Auto-Billing ---
         try {
-            const { data: student } = await supabaseAdmin
+            const { data: studentData } = await supabaseAdmin
                 .from('students' as any)
                 .select('billing_type, billing_package_size, billing_package_start_date, billing_amount, billing_currency')
                 .eq('id', studentInternalId)
                 .single();
+            const student = studentData as any;
 
             if (student?.billing_type === 'pacote' && student.billing_package_start_date) {
                 // Count lessons since start date (inclusive)

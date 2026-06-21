@@ -7,6 +7,6 @@ const { id } = Astro.params;
 
 <DashboardLayout title="Detalhes do Aluno — Destrave Hub" activeNav="students">
   <div class="max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-    <StudentDetail client:load studentId={id} />
+    <StudentDetail client:load studentId={id || ""} />
   </div>
 </DashboardLayout>

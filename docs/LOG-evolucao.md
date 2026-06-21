@@ -9,9 +9,35 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - [x] **Conexão Imersiva:** Aluno agora vê foto e nome do professor no topo do dashboard.
 - [x] **Correção RLS:** Permissões de banco ajustadas para compartilhamento de perfil seguro.
 - [x] **Infraestrutura SSR:** Adaptador Vercel configurado e deploy em produção realizado com sucesso.
-- **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Gestão Financeira (OK) | Gestão Destrave Draw (OK) | Vozes do Buddy (90/90 - OK) | Laser Real-time (OK) | Edição de Revisão MRP/Escuta (OK).
-- **Última Atualização:** 02/06/2026 (12:25h)
+- **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Gestão Financeira (OK) | Gestão Destrave Draw (OK) | Vozes do Buddy (90/90 - OK) | Laser Real-time (OK) | Edição de Revisão MRP/Escuta (OK) | Correção TypeScript Geral (OK) | Destrave 2.0 (OK).
+- **Última Atualização:** 19/06/2026 (14:38h)
 - **GitHub:** `https://github.com/Felipedestrave/destravehub.git` (Branch `main`)
+
+---
+
+## 📅 Sessão: 19/06/2026 - Implementação do "Destrave 2.0" (Playlist Híbrida)
+
+### 🎯 Proposta & Escopo:
+*   **O Conceito:** Criação de um novo player/aplicativo unificado chamado **Destrave 2.0**.
+*   **O Fluxo:** O professor faz o upload de uma matéria (PDF/Texto) e escolhe a quantidade de exercícios da missão (opções de **10, 15 ou 20**).
+*   **Geração Inteligente:** A IA (`gemini-2.5-flash`) gera um mix estruturado de exercícios contendo **Destrave Escuta** (compreensão auditiva), **Destrave Lego** (construção gramatical de frases) e **Destrave MRP** (diálogos de múltipla escolha), dividindo as proporções de forma dinâmica.
+*   **Níveis de Dificuldade:** Opções de escolha de nível divididos em 4 opções: **N5, N4, N3 e Misturado**.
+*   **Estúdio de Curadoria:** O professor analisa, edita, exclui e aprova o resultado da IA na tela de revisão antes de salvar.
+*   **Áudio TTS:** O backend gera os arquivos de áudio automaticamente para as frases de escuta usando as vozes contextuais dos avatares e os embutirá na atividade.
+
+### ⚠️ Regra Crítica de Segurança (Prevenção de Regressão & Reversibilidade):
+*   > [!IMPORTANT]
+    > **Isolamento de Código (Fallback Garantido):** O sistema vigente funciona perfeitamente e foi mantido 100% intacto.
+    > Nenhuma alteração destrutiva ou substituição de arquivos foi feita nas páginas, rotas ou banco de dados atuais.
+*   Toda a implementação do Destrave 2.0 foi feita de maneira **aditiva e modular** (novas rotas e componentes isolados).
+
+### ✅ Implementação Concluída:
+*   **Isolamento Garantido:** Nenhuma alteração destrutiva ou regressão no sistema atual.
+*   **Geração Híbrida Inteligente:** Rota `/api/missions/generate-hybrid` implementada com Gemini 2.5 Flash, separando o mix de Escuta, Lego e MRP de acordo com os níveis de dificuldade (N5, N4, N3, Misturado) e quantidade de questões (10, 15, 20).
+*   **Áudio TTS:** Processamento paralelo de áudio nativo integrado na geração inicial da playlist de escuta.
+*   **Estúdio de Revisão do Professor:** Componente `Destrave2App.tsx` concluído, fornecendo painel completo para curadoria e edição pré-salvamento das questões geradas.
+*   **Player Unificado do Aluno:** Componente `Destrave2Player.tsx` concluído, oferecendo trilha sequencial dos sub-jogos com barra de progresso única, feedback imediato e buddy ativo.
+*   **Compilação Limpa:** Testes TypeScript (`npx tsc --noEmit`) e Astro (`npx astro check`) validados com 0 erros.
 
 ---
 

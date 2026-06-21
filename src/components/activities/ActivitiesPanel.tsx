@@ -5,7 +5,7 @@ import { MaterialLinkModal } from '../materials/MaterialLinkModal';
 interface Activity {
     id: string;
     title: string;
-    type: 'flashcards' | 'escuta' | 'mrp' | 'draw' | 'lego';
+    type: 'flashcards' | 'escuta' | 'mrp' | 'draw' | 'lego' | 'destrave2';
     created_at: string;
     config: Record<string, any>;
     folder_id: string | null;
@@ -30,6 +30,7 @@ const TYPE_LABELS: Record<string, { icon: string; label: string; color: string }
     mrp:        { icon: '🎭', label: 'Destrave MRP',    color: '#0ea5e9' },
     draw:       { icon: '🎨', label: 'Destrave Draw',   color: '#58317e' },
     lego:       { icon: '🧱', label: 'Destrave Lego',   color: '#10b981' },
+    destrave2:  { icon: '⚡', label: 'Destrave 2.0',    color: '#e11d48' },
 };
 
 export default function ActivitiesPanel() {
@@ -405,6 +406,9 @@ export default function ActivitiesPanel() {
         } else if (a.type === 'lego') {
             const count = cfg.quantity || cfg.sentences?.length || 0;
             baseSub = `${count} frase${count !== 1 ? 's' : ''}`;
+        } else if (a.type === 'destrave2') {
+            const count = cfg.exercises?.length || cfg.total_questions || 0;
+            baseSub = `${count} ${count !== 1 ? 'exercícios' : 'exercício'}`;
         }
         
         const matCount = a.material_count?.[0]?.count || 0;
@@ -439,6 +443,7 @@ export default function ActivitiesPanel() {
                 <div className="ap-tools-grid">
                     {[
                         { label: 'Destrave Draw', desc: 'Aulas com slides interativos', emoji: '🎨', color: '#58317e', href: '/draw' },
+                        { label: 'Destrave 2.0', desc: 'Playlists híbridas de Escuta, Lego e MRP', emoji: '⚡', color: '#e11d48', href: '/dashboard/missions/destrave2' },
                         { label: 'Destrave a Escuta', desc: 'Exercícios de compreensão auditiva', emoji: '🎧', color: '#8b5cf6', href: '/dashboard/missions/escuta' },
                         { label: 'Destrave MRP', desc: 'Múltipla escolha e produção textual', emoji: '🎭', color: '#0ea5e9', href: '/dashboard/missions/mrp' },
                         { label: 'Destrave Lego', desc: 'Sintaxe e estrutura', emoji: '🧱', color: '#10b981', href: '/dashboard/missions/lego' },

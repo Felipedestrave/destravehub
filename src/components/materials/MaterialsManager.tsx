@@ -38,7 +38,7 @@ interface Props {
 
 import './MaterialsManager.css';
 
-export const MaterialsManager: React.FC = () => {
+export const MaterialsManager: React.FC<Props> = () => {
   const [user, setUser] = useState<any>(null);
   const [isTeacher, setIsTeacher] = useState(false);
   const [currentTeacherId, setCurrentTeacherId] = useState<string>('');

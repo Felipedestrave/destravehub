@@ -55,11 +55,12 @@ export default function AddStudentForm({ editId }: Props) {
 
         const fetchStudent = async () => {
             try {
-                const { data: student, error: sError } = await supabase
+                const { data: studentData, error: sError } = await supabase
                     .from('students')
                     .select('*, profiles!student_id(whatsapp)')
                     .eq('id', editId)
                     .single();
+                const student = studentData as any;
 
                 if (sError) throw sError;
 
@@ -76,6 +77,7 @@ export default function AddStudentForm({ editId }: Props) {
                         billing_currency: student.billing_currency || 'BRL',
                         billing_day: student.billing_day ? String(student.billing_day) : '',
                         billing_package_size: student.billing_package_size ? String(student.billing_package_size) : '4',
+                        billing_package_start_date: student.billing_package_start_date || new Date().toISOString().split('T')[0],
                     });
 
                     const fullWpp = (student.profiles as any)?.whatsapp || '';
