@@ -30,6 +30,7 @@ export interface LegoConfig {
     context: string;
     quantity: number;
     pdfBase64?: string;
+    customInstructions?: string;
 }
 
 export type LegoStatus = 'UPLOAD' | 'LOADING' | 'REVIEW' | 'PLAYING' | 'RESULT' | 'SAVED';

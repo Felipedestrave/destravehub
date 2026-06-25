@@ -24,6 +24,8 @@ export interface FlashDeck {
     cards: Flashcard[];
     targetScore?: number;
     targetTime?: string; // Formato mm:ss
+    customInstructions?: string;
+    context?: string;
 }
 
 export interface DeckConfig {
@@ -32,6 +34,7 @@ export interface DeckConfig {
     title: string;
     level: JLPTCardLevel;
     quantity: number;
+    customInstructions?: string;
 }
 
 // SRS feedback options (for student view)

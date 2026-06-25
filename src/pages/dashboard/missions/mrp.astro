@@ -36,7 +36,8 @@ if (assignmentId) {
                context: rawConfig.context || (typeof rawConfig.context === 'string' ? rawConfig.context : ''),
                quantity: questions.length,
                level: rawConfig.level || 'N5',
-               mode: rawConfig.mode || 'Múltipla Escolha'
+               mode: rawConfig.mode || 'Múltipla Escolha',
+               customInstructions: rawConfig.customInstructions || ''
             };
         } else {
             console.error('[MRP Mission] CRITICAL: No questions in config!', rawConfig);
@@ -61,7 +62,8 @@ if (editingId) {
             context: rawConfig.context || '',
             quantity: initialQuestions.length,
             level: rawConfig.level || 'N5',
-            mode: rawConfig.mode || 'Múltipla Escolha'
+            mode: rawConfig.mode || 'Múltipla Escolha',
+            customInstructions: rawConfig.customInstructions || ''
         };
     }
 }

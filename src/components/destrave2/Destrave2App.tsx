@@ -30,6 +30,7 @@ interface Destrave2AppProps {
         difficulty: string;
         count: number;
         context: string;
+        customInstructions?: string;
     } | null;
     initialTitle?: string;
 }
@@ -53,6 +54,7 @@ export const Destrave2App: React.FC<Destrave2AppProps> = ({
     const [difficulty, setDifficulty] = useState<string>(initialConfig?.difficulty || 'mixed');
     const [count, setCount] = useState<number>(initialConfig?.count || 10);
     const [title, setTitle] = useState<string>(initialTitle || '');
+    const [customInstructions, setCustomInstructions] = useState<string>(initialConfig?.customInstructions || '');
 
     // Exercises state
     const [exercises, setExercises] = useState<any[]>(initialExercises || []);
@@ -77,7 +79,8 @@ export const Destrave2App: React.FC<Destrave2AppProps> = ({
                 body: JSON.stringify({
                     pdfBase64,
                     difficulty,
-                    count
+                    count,
+                    customInstructions
                 })
             });
 
@@ -123,6 +126,7 @@ export const Destrave2App: React.FC<Destrave2AppProps> = ({
                         difficulty,
                         total_questions: exercises.length,
                         context: fileName || '',
+                        customInstructions,
                         exercises
                     }
                 })
@@ -175,6 +179,7 @@ export const Destrave2App: React.FC<Destrave2AppProps> = ({
         setPdfBase64(null);
         setFileName(null);
         setExpandedIndex(null);
+        setCustomInstructions('');
     };
 
     return (
@@ -274,6 +279,18 @@ export const Destrave2App: React.FC<Destrave2AppProps> = ({
                                         </button>
                                     ))}
                                 </div>
+                            </div>
+
+                            <div className="mt-4">
+                                <label className="font-outfit font-semibold text-xs text-slate-mid uppercase tracking-wide block mb-2">
+                                    Instruções Especiais para a IA (Opcional)
+                                </label>
+                                <textarea
+                                    value={customInstructions}
+                                    onChange={(e) => setCustomInstructions(e.target.value)}
+                                    placeholder="Ex: Use apenas frases inéditas que não aparecem no material didático; use frases curtas; foque em uma partícula específica..."
+                                    className="w-full border-2 border-slate-border rounded-2xl p-4 font-inter text-sm text-slate-dark bg-white outline-none focus:border-brand focus:shadow-[0_0_0_4px_rgba(88,49,126,0.1)] transition-all resize-y h-[100px]"
+                                />
                             </div>
                         </div>
 

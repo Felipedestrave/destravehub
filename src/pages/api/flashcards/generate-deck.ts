@@ -32,7 +32,7 @@ export const POST: APIRoute = async ({ request }) => {
         return new Response(JSON.stringify({ error: 'Payload inválido.' }), { status: 400 });
     }
 
-    const { context, title, level, quantity, pdfBase64 } = config;
+    const { context, title, level, quantity, pdfBase64, customInstructions } = config;
 
     if (!pdfBase64 && (!context || context.trim().length < 20)) {
         return new Response(JSON.stringify({ error: 'Forneça um PDF ou um texto base de pelos menos 20 caracteres.' }), { status: 400 });
@@ -59,6 +59,7 @@ export const POST: APIRoute = async ({ request }) => {
     5. TRADUÇÃO DO EXEMPLO ('exampleTranslation'): Tradução da frase de exemplo em português.
     6. NÍVEL ('level'): Use exatamente "${level}".
     7. VARIEDADE: Mescle vocabulário e padrões gramaticais.
+    ${customInstructions && customInstructions.trim() ? `8. INSTRUÇÕES ADICIONAIS DO SENSEI: ${customInstructions.trim()}` : ''}
 
     Retorne APENAS um JSON array contendo os ${quantity} objetos.
     `;

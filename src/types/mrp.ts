@@ -32,6 +32,7 @@ export interface MrpConfig {
     quantity: number;
     level: JLPTLevel;
     mode: QuizMode;
+    customInstructions?: string;
 }
 
 export interface MrpUserAnswer {

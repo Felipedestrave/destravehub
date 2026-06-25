@@ -30,7 +30,8 @@ if (assignmentId) {
             initialSentences = rawConfig.sentences;
             initialConfig = {
                context: rawConfig.context || '',
-               quantity: rawConfig.quantity || rawConfig.sentences.length
+               quantity: rawConfig.quantity || rawConfig.sentences.length,
+               customInstructions: rawConfig.customInstructions || ''
             };
         }
     }
@@ -51,7 +52,8 @@ if (editingId) {
             initialSentences = rawConfig.sentences;
             initialConfig = {
                context: rawConfig.context || '',
-               quantity: rawConfig.quantity || rawConfig.sentences.length
+               quantity: rawConfig.quantity || rawConfig.sentences.length,
+               customInstructions: rawConfig.customInstructions || ''
             };
         }
     }

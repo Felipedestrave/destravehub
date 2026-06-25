@@ -50,7 +50,7 @@ export const POST: APIRoute = async ({ request }) => {
         if (!apiKey) return new Response(JSON.stringify({ error: 'GEMINI_API_KEY não configurada.' }), { status: 500 });
 
         const body = await request.json();
-        const { pdfBase64, difficulty, count } = body;
+        const { pdfBase64, difficulty, count, customInstructions } = body;
 
         if (!pdfBase64 || !difficulty || !count) {
             return new Response(JSON.stringify({ error: 'pdfBase64, difficulty e count são obrigatórios.' }), { status: 400 });
@@ -71,6 +71,7 @@ export const POST: APIRoute = async ({ request }) => {
       
       REGRAS GERAIS:
       - Dificuldade: ${difficultyDescription}
+      ${customInstructions && customInstructions.trim() ? `- INSTRUÇÕES ADICIONAIS DO SENSEI: ${customInstructions.trim()}` : ''}
       - Mantenha um tom divertido e pedagógico.
       - Para o tipo 'escuta', crie 4 opções em português (apenas uma correta), forneça um romaji e uma dica.
       - Para o tipo 'lego', divida a frase original em blocos com tipos adequados ('SUBJECT', 'OBJECT', 'VERB', 'PARTICLE', 'TIME', 'ADJECTIVE', 'OTHER') e forneça traduções individuais dos blocos se possível.

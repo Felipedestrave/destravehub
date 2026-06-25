@@ -15,13 +15,14 @@ export const DeckGenerator: React.FC<DeckGeneratorProps> = ({ onGenerate, isLoad
   const [fileName, setFileName] = useState<string | null>(null);
   const [level, setLevel] = useState<JLPTCardLevel>(JLPTCardLevel.N5);
   const [quantity, setQuantity] = useState(15);
+  const [customInstructions, setCustomInstructions] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return alert("Dê um nome ao seu deck.");
     if (!pdfBase64 && context.trim().length < 20) return alert("Por favor, faça upload de um PDF ou insira um texto para gerar os cards.");
 
-    onGenerate({ title, context, pdfBase64: pdfBase64 || undefined, level, quantity });
+    onGenerate({ title, context, pdfBase64: pdfBase64 || undefined, level, quantity, customInstructions });
   };
 
   return (
@@ -109,6 +110,18 @@ export const DeckGenerator: React.FC<DeckGeneratorProps> = ({ onGenerate, isLoad
                 ))}
               </div>
             </div>
+          </div>
+
+          <div className="flash-field mb-2">
+            <label className="flash-label">
+              Instruções Especiais para a IA (Opcional)
+            </label>
+            <textarea
+              value={customInstructions}
+              onChange={(e) => setCustomInstructions(e.target.value)}
+              placeholder="Ex: Use apenas frases inéditas que não aparecem no material didático; use palavras simples; priorize verbos de ação..."
+              className="flash-textarea min-h-[90px]"
+            />
           </div>
 
           <button

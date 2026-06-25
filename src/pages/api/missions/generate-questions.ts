@@ -42,7 +42,7 @@ export const POST: APIRoute = async ({ request }) => {
         if (!apiKey) return new Response(JSON.stringify({ error: 'GEMINI_API_KEY não configurada.' }), { status: 500 });
 
         const body = await request.json();
-        const { pdfBase64, difficulty, count, focus } = body;
+        const { pdfBase64, difficulty, count, focus, customInstructions } = body;
 
         if (!pdfBase64 || !difficulty || !count) {
             return new Response(JSON.stringify({ error: 'pdfBase64, difficulty e count são obrigatórios.' }), { status: 400 });
@@ -67,6 +67,7 @@ export const POST: APIRoute = async ({ request }) => {
       3. Diversidade: Cada questão com cenário diferente (restaurante, aeroporto, escola, hospital, etc).
       4. Registro: Varie entre polido (Desu-Masu) e casual. NUNCA use Keigo.
       5. Estrutura: Situações de vida real usando vocabulário do PDF.
+      ${customInstructions && customInstructions.trim() ? `6. INSTRUÇÕES ADICIONAIS DO SENSEI: ${customInstructions.trim()}` : ''}
 
       Cada objeto deve conter:
       - japanese_sentence: A frase em japonês (Kanji/Kana).

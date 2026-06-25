@@ -4,14 +4,31 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 
 ---
 
+- [x] **Instruções Customizadas de IA:** Adicionado campo de texto opcional em todos os 5 geradores para o professor guiar a geração com diretrizes específicas.
 - [x] **Segurança e Acesso:** Logout de professor corrigido e `RoleGuard` implementado (Geradores restritos).
 - [x] **Perfil do Sensei 2.0:** Cadastro completo (Bio, Especialidade, Nome de Exibição) e Upload de Foto com Cropper.
 - [x] **Conexão Imersiva:** Aluno agora vê foto e nome do professor no topo do dashboard.
 - [x] **Correção RLS:** Permissões de banco ajustadas para compartilhamento de perfil seguro.
 - [x] **Infraestrutura SSR:** Adaptador Vercel configurado e deploy em produção realizado com sucesso.
-- **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Gestão Financeira (OK) | Gestão Destrave Draw (OK) | Vozes do Buddy (90/90 - OK) | Laser Real-time (OK) | Edição de Revisão MRP/Escuta (OK) | Correção TypeScript Geral (OK) | Destrave 2.0 (OK).
-- **Última Atualização:** 19/06/2026 (14:38h)
+- **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Gestão Financeira (OK) | Gestão Destrave Draw (OK) | Vozes do Buddy (90/90 - OK) | Laser Real-time (OK) | Edição de Revisão MRP/Escuta (OK) | Correção TypeScript Geral (OK) | Destrave 2.0 (OK) | Instruções Opcionais de IA (OK).
+- **Última Atualização:** 25/06/2026 (08:34h)
 - **GitHub:** `https://github.com/Felipedestrave/destravehub.git` (Branch `main`)
+
+---
+
+## 📅 Sessão: 25/06/2026 - Implementação das Instruções Opcionais da IA
+
+### 🎯 Proposta & Escopo:
+*   **Instruções Customizadas:** Inclusão de um campo de texto opcional (`textarea`) para permitir que o professor envie diretrizes adicionais ao Gemini ao gerar exercícios.
+*   **Modos Cobertos:** Destrave 2.0 (Híbrido), Destrave Escuta, Destrave Lego, Destrave MRP e Destrave Cards (Flashcards).
+*   **Flexibilidade:** Campo 100% opcional. Se deixado vazio, a IA segue as regras padrão de cada jogo.
+
+### ✅ Implementação Concluída:
+*   **Tipagem Atualizada:** Adicionado `customInstructions` opcional nos tipos `GameConfig`, `LegoConfig`, `MrpConfig`, `DeckConfig` e `FlashDeck`.
+*   **UI do Professor Modificada:** Integrada a textarea nas telas de autoria dos 5 geradores, com o design system Ice Meta.
+*   **Integração com Gemini:** Atualizados os endpoints das APIs de geração para ler as instruções e injetá-las de forma dinâmica nos prompts enviados ao Gemini 2.5 Flash.
+*   **Sincronização de Rotas Astro:** As páginas `.astro` de missões foram configuradas para carregar o histórico de instruções do banco de dados quando necessário.
+*   **Validação Completa:** TypeScript compilado sem erros (`npx tsc --noEmit`).
 
 ---
 

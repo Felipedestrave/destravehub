@@ -14,10 +14,11 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({ onStart, isGeneratin
     const [difficulty, setDifficulty] = useState<Difficulty>(Difficulty.MEDIUM);
     const [focus, setFocus] = useState<StudyFocus>(StudyFocus.CONTEXTUAL);
     const [count, setCount] = useState(5);
+    const [customInstructions, setCustomInstructions] = useState('');
 
     const handleSubmit = () => {
         if (!pdfBase64) return;
-        onStart({ pdfBase64, difficulty, count, focus });
+        onStart({ pdfBase64, difficulty, count, focus, customInstructions });
     };
 
     const difficultyOptions = [
@@ -119,6 +120,19 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({ onStart, isGeneratin
                     <div className="flex justify-between text-xs text-slate-mid mt-1">
                         <span>3</span><span>15</span>
                     </div>
+                </div>
+
+                {/* Custom Instructions */}
+                <div className="mt-6 pt-6 border-t border-slate-border">
+                    <label className="font-outfit font-semibold text-sm text-slate-mid uppercase tracking-wide block mb-3">
+                        Instruções Especiais para a IA (Opcional)
+                    </label>
+                    <textarea
+                        value={customInstructions}
+                        onChange={(e) => setCustomInstructions(e.target.value)}
+                        placeholder="Ex: Use apenas frases inéditas que não aparecem no material didático; use frases curtas; foque em uma partícula específica..."
+                        className="w-full border-2 border-slate-border rounded-xl p-4 font-inter text-sm text-slate-dark bg-white outline-none focus:border-brand focus:shadow-[0_0_0_4px_rgba(88,49,126,0.1)] transition-all resize-y h-[100px]"
+                    />
                 </div>
             </div>
 

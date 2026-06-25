@@ -32,7 +32,7 @@ export const POST: APIRoute = async ({ request }) => {
         return new Response(JSON.stringify({ error: 'Payload inválido.' }), { status: 400 });
     }
 
-    const { context, quantity, pdfBase64 } = config;
+    const { context, quantity, pdfBase64, customInstructions } = config;
 
     if (!pdfBase64 && (!context || context.trim().length < 5)) {
         return new Response(JSON.stringify({ error: 'Forneça um texto base, tema, ou um PDF válido.' }), { status: 400 });
@@ -51,6 +51,7 @@ export const POST: APIRoute = async ({ request }) => {
        Tipos permitidos para cada bloco: 'SUBJECT', 'OBJECT', 'VERB', 'PARTICLE', 'TIME', 'ADJECTIVE', 'OTHER'.
     3. ROMAJI: Para cada bloco, forneça a leitura em romaji.
     4. TRADUÇÃO: Forneça a tradução da frase completa para o português.
+    ${customInstructions && customInstructions.trim() ? `5. INSTRUÇÕES ADICIONAIS DO SENSEI: ${customInstructions.trim()}` : ''}
     
     Retorne um JSON contendo EXATAMENTE ${quantity} objetos no array principal.
     `;

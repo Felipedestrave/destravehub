@@ -30,7 +30,8 @@ if (assignmentId) {
             initialConfig = {
                difficulty: rawConfig.difficulty || 'Fácil',
                count: initialQuestions.length,
-               focus: rawConfig.focus || 'Tradução Fiel'
+               focus: rawConfig.focus || 'Tradução Fiel',
+               customInstructions: rawConfig.customInstructions || ''
             }
         }
     }
@@ -52,7 +53,8 @@ if (editingId) {
         initialConfig = {
             difficulty: rawConfig.difficulty || 'Fácil',
             count: initialQuestions.length,
-            focus: rawConfig.focus || 'Tradução Fiel'
+            focus: rawConfig.focus || 'Tradução Fiel',
+            customInstructions: rawConfig.customInstructions || ''
         };
     }
 }

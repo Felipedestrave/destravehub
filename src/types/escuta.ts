@@ -44,6 +44,7 @@ export interface GameConfig {
     difficulty: Difficulty;
     count: number;
     focus: StudyFocus;
+    customInstructions?: string;
 }
 
 export interface GameResult {

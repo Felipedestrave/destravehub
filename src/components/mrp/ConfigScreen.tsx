@@ -15,6 +15,7 @@ export const ConfigScreen: React.FC<ConfigScreenProps> = ({ onSubmit, isLoading 
     const [quantity, setQuantity] = useState(10);
     const [level, setLevel] = useState<JLPTLevel>(JLPTLevel.N5);
     const [mode, setMode] = useState<QuizMode>(QuizMode.MULTIPLE_CHOICE);
+    const [customInstructions, setCustomInstructions] = useState('');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -22,7 +23,7 @@ export const ConfigScreen: React.FC<ConfigScreenProps> = ({ onSubmit, isLoading 
             alert('Por favor, faça upload de um PDF ou insira um texto com pelo menos 20 caracteres.');
             return;
         }
-        onSubmit({ context, pdfBase64: pdfBase64 || undefined, quantity, level, mode });
+        onSubmit({ context, pdfBase64: pdfBase64 || undefined, quantity, level, mode, customInstructions });
     };
 
     return (
@@ -66,6 +67,20 @@ export const ConfigScreen: React.FC<ConfigScreenProps> = ({ onSubmit, isLoading 
                         className="mrp-textarea h-[120px]"
                     />
                 </div>
+            </div>
+
+            {/* Custom Instructions */}
+            <div className="card w-full">
+                <div className="flex items-center gap-2 mb-3">
+                    <FileText size={16} className="text-slate-mid" />
+                    <label className="text-xs font-bold text-slate-mid uppercase tracking-wider">Instruções Especiais para a IA (Opcional)</label>
+                </div>
+                <textarea
+                    value={customInstructions}
+                    onChange={(e) => setCustomInstructions(e.target.value)}
+                    placeholder="Ex: Use apenas frases inéditas baseadas no vocabulário; foque em situações cotidianas de compras; crie diálogos curtos..."
+                    className="mrp-textarea h-[100px]"
+                />
             </div>
 
             {/* Options Grid */}

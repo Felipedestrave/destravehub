@@ -12,6 +12,7 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({ onSubmit, isLoading 
     const [quantity, setQuantity] = useState(10);
     const [pdfFile, setPdfFile] = useState<File | null>(null);
     const [pdfBase64, setPdfBase64] = useState<string>('');
+    const [customInstructions, setCustomInstructions] = useState('');
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -32,7 +33,7 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({ onSubmit, isLoading 
             alert('Por favor, insira um texto com pelo menos 5 caracteres ou faça upload de um PDF.');
             return;
         }
-        onSubmit({ context, quantity, pdfBase64 });
+        onSubmit({ context, quantity, pdfBase64, customInstructions });
     };
 
     return (
@@ -106,6 +107,19 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({ onSubmit, isLoading 
                             </button>
                         ))}
                     </div>
+                </div>
+
+                {/* Custom Instructions */}
+                <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-slate-border">
+                    <label className="font-inter text-[0.8rem] font-semibold text-slate-mid tracking-wider uppercase">
+                        Instruções Especiais para a IA (Opcional)
+                    </label>
+                    <textarea
+                        value={customInstructions}
+                        onChange={(e) => setCustomInstructions(e.target.value)}
+                        placeholder="Ex: Crie frases inéditas baseadas no vocabulário; crie frases simples e curtas; foque em uma partícula específica..."
+                        className="w-full border-[1.5px] border-slate-border rounded-xl p-4 font-inter text-[0.9rem] text-slate-dark bg-white outline-none focus:border-brand focus:shadow-[0_0_0_3px_rgba(88,49,126,0.12)] transition-all resize-y h-[100px]"
+                    />
                 </div>
             </div>
 

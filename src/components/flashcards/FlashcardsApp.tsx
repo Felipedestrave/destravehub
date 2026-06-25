@@ -51,7 +51,9 @@ export const FlashcardsApp: React.FC<FlashcardsAppProps> = ({ userToken, assignm
             setDeck({
                 title: config.title,
                 level: config.level,
-                cards: data.cards
+                cards: data.cards,
+                customInstructions: config.customInstructions,
+                context: config.context,
             });
             setStatus('REVIEW');
         } catch (err: any) {

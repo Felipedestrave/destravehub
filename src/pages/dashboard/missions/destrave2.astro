@@ -28,7 +28,8 @@ if (assignmentId) {
             initialConfig = {
                difficulty: rawConfig.difficulty || 'mixed',
                count: initialExercises.length,
-               context: rawConfig.context || ''
+               context: rawConfig.context || '',
+               customInstructions: rawConfig.customInstructions || ''
             };
         }
     }
@@ -50,7 +51,8 @@ if (editingId) {
         initialConfig = {
             difficulty: rawConfig.difficulty || 'mixed',
             count: initialExercises.length,
-            context: rawConfig.context || ''
+            context: rawConfig.context || '',
+            customInstructions: rawConfig.customInstructions || ''
         };
     }
 }
