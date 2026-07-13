@@ -10,9 +10,27 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - [x] **Conexão Imersiva:** Aluno agora vê foto e nome do professor no topo do dashboard.
 - [x] **Correção RLS:** Permissões de banco ajustadas para compartilhamento de perfil seguro.
 - [x] **Infraestrutura SSR:** Adaptador Vercel configurado e deploy em produção realizado com sucesso.
-- **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Gestão Financeira (OK) | Gestão Destrave Draw (OK) | Vozes do Buddy (90/90 - OK) | Laser Real-time (OK) | Edição de Revisão MRP/Escuta (OK) | Correção TypeScript Geral (OK) | Destrave 2.0 (OK) | Instruções Opcionais de IA (OK).
-- **Última Atualização:** 25/06/2026 (08:34h)
+- **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Gestão Financeira (OK) | Gestão Destrave Draw (OK) | Vozes do Buddy (90/90 - OK) | Laser Real-time (OK) | Edição de Revisão MRP/Escuta (OK) | Correção TypeScript Geral (OK) | Destrave 2.0 (OK) | Instruções Opcionais de IA (OK) | Compartilhamento de Materiais e Busca Semântica (OK).
+- **Última Atualização:** 13/07/2026 (17:05h)
 - **GitHub:** `https://github.com/Felipedestrave/destravehub.git` (Branch `main`)
+
+---
+
+## 📅 Sessão: 13/07/2026 - Compartilhamento de Materiais & Busca Semântica por IA
+
+### 🎯 Proposta & Escopo:
+*   **Compartilhamento de Materiais:** Permitir que o professor compartilhe materiais em PDF/Imagem de sua biblioteca de forma direta com alunos específicos a partir do gerenciador.
+*   **Segurança na Deleção:** Impedir que a deleção de uma referência de material por parte de um aluno ou professor remova o arquivo físico no Supabase Storage se ele ainda estiver sendo referenciado por outros usuários.
+*   **Busca Semântica por IA:** Permitir que o aluno pesquise materiais na aba "Materiais de Apoio" por proximidade conceitual e contextual utilizando a IA do Google Gemini.
+*   **Ordenação por Data:** Implementar a ordenação de arquivos por nome e por data de compartilhamento (data de vinculação).
+
+### ✅ Implementação Concluída:
+*   **API de Busca Semântica:** Rota `/api/materials/semantic-search` criada usando o modelo `gemini-2.5-flash-lite` para ranquear arquivos de apoio de forma conceitual baseado na busca do aluno.
+*   **Modal de Compartilhamento:** Criado o componente de modal `ShareMaterialModal` no [MaterialsManager.tsx](file:///c:/Users/Felipe Kawakami/Aplicativos/src/components/materials/MaterialsManager.tsx) que permite ao professor selecionar alunos de teste de forma null-safe e duplicar a referência no banco (referenciando o mesmo `file_path`).
+*   **Eventos e UI (Correção de Arraste):** Adicionado `onMouseDown={(e) => e.stopPropagation()}` nos botões de ação do card ("Ver", "Compartilhar", "Excluir") para evitar que o evento de arraste (`draggable`) nativo do card intercepte e cancele o clique.
+*   **Exclusão Segura:** Ajustado o método `handleDelete` para só excluir fisicamente o arquivo do bucket do Supabase Storage se a contagem de registros com o mesmo `file_path` for menor ou igual a 1.
+*   **Interface do Aluno:** Habilitada a exclusão e adicionada a ordenação (Nome vs Data) e o input de busca semântica por IA.
+*   **Tipagem e Build:** Validação de compilação efetuada com sucesso com `npx tsc --noEmit` (0 erros) e push realizado para o GitHub.
 
 ---
 
