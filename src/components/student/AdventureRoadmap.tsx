@@ -803,7 +803,7 @@ export const AdventureRoadmap: React.FC = () => {
           display: flex;
           align-items: center;
           gap: 0.5rem;
-          background: white;
+          background: var(--color-white);
           border: 2px solid var(--color-slate-border);
           padding: 0.6rem 1rem;
           border-radius: 1rem;
@@ -818,7 +818,7 @@ export const AdventureRoadmap: React.FC = () => {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          background: white;
+          background: var(--color-white);
           padding: 0.75rem 1.5rem;
           border-radius: 1.5rem;
           box-shadow: 0 4px 20px rgba(0,0,0,0.05);
@@ -918,7 +918,7 @@ export const AdventureRoadmap: React.FC = () => {
           pointer-events: none;
         }
         .sensei-bubble {
-          background: white;
+          background: var(--color-white);
           border: 2px solid var(--color-brand);
           padding: 1rem;
           border-radius: 1.5rem 1.5rem 0 1.5rem;
@@ -948,7 +948,7 @@ export const AdventureRoadmap: React.FC = () => {
           display: flex; align-items: center; justify-content: center; padding: 1.5rem;
         }
         .rules-modal, .node-detail-card {
-          background: white; border-radius: 2rem; padding: 2rem; width: 100%; max-width: 500px;
+          background: var(--color-white); border-radius: 2rem; padding: 2rem; width: 100%; max-width: 500px;
           box-shadow: 0 30px 60px rgba(0,0,0,0.3);
           max-height: 90vh;
           display: flex;

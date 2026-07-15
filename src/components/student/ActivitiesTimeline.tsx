@@ -257,7 +257,7 @@ export const ActivitiesTimeline: React.FC = () => {
           width: 32px;
           height: 32px;
           border-radius: 50%;
-          background: white;
+          background: var(--color-white);
           border: 2px solid var(--color-slate-border);
           display: flex;
           align-items: center;
@@ -285,7 +285,7 @@ export const ActivitiesTimeline: React.FC = () => {
           padding-left: 1.5rem;
         }
         .content-card {
-          background: white;
+          background: var(--color-white);
           border: 1px solid var(--color-slate-border);
           padding: 1.25rem;
           border-radius: 1.25rem;

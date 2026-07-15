@@ -187,7 +187,7 @@ export const AgendaView: React.FC = () => {
 
             <style>{`
                 .agenda-container {
-                    background: white;
+                    background: var(--color-white);
                     border-radius: 1.5rem;
                     padding: 1.5rem;
                     border: 1px solid var(--color-slate-border);
@@ -251,9 +251,9 @@ export const AgendaView: React.FC = () => {
                     width: 12px;
                     height: 12px;
                     border-radius: 50%;
-                    border: 2px solid white;
+                    border: 2px solid var(--color-white);
                     box-shadow: 0 0 0 2px var(--color-brand);
-                    background: white;
+                    background: var(--color-white);
                     margin-top: 1rem;
                     z-index: 2;
                 }
@@ -288,7 +288,7 @@ export const AgendaView: React.FC = () => {
                     border: 1.5px solid transparent;
                 }
                 .content-card:hover {
-                    background: white;
+                    background: var(--color-white);
                     border-color: var(--color-brand);
                     transform: translateX(4px);
                     box-shadow: 0 4px 12px rgba(88,49,126,0.06);
@@ -298,7 +298,7 @@ export const AgendaView: React.FC = () => {
                     width: 40px;
                     height: 40px;
                     border-radius: 0.75rem;
-                    background: white;
+                    background: var(--color-white);
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -370,7 +370,7 @@ export const AgendaView: React.FC = () => {
                 .agenda-loading, .agenda-empty {
                     padding: 3rem;
                     text-align: center;
-                    background: white;
+                    background: var(--color-white);
                     border-radius: 1.5rem;
                     border: 1px dashed var(--color-slate-border);
                 }

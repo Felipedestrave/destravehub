@@ -215,21 +215,32 @@ const {
   const initDashboard = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
+      const isThemesTest = window.location.pathname === '/dashboard/themes-test';
+
       if (!session) {
-        window.location.href = '/auth/login';
-        return;
+        if (!isThemesTest) {
+          window.location.href = '/auth/login';
+          return;
+        }
       }
 
-      // Fetch profile
-      let { data: profiles } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id);
-      
-      const profile = profiles?.[0];
-      const userRole = profile?.role || session.user.user_metadata?.role || 'teacher';
-      const equipped = profile?.equipped || {};
-      const currentThemeId = (equipped as any).theme;
+      let profile = null;
+      let userRole = 'student';
+      let equipped = {};
+      let currentThemeId = null;
+
+      if (session) {
+        // Fetch profile
+        let { data: profiles } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id);
+        
+        profile = profiles?.[0];
+        userRole = profile?.role || session.user.user_metadata?.role || 'teacher';
+        equipped = profile?.equipped || {};
+        currentThemeId = (equipped as any).theme;
+      }
 
       // --- APLICAR TEMA ---
       const applyTheme = (themeId: string | null) => {
@@ -286,7 +297,7 @@ const {
       updateGreeting(profile);
 
       // --- LOGICA DE SENSEI PARA ALUNO ---
-      if (userRole === 'student') {
+      if (userRole === 'student' && session) {
           console.log('[Dashboard] Buscando vínculo do Sensei para o aluno:', session.user.id);
           
           const { data: studentData, error: studentError } = await supabase
@@ -484,6 +495,13 @@ const {
     --color-ice: #050505 !important;
     --color-white: #0A0A0A !important;
     --color-slate-border: #22C55E33 !important;
+  }
+  .theme-akihabara-glitch .sidebar-content {
+    background-color: #0A0A0A !important;
+    border-right: 1px solid rgba(34, 197, 94, 0.2) !important;
+  }
+  .theme-akihabara-glitch .sidebar-link:not(.active) {
+    color: #94A3B8 !important;
   }
 
   /* 6. Sushi Go-Round */

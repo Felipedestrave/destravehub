@@ -31,5 +31,53 @@ const {
   </head>
   <body>
     <slot />
+
+    <script>
+      import { supabase } from '../lib/supabase';
+
+      const initTheme = async () => {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session) return;
+
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('equipped')
+            .eq('id', session.user.id)
+            .maybeSingle();
+
+          const equipped = profile?.equipped || {};
+          const currentThemeId = (equipped as any).theme;
+
+          const applyTheme = (themeId: string | null) => {
+            const targets = [document.documentElement, document.body];
+            targets.forEach(el => {
+              const classesToRemove = Array.from(el.classList).filter(cls => cls.startsWith('theme-'));
+              classesToRemove.forEach(cls => el.classList.remove(cls));
+            });
+
+            if (themeId && themeId !== 'null') {
+              document.documentElement.classList.add(themeId);
+              document.documentElement.setAttribute('data-theme', themeId);
+              document.body.classList.add(themeId);
+            } else {
+              document.documentElement.removeAttribute('data-theme');
+            }
+          };
+
+          if (currentThemeId) {
+            applyTheme(currentThemeId);
+          }
+
+          window.addEventListener('theme-changed', (e: any) => {
+            applyTheme(e.detail);
+          });
+        } catch (err) {
+          console.error('[Layout Theme] Error:', err);
+        }
+      };
+
+      initTheme();
+    </script>
   </body>
 </html>

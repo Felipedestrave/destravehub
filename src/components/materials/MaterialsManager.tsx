@@ -474,7 +474,8 @@ export const MaterialsManager: React.FC<Props> = () => {
   };
 
   return (
-    <div className="materials-container">
+    <>
+      <div className="materials-container">
       <header className="materials-header">
         <h2 className="materials-title">
           {isTeacher ? 'Gerenciador de Materiais' : 'Meus Materiais de Apoio'}
@@ -697,6 +698,8 @@ export const MaterialsManager: React.FC<Props> = () => {
         </div>
       )}
 
+      </div>
+
       {/* Modal de Compartilhamento */}
       {isSharingModalOpen && sharingMaterial && (
         <div className="share-modal-overlay" onClick={() => setIsSharingModalOpen(false)}>
@@ -745,6 +748,6 @@ export const MaterialsManager: React.FC<Props> = () => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };

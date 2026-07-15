@@ -239,7 +239,7 @@ export default function MissionList() {
           margin-bottom: 2rem;
         }
         .stat-card {
-          background: white;
+          background: var(--color-white);
           border: 1px solid var(--color-slate-border);
           border-radius: 1.25rem;
           padding: 1.25rem;
@@ -287,7 +287,7 @@ export default function MissionList() {
           display: flex;
           align-items: center;
           gap: 1.25rem;
-          background: white;
+          background: var(--color-white);
           border: 1px solid var(--color-slate-border);
           border-radius: 1.25rem;
           padding: 1.25rem;
@@ -385,7 +385,7 @@ export default function MissionList() {
         .empty-state {
           text-align: center;
           padding: 4rem 2rem;
-          background: white;
+          background: var(--color-white);
           border: 2px dashed var(--color-slate-border);
           border-radius: 2rem;
         }
@@ -407,7 +407,7 @@ export default function MissionList() {
         @keyframes spin { to { transform: rotate(360deg); } }
 
         .message-card {
-          background: white;
+          background: var(--color-white);
           padding: 2rem;
           border-radius: 1.5rem;
           border: 1px solid var(--color-slate-border);

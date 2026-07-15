@@ -1,16 +1,8 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import { ThemesTestPage as ThemesTestComponent } from '../../components/store/ThemesTestPage.tsx';
 ---
 
-<Layout title="Visualizador de Temas | Mercado Destrave">
+<DashboardLayout title="Visualizador de Temas | Mercado Destrave" activeNav="store">
     <ThemesTestComponent client:only="react" />
-</Layout>
-
-<style is:global>
-    body {
-        margin: 0;
-        padding: 0;
-        background: black;
-    }
-</style>
+</DashboardLayout>
