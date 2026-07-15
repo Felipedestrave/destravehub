@@ -11,8 +11,26 @@ Este documento registra o progresso da implementação, decisões técnicas e o 
 - [x] **Correção RLS:** Permissões de banco ajustadas para compartilhamento de perfil seguro.
 - [x] **Infraestrutura SSR:** Adaptador Vercel configurado e deploy em produção realizado com sucesso.
 - **Status:** Deploy Vercel (OK) | Sistema de Temas Dinâmicos (OK) | Gestão Financeira (OK) | Gestão Destrave Draw (OK) | Vozes do Buddy (90/90 - OK) | Laser Real-time (OK) | Edição de Revisão MRP/Escuta (OK) | Correção TypeScript Geral (OK) | Destrave 2.0 (OK) | Instruções Opcionais de IA (OK) | Compartilhamento de Materiais e Busca Semântica (OK).
-- **Última Atualização:** 13/07/2026 (17:05h)
+- **Última Atualização:** 15/07/2026 (15:00h)
 - **GitHub:** `https://github.com/Felipedestrave/destravehub.git` (Branch `main`)
+
+---
+
+## 📅 Sessão: 15/07/2026 - Correção de Temas, Visualizador do Dashboard & Fix do Compartilhamento
+
+### 🎯 Proposta & Escopo:
+*   **Correção de Temas (Modo Escuro / Alto Contraste):** Garantir que os contêineres e cards nos componentes do aluno (`MissionList`, `AgendaView`, `ActivitiesTimeline`, `AdventureRoadmap`) utilizem a variável `--color-white` para se adaptar dinamicamente aos temas Neon, Shinkansen, Konbini Night, etc., evitando textos claros ilegíveis em fundos brancos.
+*   **Temas em Exercícios:** Configurar `Layout.astro` para aplicar o tema ativo do aluno na classe do HTML/Body, permitindo que a tela de gameplay dos sub-jogos herde as cores dinâmicas.
+*   **Visualizador Realista de Temas:** Integrar a página de testes de temas (`/dashboard/themes-test`) diretamente dentro da barra lateral e cabeçalho reais do dashboard, removendo a antiga tela cheia que cobria o menu.
+*   **Bug do Modal de Compartilhamento:** Corrigir o bug de layout que fazia o modal de compartilhamento de materiais sumir/deslocar-se para fora da tela devido ao `backdrop-filter: blur(...)` do contêiner pai.
+
+### ✅ Implementação Concluída:
+*   **Variáveis CSS nos Cards:** Substituídos fundos hardcoded `white` por `var(--color-white)` nos principais componentes do aluno.
+*   **Carregamento de Temas no Layout Geral:** Script client-side adicionado no `Layout.astro` para carregar e injetar o tema ativo do usuário do banco de dados no carregamento inicial da página.
+*   **Visualizador Inline & Eventos:** Refatorado `ThemesTestPage.tsx` para se integrar à barra lateral, com envio de eventos `theme-changed` em tempo real ao navegar pela loja e limpeza automática do tema ao fechar a página (preservando o tema definitivo no banco).
+*   **Resiliência no DashboardLayout:** Bypass de login para `/dashboard/themes-test` e proteção contra dados de sessão nulos. Correção do estilo do tema **Akihabara Glitch** no menu lateral (forçada cor de fundo escura `#0A0A0A` e links inativos visíveis com cor `#94A3B8`).
+*   **Reestruturação do Modal de Compartilhamento:** Alterado o layout JSX no `MaterialsManager.tsx` movendo o `.share-modal-overlay` para fora do contêiner `.materials-container`, resolvendo o bug do bloco de contenção e garantindo centralização perfeita na tela.
+*   **Deploy Completo:** Testado build final com `npm run build` (0 erros) e push bem-sucedido para o GitHub.
 
 ---
 
