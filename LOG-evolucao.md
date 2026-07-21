@@ -1,5 +1,39 @@
 # 📝 Log de Evolução - Destrave Hub
 
+## 📅 Data: 21/07/2026
+
+### 🚧 Ponto de Parada Atual (RETOMAR AQUI):
+1. **Realizar Teste Prático Local (Cloudflare R2):**
+   * **Passos para o teste:**
+     1. Iniciar o servidor local rodando `npm run dev` no terminal.
+     2. Acessar a tela de materiais no painel do Sensei.
+     3. Abrir materiais antigos (PDFs/Imagens) e verificar na aba do navegador se a URL deles começa com `https://pub-92fa315a78bb4d24b80b4166108114b2.r2.dev/`.
+     4. Enviar um novo arquivo de teste pela interface.
+     5. Confirmar que o novo arquivo foi listado no site e que ele também foi gravado no painel da Cloudflare (Bucket `destrave-hub-materials`).
+2. **Limpeza e Downgrade do Supabase:**
+   * Após o teste bem-sucedido, esvaziar o bucket `materials` no painel do Supabase Storage.
+   * Fazer o downgrade do projeto no painel do Supabase de volta para o plano gratuito (Free Tier).
+
+### ✅ Implementado nesta sessão:
+1. **Migração do Armazenamento para Cloudflare R2:**
+   * Instalado SDK do AWS S3 e configurado o cliente R2 em [r2.ts](file:///c:/Users/Felipe%20Kawakami/Aplicativos/src/lib/r2.ts).
+   * Criadas as APIs de backend `/api/materials/upload-r2` e `/api/materials/delete-r2`.
+   * Refatorados os componentes [MaterialsManager.tsx](file:///c:/Users/Felipe%20Kawakami/Aplicativos/src/components/materials/MaterialsManager.tsx), [MaterialsDrawer.tsx](file:///c:/Users/Felipe%20Kawakami/Aplicativos/src/components/materials/MaterialsDrawer.tsx), [MaterialLinkModal.tsx](file:///c:/Users/Felipe%20Kawakami/Aplicativos/src/components/materials/MaterialLinkModal.tsx) e [DrawApp.tsx](file:///c:/Users/Felipe%20Kawakami/Aplicativos/src/components/draw/DrawApp.tsx) para usar o Cloudflare R2 para uploads/visualizações.
+   * Criado e executado o script de migração [migrate-to-r2.js](file:///c:/Users/Felipe%20Kawakami/Aplicativos/scripts/migrate-to-r2.js) que enviou **80 arquivos locais** com sucesso para o R2 (0 falhas).
+   * Criado e executado o script [migrate-activities-urls.js](file:///c:/Users/Felipe%20Kawakami/Aplicativos/scripts/migrate-activities-urls.js) que migrou com sucesso todas as **35 atividades** do banco de dados contendo referências antigas do Supabase Storage para apontar para as novas URLs do Cloudflare R2.
+   * Criado e executado o script [migrate-lesson-images-to-r2.js](file:///c:/Users/Felipe%20Kawakami/Aplicativos/scripts/migrate-lesson-images-to-r2.js) que transferiu com sucesso **346 imagens de slides (pasta `lesson-images`)** do Supabase Storage diretamente para o Cloudflare R2 (0 falhas).
+   * Validado build de produção com sucesso (`npm run build`).
+
+---
+
+## 📅 Data: 19/07/2026
+
+### 🚧 Histórico do Bloqueio de Cota de Tráfego do Supabase:
+* **Problema:** O projeto atingiu o limite gratuito de 2 GB de egress e foi bloqueado.
+* **Plano de Resolução Aprovado:** Desbloqueio temporário (Pro) -> Migração de mídias para R2 -> Atualização no Banco de Dados -> Limpeza e Downgrade (concluído nesta sessão de 21/07/2026).
+
+---
+
 ## 📅 Data: 29/04/2026
 
 ### ✅ Implementado nesta sessão:

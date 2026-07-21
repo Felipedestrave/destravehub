@@ -296,21 +296,28 @@ export default function DrawApp({ isReadOnly = false, senseiData = null }: DrawA
 
         setIsLoading(true);
         try {
-            const sanitizedName = file.name
-                .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '') // Remove acentos
-                .replace(/[^a-zA-Z0-9.-]/g, '_'); // Substitui tudo que não for letra, número, ponto ou traço por underline
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error("Sessão expirada");
 
-            const fileName = `lesson-images/${Date.now()}-${sanitizedName}`;
-            const { data, error } = await supabase.storage
-                .from('materials')
-                .upload(fileName, file);
+            const formData = new FormData();
+            formData.append('file', file);
 
-            if (error) throw error;
+            const response = await fetch('/api/materials/upload-r2', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${session.access_token}`
+                },
+                body: formData
+            });
 
-            const { data: { publicUrl } } = supabase.storage
-                .from('materials')
-                .getPublicUrl(fileName);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Erro no upload para o R2');
+            }
+
+            const newMat = await response.json();
+            const publicUrlBase = import.meta.env.PUBLIC_CLOUDFLARE_R2_PUBLIC_URL || '';
+            const publicUrl = `${publicUrlBase}/${newMat.file_path}`;
 
             const newImageItem: LessonItem = {
                 id: `img-${Date.now()}`,

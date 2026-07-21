@@ -202,34 +202,34 @@ export const MaterialsManager: React.FC<Props> = () => {
 
     setUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${user.id}/${fileName}`;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Sessão expirada");
 
-      const { error: uploadError } = await supabase.storage
-        .from('materials')
-        .upload(filePath, file);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('student_id', selectedStudent);
+      if (currentFolderId) {
+        formData.append('folder_id', currentFolderId);
+      }
 
-      if (uploadError) throw uploadError;
+      const response = await fetch('/api/materials/upload-r2', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: formData
+      });
 
-      const { error: dbError } = await supabase
-        .from('materials')
-        .insert({
-          name: file.name,
-          file_path: filePath,
-          teacher_id: user.id,
-          student_id: selectedStudent === 'private' ? null : selectedStudent,
-          folder_id: currentFolderId,
-          type: fileExt?.toLowerCase() === 'pdf' ? 'pdf' : 'image'
-        });
-
-      if (dbError) throw dbError;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro no upload para o R2');
+      }
 
       toast.success('Material enviado com sucesso!');
       fetchMaterials(user.id, isTeacher, currentTeacherId);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erro no upload:', err);
-      toast.error('Falha ao enviar arquivo.');
+      toast.error(err.message || 'Falha ao enviar arquivo.');
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -323,14 +323,21 @@ export const MaterialsManager: React.FC<Props> = () => {
       
       if (countError) throw countError;
 
-      // 2. Se for a única referência, excluir o arquivo do storage
-      if (count && count <= 1) {
-        const { error: storageError } = await supabase.storage
-          .from('materials')
-          .remove([material.file_path]);
-
-        if (storageError && !(storageError as any).message?.includes('Object not found')) {
-          throw storageError;
+      // 2. Se for a única referência, excluir o arquivo do storage (R2)
+      if (count && count <= 1 && !material.file_path.startsWith('http://') && !material.file_path.startsWith('https://')) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const response = await fetch('/api/materials/delete-r2', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({ filePath: material.file_path })
+          });
+          if (!response.ok) {
+            console.warn('Falha ao deletar arquivo físico do Cloudflare R2');
+          }
         }
       }
 
@@ -469,8 +476,12 @@ export const MaterialsManager: React.FC<Props> = () => {
   }
 
   const getPublicUrl = (path: string) => {
-    const { data } = supabase.storage.from('materials').getPublicUrl(path);
-    return data.publicUrl;
+    if (!path) return '';
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return path;
+    }
+    const publicUrlBase = import.meta.env.PUBLIC_CLOUDFLARE_R2_PUBLIC_URL || '';
+    return `${publicUrlBase}/${path}`;
   };
 
   return (

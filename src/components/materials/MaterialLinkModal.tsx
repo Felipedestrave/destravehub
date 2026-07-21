@@ -106,30 +106,25 @@ export const MaterialLinkModal: React.FC<MaterialLinkModalProps> = ({ activityId
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) throw new Error("Sessão expirada");
 
-            // 1. Storage Upload
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
-            const filePath = `${session.user.id}/${fileName}`;
+            const fileExt = file.name.split('.').pop() || '';
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('type', fileExt);
 
-            const { error: upErr } = await supabase.storage
-                .from('materials')
-                .upload(filePath, file);
+            const response = await fetch('/api/materials/upload-r2', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${session.access_token}`
+                },
+                body: formData
+            });
 
-            if (upErr) throw upErr;
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Erro no upload para o R2');
+            }
 
-            // 2. Database Record
-            const { data: newMat, error: dbErr } = await supabase
-                .from('materials')
-                .insert({
-                    name: file.name,
-                    type: fileExt || 'doc',
-                    file_path: filePath,
-                    teacher_id: session.user.id
-                })
-                .select()
-                .single();
-
-            if (dbErr) throw dbErr;
+            const newMat = await response.json();
 
             // 3. UI Update
             setMaterials(prev => [newMat, ...prev]);

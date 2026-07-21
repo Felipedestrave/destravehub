@@ -102,8 +102,12 @@ export const MaterialsDrawer: React.FC<Props> = ({ isOpen, onClose, activityId }
   };
 
   const getPublicUrl = (path: string) => {
-    const { data } = supabase.storage.from('materials').getPublicUrl(path);
-    return data.publicUrl;
+    if (!path) return '';
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return path;
+    }
+    const publicUrlBase = import.meta.env.PUBLIC_CLOUDFLARE_R2_PUBLIC_URL || '';
+    return `${publicUrlBase}/${path}`;
   };
 
   return (
