@@ -3,16 +3,11 @@
 ## 📅 Data: 21/07/2026
 
 ### 🚧 Ponto de Parada Atual (RETOMAR AQUI):
-1. **Realizar Teste Prático Local (Cloudflare R2):**
-   * **Passos para o teste:**
-     1. Iniciar o servidor local rodando `npm run dev` no terminal.
-     2. Acessar a tela de materiais no painel do Sensei.
-     3. Abrir materiais antigos (PDFs/Imagens) e verificar na aba do navegador se a URL deles começa com `https://pub-92fa315a78bb4d24b80b4166108114b2.r2.dev/`.
-     4. Enviar um novo arquivo de teste pela interface.
-     5. Confirmar que o novo arquivo foi listado no site e que ele também foi gravado no painel da Cloudflare (Bucket `destrave-hub-materials`).
-2. **Limpeza e Downgrade do Supabase:**
-   * Após o teste bem-sucedido, esvaziar o bucket `materials` no painel do Supabase Storage.
-   * Fazer o downgrade do projeto no painel do Supabase de volta para o plano gratuito (Free Tier).
+1. **Limpeza e Downgrade do Supabase:**
+   * **Prazo/Agendamento:** Realizar próximo ao dia **18 de Agosto de 2026** (fim do ciclo de faturamento já pago).
+   * **Ações necessárias:**
+     1. Esvaziar o bucket `materials` no painel do Supabase Storage para liberar espaço de armazenamento.
+     2. Fazer o downgrade do projeto no painel do Supabase de volta para o plano gratuito (Free Tier).
 
 ### ✅ Implementado nesta sessão:
 1. **Migração do Armazenamento para Cloudflare R2:**
