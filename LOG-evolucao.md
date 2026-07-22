@@ -1,6 +1,6 @@
 # 📝 Log de Evolução - Destrave Hub
 
-## 📅 Data: 21/07/2026
+## 📅 Data: 22/07/2026
 
 ### 🚧 Ponto de Parada Atual (RETOMAR AQUI):
 1. **Limpeza e Downgrade do Supabase:**
@@ -8,6 +8,16 @@
    * **Ações necessárias:**
      1. Esvaziar o bucket `materials` no painel do Supabase Storage para liberar espaço de armazenamento.
      2. Fazer o downgrade do projeto no painel do Supabase de volta para o plano gratuito (Free Tier).
+
+### ✅ Implementado nesta sessão:
+1. **Correção e Resiliência no Upload do R2 (Vercel):**
+   * Configuração das variáveis de ambiente do Cloudflare R2 no painel da Vercel (`CLOUDFLARE_R2_ACCESS_KEY_ID`, `CLOUDFLARE_R2_SECRET_ACCESS_KEY`, `CLOUDFLARE_R2_ENDPOINT`, `CLOUDFLARE_R2_BUCKET_NAME` e `PUBLIC_CLOUDFLARE_R2_PUBLIC_URL`).
+   * Refatorado o arquivo [r2.ts](file:///c:/Users/Felipe%20Kawakami/Aplicativos/src/lib/r2.ts) para ler as variáveis dinamicamente via `process.env` como fallback (evitando falhas caso as variáveis do Astro `import.meta.env` não fossem embutidas no build).
+   * Validado o deploy e resolvido o erro `No value provided for input HTTP label: Bucket` ao fazer upload de arquivos na plataforma.
+
+---
+
+## 📅 Data: 21/07/2026
 
 ### ✅ Implementado nesta sessão:
 1. **Migração do Armazenamento para Cloudflare R2:**
