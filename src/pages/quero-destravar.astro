@@ -1,0 +1,414 @@
+---
+import Layout from '../layouts/Layout.astro';
+import CaptureForm from '../components/landing/CaptureForm';
+import { TanukiMascot, AshigaruMascot, ShinobiMascot, SamuraiZenMascot, RoninMascot, OnnaMushaMascot, NinjaSapecaMascot, ShogunMascot, SenseiMascot } from '../components/landing/ScrollMascots';
+import { supabaseAdmin } from '../lib/supabase-admin';
+
+// 1. Get or set visitor_id cookie
+let visitorId = Astro.cookies.get('destrave_visitor_id')?.value;
+if (!visitorId) {
+  visitorId = crypto.randomUUID();
+  Astro.cookies.set('destrave_visitor_id', visitorId, {
+    path: '/',
+    maxAge: 60 * 60 * 24 * 365, // 1 ano
+    httpOnly: false
+  });
+}
+
+// 2. Get or set ab_variant cookie
+let variant = Astro.cookies.get('destrave_ab_variant')?.value;
+if (!variant || !['A', 'B', 'C'].includes(variant)) {
+  const options = ['A', 'B', 'C'] as const;
+  variant = options[Math.floor(Math.random() * options.length)];
+  Astro.cookies.set('destrave_ab_variant', variant, {
+    path: '/',
+    maxAge: 60 * 60 * 24 * 365,
+    httpOnly: false
+  });
+}
+
+// 3. Log view server-side
+try {
+  await supabaseAdmin
+    .from('landing_page_impressions' as any)
+    .insert({
+      variant,
+      visitor_id: visitorId
+    } as any);
+} catch (err) {
+  console.error('Error logging view on server:', err);
+}
+
+// 4. Headline configurations
+const headlines = {
+  A: {
+    headline: "Fale o japonês da vida real com confiança e liberdade. O método prático e individual que transforma o estudo em jogo.",
+    subheadline: "Esqueça as regras decoradas sem contexto. Aprenda a entender a estrutura do idioma através de analogias simples e divertidas, com um Roadmap sob medida adaptado aos seus objetivos e à sua rotina."
+  },
+  B: {
+    headline: "Destrave o japonês falado nas ruas. Deixe as decorebas exaustivas de lado e aprenda a se comunicar com autonomia de verdade.",
+    subheadline: "Aqui a gramática complexa se torna simples através de analogias e jogos. Um acompanhamento individual 100% versátil e gamificado, ideal tanto para quem vive no Japão quanto para quem é apaixonado pelo idioma."
+  },
+  C: {
+    headline: "Conecte-se com o japonês real de forma leve, prática e personalizada.",
+    subheadline: "Sem decorebas chatas: explicamos a gramática com analogias divertidas para você entender de verdade, não apenas memorizar. Um sistema dinâmico e flexível criado para se adaptar ao seu nível e aos seus objetivos individuais."
+  }
+};
+
+const currentCopy = headlines[variant as 'A' | 'B' | 'C'] || headlines.A;
+---
+
+<Layout 
+  title="Destrave seu Japonês — Felipe Sensei"
+  description={currentCopy.headline}
+>
+  <!-- Wrapper Light/Ice Theme -->
+  <div class="bg-[var(--color-ice)] text-[var(--color-slate-dark)] min-h-screen font-inter overflow-x-hidden selection:bg-[var(--color-action)] selection:text-white pb-20">
+    
+    <!-- Hero Section -->
+    <header class="relative max-w-6xl mx-auto px-6 pt-16 md:pt-24">
+      {/* Efeitos decorativos sutis */}
+      <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-[var(--color-brand)]/5 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center text-center lg:text-left">
+        <!-- Coluna de Texto (6 cols) -->
+        <div class="col-span-1 lg:col-span-6 space-y-6">
+          <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-[var(--color-slate-border)] text-xs font-bold tracking-wider text-[var(--color-action)] uppercase shadow-sm">
+            ✨ Aulas Online Individuais & Acompanhamento Premium
+          </div>
+
+          <h1 class="font-outfit font-black text-4xl md:text-5xl lg:text-6xl leading-tight tracking-tight text-[var(--color-brand)]">
+            {currentCopy.headline}
+          </h1>
+
+          <p class="text-[var(--color-slate-mid)] text-lg md:text-xl leading-relaxed font-semibold">
+            {currentCopy.subheadline}
+          </p>
+
+          <div class="pt-4">
+            <a href="#inscricao" class="btn-action !bg-[var(--color-action)] hover:!bg-[var(--color-action-hover)] text-white font-bold text-lg px-8 py-4 rounded-2xl shadow-md transition-transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer block sm:inline-block text-center">
+              Quero Destravar Meu Japonês
+            </a>
+          </div>
+        </div>
+
+        <!-- Coluna da Imagem (6 cols) -->
+        <div class="col-span-1 lg:col-span-6 flex justify-center mt-8 lg:mt-0 relative">
+          <div class="absolute inset-0 bg-gradient-to-tr from-[var(--color-brand)]/10 to-[var(--color-action)]/10 rounded-3xl blur-2xl pointer-events-none"></div>
+          
+          <div class="relative bg-white border border-[var(--color-slate-border)] rounded-3xl p-4 shadow-lg max-w-md w-full overflow-hidden hover:scale-[1.02] transition-transform duration-300">
+            <div class="bg-slate-50 border border-slate-100 rounded-2xl overflow-hidden shadow-inner relative">
+              <img src="/assets/teacher-hero.png" alt="Felipe Sensei Aulas Online" class="w-full h-auto block" />
+              <div class="absolute bottom-3 left-3 bg-slate-900/80 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                Aula Individual Ao Vivo
+              </div>
+            </div>
+            <div class="mt-4 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                <span class="text-xs font-semibold text-[var(--color-slate-mid)]">Felipe Sensei — 30 anos no Japão</span>
+              </div>
+              <span class="text-xs font-bold text-[var(--color-brand)]">Premium Support 💎</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Player do Vídeo de Vendas -->
+    <section class="max-w-4xl mx-auto px-6 py-12 relative">
+      <div class="bg-white border border-[var(--color-slate-border)] rounded-3xl p-3 shadow-lg relative">
+        <div class="aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-inner">
+          <iframe 
+            class="w-full h-full"
+            src="https://www.youtube.com/embed/aQssuQ3az6I" 
+            title="Vídeo de Vendas - Felipe Sensei" 
+            frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+            allowfullscreen
+          ></iframe>
+        </div>
+      </div>
+    </section>
+
+    <!-- Seção: Plataforma por Dentro (Prints Reais) -->
+    <section class="max-w-5xl mx-auto px-6 py-12 relative">
+      <OnnaMushaMascot client:idle className="relative xl:absolute block w-20 xl:w-36 mx-auto xl:mx-0 xl:-right-24 xl:top-[45%] mb-6 xl:mb-0" />
+      
+      <div class="text-center mb-12">
+        <span class="text-xs font-bold text-[var(--color-action)] tracking-widest uppercase">Visual Tangível</span>
+        <h2 class="font-outfit font-bold text-3xl md:text-4xl text-[var(--color-brand)] mt-2">A Plataforma por Dentro</h2>
+        <p class="text-[var(--color-slate-mid)] text-base mt-2 max-w-xl mx-auto">Veja imagens reais do nosso ecossistema e entenda como funciona a dinâmica de estudos.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Mockup 1: Roadmap -->
+        <div class="space-y-4">
+          <div class="bg-white border border-[var(--color-slate-border)] rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
+            {/* Barra do Navegador */}
+            <div class="bg-slate-50 border-b border-slate-100 px-4 py-2.5 flex items-center gap-1.5">
+              <div class="w-2 h-2 rounded-full bg-red-400"></div>
+              <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
+              <div class="w-2 h-2 rounded-full bg-green-400"></div>
+              <div class="bg-slate-100 rounded text-[9px] px-2 py-0.5 text-slate-400 truncate flex-1 ml-2 font-mono">destravehub.com/roadmaps</div>
+            </div>
+            <img src="/assets/screenshots/dashboard-roadmap.png" alt="Adventure Roadmap" class="w-full aspect-[16/9] object-cover" />
+          </div>
+          <h3 class="font-outfit font-bold text-lg text-[var(--color-slate-dark)] text-center">Caminho de Estudo</h3>
+          <p class="text-[var(--color-slate-mid)] text-sm text-center leading-relaxed">
+            Aqui você sabe exatamente onde parou e pode resgatar baús de recompensas especiais se completar todas as missões.
+          </p>
+        </div>
+
+        <!-- Mockup 2: MRP -->
+        <div class="space-y-4">
+          <div class="bg-white border border-[var(--color-slate-border)] rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
+            {/* Barra do Navegador */}
+            <div class="bg-slate-50 border-b border-slate-100 px-4 py-2.5 flex items-center gap-1.5">
+              <div class="w-2 h-2 rounded-full bg-red-400"></div>
+              <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
+              <div class="w-2 h-2 rounded-full bg-green-400"></div>
+              <div class="bg-slate-100 rounded text-[9px] px-2 py-0.5 text-slate-400 truncate flex-1 ml-2 font-mono">destravehub.com/mrp</div>
+            </div>
+            <img src="/assets/screenshots/mrp-simulator.png" alt="Simulador MRP" class="w-full aspect-[16/9] object-cover" />
+          </div>
+          <h3 class="font-outfit font-bold text-lg text-[var(--color-slate-dark)] text-center">Destrave 2.0</h3>
+          <p class="text-[var(--color-slate-mid)] text-sm text-center leading-relaxed">
+            Exercícios variados para consolidar o que aprendeu nas aulas.
+          </p>
+        </div>
+
+        <!-- Mockup 3: Wallet -->
+        <div class="space-y-4">
+          <div class="bg-white border border-[var(--color-slate-border)] rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
+            {/* Barra do Navegador */}
+            <div class="bg-slate-50 border-b border-slate-100 px-4 py-2.5 flex items-center gap-1.5">
+              <div class="w-2 h-2 rounded-full bg-red-400"></div>
+              <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
+              <div class="w-2 h-2 rounded-full bg-green-400"></div>
+              <div class="bg-slate-100 rounded text-[9px] px-2 py-0.5 text-slate-400 truncate flex-1 ml-2 font-mono">destravehub.com/carteira</div>
+            </div>
+            <img src="/assets/screenshots/coins-wallet.png" alt="Carteira de Moedas" class="w-full aspect-[16/9] object-cover" />
+          </div>
+          <h3 class="font-outfit font-bold text-lg text-[var(--color-slate-dark)] text-center">Destrave Coins & XP</h3>
+          <p class="text-[var(--color-slate-mid)] text-sm text-center leading-relaxed">
+            Sua carteira de recompensas. Acumule moedas fazendo os exercícios e use na loja do app para desbloquear novos avatares, temas e títulos.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Seção de Dores (Mascote Tanuki) -->
+    <section class="max-w-4xl mx-auto px-6 py-12 relative">
+      <div class="bg-white border border-[var(--color-slate-border)] rounded-3xl p-8 md:p-12 space-y-6 shadow-md relative">
+        <TanukiMascot client:idle className="relative xl:absolute block w-20 xl:w-36 mx-auto xl:mx-0 xl:-left-24 xl:top-6 mb-4 xl:mb-0" />
+        
+        <h2 class="font-outfit font-bold text-2xl md:text-3xl text-[var(--color-brand)]">Por que o japonês tradicional parece tão difícil?</h2>
+        <p class="text-[var(--color-slate-dark)] leading-relaxed text-base">
+          Muitos alunos passam anos decorando tabelas de verbos e regras gramaticais chatas em livros tradicionais. Mas, na hora de falar na fábrica, na prefeitura ou em uma loja, a mente trava. 
+        </p>
+        <p class="text-[var(--color-slate-dark)] leading-relaxed text-base">
+          Aqui nós ensinamos o <strong>japonês da vida real</strong>. Felipe Sensei morou 30 anos no Japão e sabe a diferença entre o japonês dos livros acadêmicos e a linguagem que de fato é falada nas ruas.
+        </p>
+        
+        <NinjaSapecaMascot client:idle className="relative xl:absolute block w-20 xl:w-36 mx-auto xl:mx-0 xl:-left-24 xl:bottom-6 mt-4 xl:mt-0" />
+      </div>
+    </section>
+
+    <!-- O Ecossistema (Cards com Mascote Ashigaru) -->
+    <section class="max-w-5xl mx-auto px-6 py-12 relative">
+      <div class="text-center mb-12">
+        <span class="text-xs font-bold text-[var(--color-action)] tracking-widest uppercase">Por Dentro do Hub</span>
+        <h2 class="font-outfit font-bold text-3xl md:text-4xl text-[var(--color-brand)] mt-2">Um Método Pensado na Sua Rotina</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Pilar 1 */}
+        <div class="bg-white border border-[var(--color-slate-border)] p-6 rounded-2xl space-y-3 shadow-sm hover:shadow-md transition-shadow relative">
+          <div class="w-12 h-12 rounded-xl bg-[var(--color-brand)]/10 border border-[var(--color-brand)]/20 flex items-center justify-center text-2xl">
+            🗺️
+          </div>
+          <h3 class="font-outfit font-bold text-xl text-[var(--color-slate-dark)]">Caminho de Estudo</h3>
+          <p class="text-[var(--color-slate-mid)] text-sm leading-relaxed">
+            Uma jornada visual clara e objetiva. Aqui você sabe exatamente onde parou no aprendizado, com missões e baús de recompensas sob medida para o seu nível.
+          </p>
+          <SamuraiZenMascot client:idle className="relative xl:absolute block w-16 xl:w-36 mx-auto xl:mx-0 xl:-right-24 xl:top-1/4 mt-3 xl:mt-0" />
+        </div>
+
+        {/* Pilar 2 */}
+        <div class="bg-white border border-[var(--color-slate-border)] p-6 rounded-2xl space-y-3 shadow-sm hover:shadow-md transition-shadow relative">
+          <div class="w-12 h-12 rounded-xl bg-[var(--color-action)]/10 border border-[var(--color-action)]/20 flex items-center justify-center text-2xl">
+            💬
+          </div>
+          <h3 class="font-outfit font-bold text-xl text-[var(--color-slate-dark)]">Destrave 2.0</h3>
+          <p class="text-[var(--color-slate-mid)] text-sm leading-relaxed">
+            Exercícios variados e interativos focados no cotidiano prático (fábrica, prefeitura, mercado) para consolidar e fixar tudo o que você aprendeu nas aulas.
+          </p>
+          <AshigaruMascot client:idle className="relative xl:absolute block w-16 xl:w-36 mx-auto xl:mx-0 xl:-right-24 xl:top-1/4 mt-3 xl:mt-0" />
+        </div>
+
+        {/* Pilar 3 */}
+        <div class="bg-white border border-[var(--color-slate-border)] p-6 rounded-2xl space-y-3 shadow-sm hover:shadow-md transition-shadow relative">
+          <div class="w-12 h-12 rounded-xl bg-[var(--color-brand)]/10 border border-[var(--color-brand)]/20 flex items-center justify-center text-2xl">
+            🪙
+          </div>
+          <h3 class="font-outfit font-bold text-xl text-[var(--color-slate-dark)]">Destrave Coins</h3>
+          <p class="text-[var(--color-slate-mid)] text-sm leading-relaxed">
+            Sua carteira de recompensas. Acumule moedas virtuais concluindo seus exercícios semanais e use na loja do app para resgatar avatares, temas e títulos exclusivos.
+          </p>
+          <RoninMascot client:idle className="relative xl:absolute block w-16 xl:w-36 mx-auto xl:mx-0 xl:-left-24 xl:top-1/4 mt-3 xl:mt-0" />
+        </div>
+
+        {/* Pilar 4 */}
+        <div class="bg-white border border-[var(--color-slate-border)] p-6 rounded-2xl space-y-3 shadow-sm hover:shadow-md transition-shadow">
+          <div class="w-12 h-12 rounded-xl bg-[var(--color-action)]/10 border border-[var(--color-action)]/20 flex items-center justify-center text-2xl">
+            🧠
+          </div>
+          <h3 class="font-outfit font-bold text-xl text-[var(--color-slate-dark)]">Anki Inteligente</h3>
+          <p class="text-[var(--color-slate-mid)] text-sm leading-relaxed">
+            Cartões de memorização espaçada para você revisar palavras novas em 5 minutos. Isto cabe em sua rotina sem complicação.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Seção: Voz dos Avatares (O que dizem os Personagens) -->
+    <section class="max-w-5xl mx-auto px-6 py-12 relative">
+      <ShinobiMascot client:idle className="hidden xl:block xl:absolute xl:w-36 xl:-left-24 xl:top-[65%]" />
+      <ShogunMascot client:idle className="hidden xl:block xl:absolute xl:w-36 xl:-right-24 xl:top-[75%]" />
+
+      <div class="text-center mb-12">
+        <span class="text-xs font-bold text-[var(--color-action)] tracking-widest uppercase">Gamificação & Comunidade</span>
+        <h2 class="font-outfit font-bold text-3xl md:text-4xl text-[var(--color-brand)] mt-2">O que dizem os Personagens do Hub</h2>
+        <p class="text-[var(--color-slate-mid)] text-base mt-2 max-w-xl mx-auto">Conheça os avatares da plataforma e como eles representam a jornada do aluno.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- 1. Tanuki Novato -->
+        <div class="bg-white border border-[var(--color-slate-border)] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col items-center text-center space-y-3">
+          <img src="/assets/avatars/tanuki-novato.png" alt="Tanuki Novato" class="w-16 h-16 object-contain drop-shadow-md animate-bounce" style="animation-duration: 3s;" />
+          <div>
+            <h4 class="font-outfit font-bold text-base text-[var(--color-slate-dark)]">Tanuki Novato</h4>
+            <span class="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100 uppercase">Iniciante do Zero</span>
+          </div>
+          <p class="text-xs text-[var(--color-slate-mid)] italic leading-relaxed">
+            "Eu tinha pânico de falar na fábrica... achava que precisava saber japonês formal dos livros para conseguir conversar."
+          </p>
+        </div>
+
+        <!-- 2. Ashigaru -->
+        <div class="bg-white border border-[var(--color-slate-border)] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col items-center text-center space-y-3">
+          <img src="/assets/avatars/ashigaru.png" alt="Ashigaru" class="w-16 h-16 object-contain drop-shadow-md animate-bounce" style="animation-duration: 3.5s;" />
+          <div>
+            <h4 class="font-outfit font-bold text-base text-[var(--color-slate-dark)]">Ashigaru</h4>
+            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100 uppercase">Treinamento MRP</span>
+          </div>
+          <p class="text-xs text-[var(--color-slate-mid)] italic leading-relaxed">
+            "Fiz os exercícios práticos do Destrave 2.0 e perdi o medo. No dia seguinte, consegui responder meu chefe japonês na fábrica!"
+          </p>
+        </div>
+
+        <!-- 3. Shinobi -->
+        <div class="bg-white border border-[var(--color-slate-border)] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col items-center text-center space-y-3">
+          <img src="/assets/avatars/shinobi.png" alt="Shinobi" class="w-16 h-16 object-contain drop-shadow-md animate-bounce" style="animation-duration: 4s;" />
+          <div>
+            <h4 class="font-outfit font-bold text-base text-[var(--color-slate-dark)]">Shinobi</h4>
+            <span class="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-100 uppercase">Revisor Ninja</span>
+          </div>
+          <p class="text-xs text-[var(--color-slate-mid)] italic leading-relaxed">
+            "Revisar no sofá pelo Anki consome só 5 minutos do meu dia. Perfeito para conciliar com o cansaço do turno."
+          </p>
+        </div>
+
+        <!-- 4. Samurai Zen -->
+        <div class="bg-white border border-[var(--color-slate-border)] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col items-center text-center space-y-3">
+          <img src="/assets/avatars/samurai-zen.png" alt="Samurai Zen" class="w-16 h-16 object-contain drop-shadow-md animate-bounce" style="animation-duration: 4.5s;" />
+          <div>
+            <h4 class="font-outfit font-bold text-base text-[var(--color-slate-dark)]">Samurai Zen</h4>
+            <span class="text-[10px] font-bold text-cyan-600 bg-cyan-50 px-2 py-0.5 rounded-full border border-cyan-100 uppercase">Roadmap Focado</span>
+          </div>
+          <p class="text-xs text-[var(--color-slate-mid)] italic leading-relaxed">
+            "Estudar seguindo o Caminho de Estudo traz paz de espírito. Você sempre sabe onde parou sem se perder em aulas soltas."
+          </p>
+        </div>
+
+        <!-- 5. Ronin -->
+        <div class="bg-white border border-[var(--color-slate-border)] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col items-center text-center space-y-3">
+          <img src="/assets/avatars/ronin.png" alt="Ronin" class="w-16 h-16 object-contain drop-shadow-md animate-bounce" style="animation-duration: 3.2s;" />
+          <div>
+            <h4 class="font-outfit font-bold text-base text-[var(--color-slate-dark)]">Ronin</h4>
+            <span class="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100 uppercase">Estudo Gamificado</span>
+          </div>
+          <p class="text-xs text-[var(--color-slate-mid)] italic leading-relaxed">
+            "Cursos convencionais eram exaustivos. No Destrave Hub eu ganho moedas e XP fazendo os exercícios da semana."
+          </p>
+        </div>
+
+        <!-- 6. Onna-musha -->
+        <div class="bg-white border border-[var(--color-slate-border)] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col items-center text-center space-y-3">
+          <img src="/assets/avatars/onna-musha.png" alt="Onna-musha" class="w-16 h-16 object-contain drop-shadow-md animate-bounce" style="animation-duration: 3.8s;" />
+          <div>
+            <h4 class="font-outfit font-bold text-base text-[var(--color-slate-dark)]">Onna-musha</h4>
+            <span class="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-100 uppercase">Personalização</span>
+          </div>
+          <p class="text-xs text-[var(--color-slate-mid)] italic leading-relaxed">
+            "Juntei minhas Destrave Coins estudando e desbloqueei novos avatares, temas e títulos na loja do app!"
+          </p>
+        </div>
+
+        <!-- 7. Ninja Sapeca -->
+        <div class="bg-white border border-[var(--color-slate-border)] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col items-center text-center space-y-3">
+          <img src="/assets/avatars/ninja-sapeca.png" alt="Ninja Sapeca" class="w-16 h-16 object-contain drop-shadow-md animate-bounce" style="animation-duration: 4.2s;" />
+          <div>
+            <h4 class="font-outfit font-bold text-base text-[var(--color-slate-dark)]">Ninja Sapeca</h4>
+            <span class="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-100 uppercase">Aulas Realistas</span>
+          </div>
+          <p class="text-xs text-[var(--color-slate-mid)] italic leading-relaxed">
+            "O Felipe Sensei morou 30 anos no Japão. Ele ensina o vocabulário real da rua e da fábrica, não o formal dos livros."
+          </p>
+        </div>
+
+        <!-- 8. Shogun -->
+        <div class="bg-white border border-[var(--color-slate-border)] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col items-center text-center space-y-3">
+          <img src="/assets/avatars/shogun.png" alt="Shogun" class="w-16 h-16 object-contain drop-shadow-md animate-bounce" style="animation-duration: 4.6s;" />
+          <div>
+            <h4 class="font-outfit font-bold text-base text-[var(--color-slate-dark)]">Shogun</h4>
+            <span class="text-[10px] font-bold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full border border-yellow-100 uppercase">Escolha Consciente</span>
+          </div>
+          <p class="text-xs text-[var(--color-slate-mid)] italic leading-relaxed">
+            "Sem prints editados ou falsas promessas de fluência em 3 meses. É acompanhamento sério e focado na rotina."
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Relação de Confiança (Anti-depoimento) -->
+    <section class="max-w-4xl mx-auto px-6 py-12">
+      <div class="bg-white border border-[var(--color-slate-border)] rounded-3xl p-8 md:p-12 space-y-6 text-center border-l-4 border-l-[var(--color-brand)] shadow-md">
+        <div class="text-4xl">🤝</div>
+        <h2 class="font-outfit font-bold text-2xl md:text-3xl text-[var(--color-brand)]">Nós confiamos na sua inteligência</h2>
+        <p class="text-[var(--color-slate-dark)] leading-relaxed text-sm md:text-base max-w-2xl mx-auto">
+          Você não vai encontrar nesta página prints de conversas editados, promessas mágicas de fluência sem esforço ou contadores de escassez piscando na tela para te pressionar a comprar. Nós respeitamos o seu tempo e o seu discernimento.
+        </p>
+        <p class="text-[var(--color-slate-dark)] leading-relaxed text-sm md:text-base max-w-2xl mx-auto">
+          O <strong>Destrave Hub</strong> não é um curso gravado para acumular poeira digital. É um acompanhamento individual, prático e focado na sua vida real no Japão. Como o nosso <strong>acompanhamento premium é individual e direto com o Felipe Sensei</strong>, o processo começa com um bate-papo inicial de 40 minutos para entender sua rotina e montar o seu <strong>Caminho de Estudo</strong>.
+        </p>
+      </div>
+    </section>
+
+    <!-- Formulário de Inscrição (Mascote Sensei) -->
+    <section id="inscricao" class="max-w-4xl mx-auto px-6 py-12 relative">
+      <SenseiMascot client:idle className="relative xl:absolute block w-24 xl:w-36 mx-auto xl:mx-0 xl:-left-24 xl:top-1/4 mb-6 xl:mb-0" />
+      <CaptureForm client:load variant={variant as 'A' | 'B' | 'C'} />
+    </section>
+
+  </div>
+</Layout>
+
+<style is:global>
+  /* Sobrescreve fundo do layout padrão do Astro para a Landing Page */
+  html, body {
+    background-color: var(--color-ice) !important;
+  }
+</style>
