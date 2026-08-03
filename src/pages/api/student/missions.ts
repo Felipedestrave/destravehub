@@ -26,6 +26,21 @@ export const GET: APIRoute = async ({ request }) => {
             return new Response(JSON.stringify({ error: 'Student record not found' }), { status: 404 });
         }
 
+        // Auto-limpeza: Deletar tarefas que não estejam concluídas (status pending/in_progress) e tenham mais de 60 dias de atraso
+        const limitDate = new Date();
+        limitDate.setDate(limitDate.getDate() - 60);
+
+        const { error: cleanupError } = await supabaseAdmin
+            .from('assignments')
+            .delete()
+            .eq('student_id', student.id)
+            .in('status', ['pending', 'in_progress'])
+            .lt('assigned_at', limitDate.toISOString());
+
+        if (cleanupError) {
+            console.error('[API Student Missions] Error cleaning up old assignments:', cleanupError);
+        }
+
         // 2. Fetch assignments with activities
         const { data: missions, error: mErr } = await supabaseAdmin
             .from('assignments')

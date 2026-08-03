@@ -23,7 +23,6 @@ export const GET: APIRoute = async ({ request }) => {
             title, 
             type, 
             created_at, 
-            config,
             folder_id,
             material_count:activity_materials(count)
         `)

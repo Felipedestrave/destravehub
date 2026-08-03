@@ -87,9 +87,9 @@ export default function DrawApp({ isReadOnly = false, senseiData = null }: DrawA
             const headers: Record<string, string> = {};
             if (session) headers['Authorization'] = `Bearer ${session.access_token}`;
 
-            const res = await fetch('/api/activities/list', { headers });
+            const res = await fetch(`/api/activities/get?id=${id}`, { headers });
             const data = await res.json();
-            const lesson = data.activities?.find((a: any) => a.id === id);
+            const lesson = data.activity;
 
             if (lesson && lesson.config) {
                 setLessonTitle(lesson.title || 'Nova Aula');

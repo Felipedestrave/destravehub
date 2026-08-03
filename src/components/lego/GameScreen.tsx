@@ -44,10 +44,10 @@ const SortableBlock = ({ block, onClick }: { block: LegoBlock; onClick?: () => v
             {...attributes}
             {...listeners}
             onClick={onClick}
-            className={`cursor-grab active:cursor-grabbing px-4 py-2 rounded-xl border-b-4 font-outfit font-bold shadow-sm touch-manipulation flex flex-col items-center justify-center min-w-[3rem] ${getBlockColor(block.type)}`}
+            className={`cursor-grab active:cursor-grabbing px-6 py-3 md:px-7 md:py-3.5 rounded-xl border-b-4 font-outfit font-bold shadow-sm touch-manipulation flex flex-col items-center justify-center min-w-[4.5rem] md:min-w-[5rem] ${getBlockColor(block.type)}`}
         >
-            <span className="text-lg leading-tight">{block.word}</span>
-            {block.romaji && <span className="text-[0.65rem] opacity-75 font-inter mt-0.5 font-normal tracking-wide">({block.romaji})</span>}
+            <span className="text-2xl md:text-3xl leading-tight">{block.word}</span>
+            {block.romaji && <span className="text-xs md:text-sm opacity-90 font-inter mt-0.5 font-semibold tracking-wide">({block.romaji})</span>}
         </div>
     );
 };
@@ -159,14 +159,14 @@ export const GameScreen: React.FC<GameScreenProps> = ({ sentences, onComplete, o
             </div>
 
             {/* Target Translation */}
-            <div className="text-center bg-ice rounded-2xl p-6 border border-dashed border-slate-border">
-                <h3 className="font-inter text-xl font-semibold text-brand m-0">"{currentSentence.translation}"</h3>
+            <div className="text-center bg-ice rounded-2xl p-8 border border-dashed border-slate-border">
+                <h3 className="font-inter text-2xl md:text-3xl font-bold text-brand m-0">"{currentSentence.translation}"</h3>
             </div>
 
             {/* Board (Dropzone) */}
-            <div className="bg-white rounded-2xl border-2 border-slate-border min-h-[120px] p-4 flex flex-wrap content-start gap-2 shadow-inner">
+            <div className="bg-white rounded-2xl border-2 border-slate-border min-h-[160px] md:min-h-[180px] p-6 flex flex-wrap content-start gap-3 md:gap-4 shadow-inner">
                 {board.length === 0 && (
-                    <div className="w-full h-full flex items-center justify-center text-slate-300 font-outfit font-bold text-lg">
+                    <div className="w-full h-full flex items-center justify-center text-slate-300 font-outfit font-bold text-xl md:text-2xl">
                         Toque nas peças para montar aqui
                     </div>
                 )}
@@ -181,15 +181,15 @@ export const GameScreen: React.FC<GameScreenProps> = ({ sentences, onComplete, o
             </div>
 
             {/* Available Blocks */}
-            <div className="bg-slate-50 rounded-2xl border-[1.5px] border-slate-200 min-h-[120px] p-4 flex flex-wrap content-start gap-2 justify-center">
+            <div className="bg-slate-50 rounded-2xl border-[1.5px] border-slate-200 min-h-[160px] md:min-h-[180px] p-6 flex flex-wrap content-start gap-3 md:gap-4 justify-center">
                 {available.map(block => (
                     <button
                         key={block.id}
                         onClick={() => moveToBoard(block)}
-                        className={`px-4 py-2 rounded-xl border-b-4 font-outfit font-bold shadow-sm transition-transform hover:-translate-y-1 active:translate-y-0 flex flex-col items-center justify-center ${getBlockColor(block.type)}`}
+                        className={`px-6 py-3 md:px-7 md:py-3.5 rounded-xl border-b-4 font-outfit font-bold shadow-sm transition-transform hover:-translate-y-1 active:translate-y-0 flex flex-col items-center justify-center min-w-[4.5rem] md:min-w-[5rem] ${getBlockColor(block.type)}`}
                     >
-                        <span className="text-lg leading-tight">{block.word}</span>
-                        {block.romaji && <span className="text-[0.65rem] opacity-75 font-inter mt-0.5 font-normal tracking-wide">({block.romaji})</span>}
+                        <span className="text-2xl md:text-3xl leading-tight">{block.word}</span>
+                        {block.romaji && <span className="text-xs md:text-sm opacity-90 font-inter mt-0.5 font-semibold tracking-wide">({block.romaji})</span>}
                     </button>
                 ))}
             </div>

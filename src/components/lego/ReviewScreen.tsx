@@ -146,7 +146,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
                                     <div className="text-xs font-bold text-slate-mid uppercase tracking-widest mb-3">Blocos Sintáticos (Drag Items)</div>
                                     <div className="flex flex-wrap gap-2">
                                         {s.blocks.map((b, bIdx) => (
-                                            <div key={bIdx} className={`border-b-4 rounded-xl p-2 flex flex-col gap-1 min-w-[80px] shadow-sm items-center justify-center ${getBlockColor(b.type)}`}>
+                                            <div key={bIdx} className={`border-b-4 rounded-xl p-3 flex flex-col gap-1 min-w-[100px] shadow-sm items-center justify-center ${getBlockColor(b.type)}`}>
                                                 {isEditing ? (
                                                     <>
                                                         <div className="flex justify-between items-center w-full mb-1">
@@ -160,13 +160,13 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
                                                             <button onClick={() => deleteBlock(idx, bIdx)} className="opacity-70 hover:opacity-100 transition-opacity"><Trash2 size={12} /></button>
                                                         </div>
                                                         <input
-                                                            className="text-sm font-bold text-center outline-none w-full bg-transparent border-b border-black/10 focus:border-black/30 placeholder:text-current placeholder:opacity-50 mb-1"
+                                                            className="text-base font-bold text-center outline-none w-full bg-transparent border-b border-black/10 focus:border-black/30 placeholder:text-current placeholder:opacity-50 mb-1"
                                                             value={b.word}
                                                             onChange={e => updateBlock(idx, bIdx, 'word', e.target.value)}
                                                             placeholder="Palavra"
                                                         />
                                                         <input
-                                                            className="text-[0.7rem] text-center outline-none w-full bg-transparent border-b border-black/10 focus:border-black/30 placeholder:text-current placeholder:opacity-50 opacity-80"
+                                                            className="text-[0.8rem] text-center outline-none w-full bg-transparent border-b border-black/10 focus:border-black/30 placeholder:text-current placeholder:opacity-50 opacity-80"
                                                             value={b.romaji || ''}
                                                             onChange={e => updateBlock(idx, bIdx, 'romaji', e.target.value)}
                                                             placeholder="Romaji"
@@ -174,9 +174,9 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <div className="text-sm font-bold text-center flex flex-col items-center leading-tight">
+                                                        <div className="text-base font-extrabold text-center flex flex-col items-center leading-tight">
                                                             <span>{b.word}</span>
-                                                            {b.romaji && <span className="text-[0.65rem] opacity-75 font-inter mt-0.5 font-normal tracking-wide">({b.romaji})</span>}
+                                                            {b.romaji && <span className="text-xs opacity-90 font-inter mt-0.5 font-normal tracking-wide">({b.romaji})</span>}
                                                         </div>
                                                     </>
                                                 )}

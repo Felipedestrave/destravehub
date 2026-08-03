@@ -47,12 +47,10 @@ export const SRSManager: React.FC = () => {
           const scheduled = new Date(milestone.scheduledDate);
           const scheduledDay = new Date(scheduled.getFullYear(), scheduled.getMonth(), scheduled.getDate());
 
-          const lastNotified = milestone.lastNotifiedAt ? new Date(milestone.lastNotifiedAt) : null;
-          const isAlreadyNotifiedToday = lastNotified && 
-            lastNotified.toDateString() === now.toDateString();
+          const isAlreadyNotified = milestone.notified === true;
 
-          // Se o dia chegou ou passou, e ainda está pendente e não notificado HOJE
-          if (milestone.status === 'pending' && today >= scheduledDay && !isAlreadyNotifiedToday) {
+          // Se o dia chegou ou passou, e ainda está pendente e não notificado
+          if (milestone.status === 'pending' && today >= scheduledDay && !isAlreadyNotified) {
             
             // Enviar Notificação Interna
             await notificationService.sendNotification(

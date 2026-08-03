@@ -54,6 +54,10 @@ export const MaterialsManager: React.FC<Props> = () => {
   const [newFolderName, setNewFolderName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Estados para armazenamento do Cloudflare R2
+  const [r2Usage, setR2Usage] = useState<number | null>(null);
+  const [loadingUsage, setLoadingUsage] = useState(false);
+
   // Estados de Compartilhamento e Modal
   const [isSharingModalOpen, setIsSharingModalOpen] = useState(false);
   const [sharingMaterial, setSharingMaterial] = useState<Material | null>(null);
@@ -65,6 +69,31 @@ export const MaterialsManager: React.FC<Props> = () => {
   const [semanticSearchQuery, setSemanticSearchQuery] = useState('');
   const [isSearchingSemantically, setIsSearchingSemantically] = useState(false);
   const [semanticResults, setSemanticResults] = useState<string[] | null>(null);
+
+  const fetchR2Usage = async () => {
+    try {
+      setLoadingUsage(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const response = await fetch('/api/admin/r2-usage', {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao obter uso do R2');
+      }
+
+      const data = await response.json();
+      setR2Usage(data.totalSizeBytes);
+    } catch (err) {
+      console.error('Erro ao buscar uso do R2:', err);
+    } finally {
+      setLoadingUsage(false);
+    }
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -99,6 +128,7 @@ export const MaterialsManager: React.FC<Props> = () => {
       fetchMaterials(userId, userIsTeacher, actualTeacherId);
       if (userIsTeacher) {
         fetchStudents(actualTeacherId);
+        fetchR2Usage();
       }
     };
     init();
@@ -200,6 +230,13 @@ export const MaterialsManager: React.FC<Props> = () => {
       return;
     }
 
+    // --- SALVAGUARDA DE INTERFACE (Opção B): Bloqueio se o limite de 9.5 GB for ultrapassado ---
+    const limitBytes = 9.5 * 1024 * 1024 * 1024; // 9.5 GB
+    if (r2Usage !== null && r2Usage + file.size >= limitBytes) {
+      toast.error('Limite de segurança do Cloudflare R2 atingido (9.5 GB). Apague materiais antigos antes de tentar novos uploads.');
+      return;
+    }
+
     setUploading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -227,6 +264,7 @@ export const MaterialsManager: React.FC<Props> = () => {
 
       toast.success('Material enviado com sucesso!');
       fetchMaterials(user.id, isTeacher, currentTeacherId);
+      fetchR2Usage(); // Atualiza a barra de progresso
     } catch (err: any) {
       console.error('Erro no upload:', err);
       toast.error(err.message || 'Falha ao enviar arquivo.');
@@ -351,6 +389,7 @@ export const MaterialsManager: React.FC<Props> = () => {
 
       toast.success('Material excluído.');
       setMaterials(materials.filter(m => m.id !== material.id));
+      fetchR2Usage(); // Atualiza a barra de progresso
     } catch (err) {
       console.error('Erro ao deletar:', err);
       toast.error('Erro ao excluir material.');
@@ -484,6 +523,19 @@ export const MaterialsManager: React.FC<Props> = () => {
     return `${publicUrlBase}/${path}`;
   };
 
+  const formatSize = (bytes: number) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const limitBytes = 10 * 1024 * 1024 * 1024; // 10 GB
+  const safeLimitBytes = 9.5 * 1024 * 1024 * 1024; // 9.5 GB
+  const currentUsagePercentage = r2Usage !== null ? (r2Usage / limitBytes) * 100 : 0;
+  const isOverSafeLimit = r2Usage !== null && r2Usage >= safeLimitBytes;
+
   return (
     <>
       <div className="materials-container">
@@ -529,6 +581,41 @@ export const MaterialsManager: React.FC<Props> = () => {
           </div>
         )}
       </header>
+
+      {isTeacher && r2Usage !== null && (
+        <div className="r2-storage-card">
+          <div className="r2-storage-info">
+            <div className="r2-storage-text-group">
+              <span className="r2-storage-label">📦 Armazenamento Cloudflare R2 (Plano Free)</span>
+              <span className={`r2-storage-value ${isOverSafeLimit ? 'r2-storage-warning' : ''}`}>
+                {formatSize(r2Usage)} de 10 GB ({currentUsagePercentage.toFixed(1)}%)
+              </span>
+            </div>
+            <button 
+              onClick={fetchR2Usage} 
+              disabled={loadingUsage}
+              className="r2-refresh-btn"
+              title="Atualizar Uso de Armazenamento"
+            >
+              {loadingUsage ? '🔄 Atualizando...' : '🔄 Atualizar Uso'}
+            </button>
+          </div>
+          <div className="r2-progress-bar-bg">
+            <div 
+              className={`r2-progress-bar-fill ${
+                currentUsagePercentage >= 95 ? 'r2-fill-danger' : 
+                currentUsagePercentage >= 75 ? 'r2-fill-warning' : 'r2-fill-success'
+              }`}
+              style={{ width: `${Math.min(100, currentUsagePercentage)}%` }}
+            />
+          </div>
+          {isOverSafeLimit && (
+            <p className="r2-warning-message">
+              ⚠️ <strong>Limite de segurança de 9.5 GB atingido!</strong> Novos uploads estão bloqueados para evitar cobranças. Apague materiais antigos para liberar espaço.
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Barra de Filtros e Busca Semântica */}
       <div className="materials-filter-bar">
