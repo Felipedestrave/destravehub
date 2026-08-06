@@ -1,13 +1,28 @@
 # 📝 Log de Evolução - Destrave Hub
 
-## 📅 Data: 22/07/2026
+## 📅 Data: 06/08/2026
 
 ### 🚧 Ponto de Parada Atual (RETOMAR AQUI):
-1. **Limpeza e Downgrade do Supabase:**
-   * **Prazo/Agendamento:** Realizar próximo ao dia **18 de Agosto de 2026** (fim do ciclo de faturamento já pago).
-   * **Ações necessárias:**
-     1. Esvaziar o bucket `materials` no painel do Supabase Storage para liberar espaço de armazenamento.
-     2. Fazer o downgrade do projeto no painel do Supabase de volta para o plano gratuito (Free Tier).
+1. **Realizar Downgrade no Painel:**
+   * Fazer o downgrade do projeto no painel do Supabase para o plano gratuito (Free Tier). O bucket `materials` foi totalmente esvaziado, eliminando qualquer risco de cobrança extra ou estouro de cota de armazenamento/egress.
+
+### ✅ Implementado nesta sessão:
+1. **Limpeza Completa do Bucket `materials` no Supabase Storage:**
+   * Criado e executado o script [empty-supabase-storage.js](file:///c:/Users/Felipe%20Kawakami/Aplicativos/scripts/empty-supabase-storage.js) com suporte a paginação de múltiplos lotes via API.
+   * Removidos com sucesso todos os **421 arquivos residuais** (~745 MB), deixando o bucket totalmente com **0 bytes**.
+   * Validado que apenas o bucket `avatars` (1.8 MB) permanece em uso de storage no Supabase, o que está muito abaixo da cota gratuita de 1 GB.
+2. **Ajuste de Fontes e Peças de Lego no Destrave 2.0:**
+   * Atualizado o componente [Destrave2Player.tsx](file:///c:/Users/Felipe%20Kawakami/Aplicativos/src/components/destrave2/Destrave2Player.tsx) para aumentar o tamanho das fontes (de `text-sm` para `text-2xl`), romaji e paddings das peças de Lego, igualando a visualização de monte-a-frase ao aplicativo de Lego original.
+3. **Consolidação de Toasts de Revisão (SRS):**
+   * Ajustado o componente [SRSManager.tsx](file:///c:/Users/Felipe%20Kawakami/Aplicativos/src/components/student/SRSManager.tsx) para consolidar alertas de repetição acumulados. O aluno agora recebe apenas 1 toast contendo a soma das revisões disponíveis no login, eliminando o cascateamento visual de pop-ups.
+
+---
+
+## 📅 Data: 22/07/2026
+
+### 🚧 Histórico da Limpeza e Downgrade:
+1. **Esvaziar o bucket `materials`:** [x] Concluído em 06/08/2026.
+2. **Downgrade no painel do Supabase:** [ ] Aguardando ação do usuário (fim do faturamento já pago próximo ao dia **18 de Agosto de 2026**).
 
 ### ✅ Implementado nesta sessão:
 1. **Correção e Resiliência no Upload do R2 (Vercel):**

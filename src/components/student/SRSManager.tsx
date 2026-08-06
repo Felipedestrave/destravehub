@@ -35,6 +35,8 @@ export const SRSManager: React.FC = () => {
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
+      let newRevisionsCount = 0;
+
       for (const assignment of (assignments || [])) {
         const data = assignment.result_data as any;
         if (!data.repetition || !Array.isArray(data.repetition)) continue;
@@ -61,7 +63,7 @@ export const SRSManager: React.FC = () => {
                 `/dashboard/missions/destrave1?assignment=${assignment.id}` // Link para a missão
             );
 
-            toast('Revisão disponível! Verifique seu sininho.', { icon: '🔔' });
+            newRevisionsCount++;
 
             // Marcar como notificado com data
             updatedRepetition[i].notified = true;
@@ -76,6 +78,14 @@ export const SRSManager: React.FC = () => {
             .from('assignments')
             .update({ result_data: { ...data, repetition: updatedRepetition } })
             .eq('id', assignment.id);
+        }
+      }
+
+      if (newRevisionsCount > 0) {
+        if (newRevisionsCount === 1) {
+          toast('Revisão disponível! Verifique seu sininho.', { icon: '🔔' });
+        } else {
+          toast(`Você tem ${newRevisionsCount} novas revisões disponíveis! Verifique seu sininho.`, { icon: '📚' });
         }
       }
     } catch (err) {

@@ -560,19 +560,19 @@ export const Destrave2Player: React.FC<Destrave2PlayerProps> = ({
                     {currentEx.type === 'lego' && (
                         <div className="space-y-6">
                             {/* Translation header */}
-                            <div className="bg-white border-2 border-slate-border rounded-3xl p-6 shadow-sm text-center">
+                            <div className="bg-white border-2 border-slate-border rounded-3xl p-8 shadow-sm text-center">
                                 <span className="px-2.5 py-1 bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-extrabold rounded-lg uppercase tracking-wider block w-max mx-auto mb-3">
                                     Monte a Frase
                                 </span>
-                                <h3 className="font-outfit font-extrabold text-xl text-brand">
+                                <h3 className="font-outfit font-extrabold text-2xl md:text-3xl text-brand">
                                     "{currentEx.data.translation}"
                                 </h3>
                             </div>
 
                             {/* Board Dropzone */}
-                            <div className="bg-white border-2 border-slate-border rounded-3xl p-4 min-h-[100px] flex flex-wrap gap-2 content-start shadow-inner">
+                            <div className="bg-white border-2 border-slate-border rounded-3xl p-6 min-h-[160px] md:min-h-[180px] flex flex-wrap gap-3 md:gap-4 content-start shadow-inner">
                                 {legoBoard.length === 0 && (
-                                    <p className="w-full text-center py-6 text-slate-300 font-outfit font-bold">
+                                    <p className="w-full text-center py-8 text-slate-300 font-outfit font-bold text-xl md:text-2xl">
                                         Toque nas peças abaixo para organizar a frase
                                     </p>
                                 )}
@@ -581,25 +581,25 @@ export const Destrave2Player: React.FC<Destrave2PlayerProps> = ({
                                         key={block.id || idx}
                                         disabled={legoStatus !== 'playing'}
                                         onClick={() => moveBlockToAvailable(block)}
-                                        className={`px-3.5 py-2 rounded-xl border-b-4 font-outfit font-bold text-sm shadow-sm flex flex-col items-center justify-center ${getBlockColor(block.type)}`}
+                                        className={`px-6 py-3 md:px-7 md:py-3.5 rounded-xl border-b-4 font-outfit font-bold shadow-sm transition-transform hover:-translate-y-0.5 active:translate-y-0 flex flex-col items-center justify-center min-w-[4.5rem] md:min-w-[5rem] ${getBlockColor(block.type)}`}
                                     >
-                                        <span>{block.word}</span>
-                                        {block.romaji && <span className="text-[9px] opacity-80 font-inter font-normal">({block.romaji})</span>}
+                                        <span className="text-2xl md:text-3xl leading-tight">{block.word}</span>
+                                        {block.romaji && <span className="text-xs md:text-sm opacity-90 font-inter mt-0.5 font-semibold tracking-wide">({block.romaji})</span>}
                                     </button>
                                 ))}
                             </div>
 
                             {/* Available block shelf */}
                             {legoStatus === 'playing' && (
-                                <div className="bg-slate-50 border border-slate-200 rounded-3xl p-4 min-h-[100px] flex flex-wrap justify-center gap-2 content-start">
+                                <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 min-h-[160px] md:min-h-[180px] flex flex-wrap justify-center gap-3 md:gap-4 content-start">
                                     {legoAvailable.map((block, idx) => (
                                         <button
                                             key={block.id || idx}
                                             onClick={() => moveBlockToBoard(block)}
-                                            className={`px-3.5 py-2 rounded-xl border-b-4 font-outfit font-bold text-sm shadow-sm hover:-translate-y-0.5 transition-transform active:translate-y-0 flex flex-col items-center justify-center ${getBlockColor(block.type)}`}
+                                            className={`px-6 py-3 md:px-7 md:py-3.5 rounded-xl border-b-4 font-outfit font-bold shadow-sm hover:-translate-y-0.5 transition-transform active:translate-y-0 flex flex-col items-center justify-center min-w-[4.5rem] md:min-w-[5rem] ${getBlockColor(block.type)}`}
                                         >
-                                            <span>{block.word}</span>
-                                            {block.romaji && <span className="text-[9px] opacity-80 font-inter font-normal">({block.romaji})</span>}
+                                            <span className="text-2xl md:text-3xl leading-tight">{block.word}</span>
+                                            {block.romaji && <span className="text-xs md:text-sm opacity-90 font-inter mt-0.5 font-semibold tracking-wide">({block.romaji})</span>}
                                         </button>
                                     ))}
                                 </div>
