@@ -32,6 +32,22 @@ export const POST: APIRoute = async ({ request }) => {
             targetTime?: number;
         };
 
+        // Sanitização: remove strings brutas de áudio em Base64 para não inchar o banco de dados
+        const sanitizeHistory = (items: any[]) => {
+            if (!Array.isArray(items)) return items;
+            return items.map(item => {
+                if (!item || typeof item !== 'object') return item;
+                const cleanItem = { ...item };
+                if (cleanItem.questionData && typeof cleanItem.questionData === 'object') {
+                    const { audioBase64, ...cleanQuestionData } = cleanItem.questionData;
+                    cleanItem.questionData = cleanQuestionData;
+                }
+                delete cleanItem.audioBase64;
+                return cleanItem;
+            });
+        };
+        const cleanHistory = sanitizeHistory(history);
+
         // Case A: This is an existing assignment being completed by a student
         if (assignmentId) {
             // 1. Fetch current assignment to check for existing results
@@ -131,7 +147,7 @@ export const POST: APIRoute = async ({ request }) => {
                 const newReplay = {
                     score,
                     totalQuestions,
-                    history,
+                    history: cleanHistory,
                     completed_at: now,
                     rewards, // Log original rewards
                     repetitionReward // Bonus reward for SRS
@@ -139,7 +155,7 @@ export const POST: APIRoute = async ({ request }) => {
 
                 finalResultData = {
                     ...old,
-                    replays: [...(old.replays || []), newReplay],
+                    replays: [...(old.replays || []).slice(-9), newReplay],
                     latest_practice_at: now,
                     practice_count: (old.practice_count || 1) + 1,
                     is_practice: true
@@ -193,7 +209,7 @@ export const POST: APIRoute = async ({ request }) => {
                     ...existingData, // Preserva o 'repetition' agendado
                     score,
                     totalQuestions,
-                    history,
+                    history: cleanHistory,
                     title,
                     completed_at: now,
                     first_attempt_at: now,
@@ -253,7 +269,7 @@ export const POST: APIRoute = async ({ request }) => {
                     student_id: studentId,
                     status: 'completed',
                     completed_at: new Date().toISOString(),
-                    result_data: { score, totalQuestions, history } as any,
+                    result_data: { score, totalQuestions, history: cleanHistory } as any,
                 });
 
             if (assignmentError) {

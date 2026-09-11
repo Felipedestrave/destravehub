@@ -45,7 +45,15 @@ export const GET: APIRoute = async ({ request }) => {
         const { data: missions, error: mErr } = await supabaseAdmin
             .from('assignments')
             .select(`
-                *,
+                id,
+                activity_id,
+                student_id,
+                status,
+                assigned_at,
+                completed_at,
+                score,
+                feedback,
+                result_data,
                 activities (
                     id,
                     title,
@@ -57,10 +65,20 @@ export const GET: APIRoute = async ({ request }) => {
             .order('assigned_at', { ascending: false });
 
         if (mErr) {
+            console.error('[API Student Missions] Error fetching missions:', mErr);
             return new Response(JSON.stringify({ error: 'Error fetching missions' }), { status: 500 });
         }
 
-        return new Response(JSON.stringify({ missions }), { status: 200 });
+        // Deixar o payload ultra-leve para o frontend: o MissionList só precisa de repetition no result_data
+        const sanitizedMissions = (missions || []).map((m: any) => {
+            const repetition = m.result_data?.repetition;
+            return {
+                ...m,
+                result_data: repetition ? { repetition } : null
+            };
+        });
+
+        return new Response(JSON.stringify({ missions: sanitizedMissions }), { status: 200 });
 
     } catch (err: any) {
         return new Response(JSON.stringify({ error: err.message }), { status: 500 });
