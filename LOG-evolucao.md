@@ -1,5 +1,43 @@
 # 📝 Log de Evolução - Destrave Hub
 
+## 📅 Data: 12/09/2026
+
+### ✅ Migração do Supabase Concluída com Sucesso Total:
+1. **Novo Projeto Supabase Criado e Configurado:**
+   * **URL:** `https://gvvfymwprziwqhhbvfap.supabase.co`
+   * **Bloqueio de Egress (HTTP 402) Superado:** O projeto antigo estava bloqueado por cota. O novo projeto está 100% funcional no plano gratuito com cota zerada.
+2. **Transferência Completa de Dados e Estrutura:**
+   * **Fase 1 (Estrutura):** Tabelas, extensões (`uuid-ossp`, `pgcrypto`), funções (`handle_new_user`, `increment_gamification`, `generate_monthly_payments`, `strip_audio_from_jsonb`), buckets de storage (`avatars`, `materials`) e todas as políticas RLS criadas.
+   * **Fase 2 (Autenticação):** 17 usuários e identidades transferidos com preservação de senhas criptografadas (nenhum usuário precisará resetar senha).
+   * **Fase 3 (Dados Públicos):** Script [populate_new_database.js](file:///c:/Users/Felipe%20Kawakami/Aplicativos/scripts/populate_new_database.js) injetou com sucesso:
+     * 17 Perfis (`profiles`)
+     * 15 Alunos (`students`)
+     * 12 Pastas (`activity_folders` e `materials_folders`)
+     * 381 Atividades (`activities`)
+     * 284 Materiais (`materials`)
+     * 21 Vínculos de materiais de atividade (`activity_materials`)
+     * 256 Atribuições (`assignments`)
+     * 136 Diários de aula (`lesson_logs`)
+     * 337 Agendamentos (`appointments`)
+     * 42 Pagamentos (`payments`)
+     * 64 Transações de carteira (`wallet_transactions`)
+     * 77 Impressões de landing page (`landing_page_impressions`)
+     * 17 Notificações limpas (15.000 notificações acumuladas de spam foram saneadas).
+3. **Ambiente Local Atualizado:**
+   * O [.env](file:///c:/Users/Felipe%20Kawakami/Aplicativos/.env) já foi atualizado com as novas chaves (`PUBLIC_SUPABASE_URL`, `PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`).
+
+### 🛡️ Otimizações Arquiteturais Anti-Egress (Blindagem de Cota Supabase):
+1. **Áudios do Gemini TTS no Cloudflare R2 (Melhoria 1):**
+   * Criado [audio-storage.ts](file:///c:/Users/Felipe%20Kawakami/Aplicativos/src/lib/audio-storage.ts): converte o fluxo PCM nativo do Gemini TTS em áudio WAV padrão e faz upload direto para o bucket `destrave-hub-materials` no Cloudflare R2 (`https://pub-92fa315a78bb4d24b80b4166108114b2.r2.dev`).
+   * Rotas de geração de áudio e missões híbridas atualizadas para salvar a URL pública do R2 (apenas ~60 bytes) ao invés do pesado Base64 (~500 KB por frase) no banco PostgreSQL.
+   * Players [GameScreen.tsx](file:///c:/Users/Felipe%20Kawakami/Aplicativos/src/components/escuta/GameScreen.tsx) e [Destrave2Player.tsx](file:///c:/Users/Felipe%20Kawakami/Aplicativos/src/components/destrave2/Destrave2Player.tsx) atualizados com compatibilidade dupla (reproduzem instantaneamente links HTTP do R2 ou decodificam Base64 legado).
+2. **Consultas de Missões Otimizadas (Melhoria 2):**
+   * Endpoint [student/missions.ts](file:///c:/Users/Felipe%20Kawakami/Aplicativos/src/pages/api/student/missions.ts) refatorado para não puxar a coluna pesada `config` da tabela `activities` nas listagens do painel do aluno. Apenas `id`, `title` e `type` são transferidos. O conteúdo integral só é requisitado quando o aluno de fato entra para jogar a atividade individual.
+3. **Deduplicação e Anti-Spam de Notificações (Melhoria 3):**
+   * Sistema de envio [notifications.ts](file:///c:/Users/Felipe%20Kawakami/Aplicativos/src/lib/notifications.ts) blindado com checagem prévia: se o aluno já tiver uma notificação não lida com o mesmo título, novas instâncias não são criadas, eliminando o acúmulo descontrolado de milhares de linhas e poupando requisições repetitivas no banco.
+
+---
+
 ## 📅 Data: 06/08/2026
 
 ### 🚧 Ponto de Parada Atual (RETOMAR AQUI):

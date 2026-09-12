@@ -41,7 +41,13 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                 if (audioContextRef.current.state === 'suspended') {
                     await audioContextRef.current.resume();
                 }
-                audioBufferRef.current = decodePCM(data.audioBase64, audioContextRef.current);
+                if (data.audioBase64?.startsWith('http')) {
+                    const res = await fetch(data.audioBase64);
+                    const arrayBuffer = await res.arrayBuffer();
+                    audioBufferRef.current = await audioContextRef.current.decodeAudioData(arrayBuffer);
+                } else if (data.audioBase64) {
+                    audioBufferRef.current = decodePCM(data.audioBase64, audioContextRef.current);
+                }
                 playAudio();
             } catch (err) {
                 console.error('Erro ao configurar áudio:', err);

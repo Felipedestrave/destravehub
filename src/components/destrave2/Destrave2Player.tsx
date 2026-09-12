@@ -196,7 +196,13 @@ export const Destrave2Player: React.FC<Destrave2PlayerProps> = ({
             if (audioContextRef.current.state === 'suspended') {
                 await audioContextRef.current.resume();
             }
-            audioBufferRef.current = decodePCM(base64, audioContextRef.current);
+            if (base64.startsWith('http')) {
+                const res = await fetch(base64);
+                const arrayBuffer = await res.arrayBuffer();
+                audioBufferRef.current = await audioContextRef.current.decodeAudioData(arrayBuffer);
+            } else {
+                audioBufferRef.current = decodePCM(base64, audioContextRef.current);
+            }
             playEscutaAudio();
         } catch (err) {
             console.error('Erro ao setup áudio Escuta:', err);

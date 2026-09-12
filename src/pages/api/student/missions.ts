@@ -57,8 +57,7 @@ export const GET: APIRoute = async ({ request }) => {
                 activities (
                     id,
                     title,
-                    type,
-                    config
+                    type
                 )
             `)
             .eq('student_id', student.id)

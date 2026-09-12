@@ -28,7 +28,7 @@ export const notificationService = {
   async listNotifications(userId: string, limit = 10): Promise<AppNotification[]> {
     const { data, error } = await supabase
       .from('notifications')
-      .select('*')
+      .select('id, title, message, type, read, link, created_at')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(limit);
@@ -60,6 +60,19 @@ export const notificationService = {
   },
 
   async sendNotification(userId: string, title: string, message: string, type: string, link?: string) {
+    // Anti-spam / Deduplicação: evita criar notificações duplicadas não lidas
+    const { data: existing } = await supabase
+      .from('notifications')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('title', title)
+      .eq('read', false)
+      .limit(1);
+
+    if (existing && existing.length > 0) {
+      return;
+    }
+
     const { error } = await supabase
       .from('notifications')
       .insert({

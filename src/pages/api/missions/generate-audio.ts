@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { GoogleGenAI, Modality } from '@google/genai';
 import { supabaseAdmin } from '../../../lib/supabase-admin';
+import { uploadTtsAudioToR2 } from '../../../lib/audio-storage';
 
 // Maps context name to TTS voice for naturalness
 const getVoiceForContext = (context?: string): string => {
@@ -40,6 +41,8 @@ export const POST: APIRoute = async ({ request }) => {
 
         if (!text) return new Response(JSON.stringify({ error: 'text é obrigatório.' }), { status: 400 });
 
+        const voiceName = getVoiceForContext(contextName);
+
         // --- CACHE LOGIC START ---
         if (activityId) {
             const { data: activity } = await supabaseAdmin
@@ -51,12 +54,12 @@ export const POST: APIRoute = async ({ request }) => {
             if (activity && activity.config) {
                 const config = activity.config as any;
                 const cache = config.cached_audios || {};
-                // We use a simplified key for the cache (text + voice)
-                const cacheKey = `${text}_${getVoiceForContext(contextName)}`;
+                const cacheKey = `${text}_${voiceName}`;
                 
                 if (cache[cacheKey]) {
                     console.log('[Audio Cache] HIT for:', text);
-                    return new Response(JSON.stringify({ audioBase64: cache[cacheKey], cached: true }), { status: 200 });
+                    const cachedAudio = cache[cacheKey];
+                    return new Response(JSON.stringify({ audioUrl: cachedAudio, audioBase64: cachedAudio, cached: true }), { status: 200 });
                 }
             }
         }
@@ -64,7 +67,6 @@ export const POST: APIRoute = async ({ request }) => {
 
         console.log('[Audio Cache] MISS for:', text, '- Generating with Gemini...');
         const ai = new GoogleGenAI({ apiKey });
-        const voiceName = getVoiceForContext(contextName);
 
         const actingPrompt = `
       Atue como um falante nativo de japonês.
@@ -92,6 +94,9 @@ export const POST: APIRoute = async ({ request }) => {
         const audioData = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
         if (!audioData) throw new Error('Falha ao gerar áudio.');
 
+        // Salva diretamente no Cloudflare R2 como WAV leve para não onerar o banco de dados
+        const finalAudio = await uploadTtsAudioToR2(audioData, `${text}_${voiceName}`);
+
         // --- SAVE TO CACHE START ---
         if (activityId) {
             try {
@@ -100,7 +105,8 @@ export const POST: APIRoute = async ({ request }) => {
                     const config = (activity.config as any) || {};
                     const cache = config.cached_audios || {};
                     const cacheKey = `${text}_${voiceName}`;
-                    cache[cacheKey] = audioData;
+                    // Salva a URL pública do R2 no cache (apenas ~50 bytes em vez de 500 KB!)
+                    cache[cacheKey] = finalAudio;
                     
                     await supabaseAdmin
                         .from('activities')
@@ -109,16 +115,15 @@ export const POST: APIRoute = async ({ request }) => {
                         })
                         .eq('id', activityId);
                     
-                    console.log('[Audio Cache] SAVED for:', text);
+                    console.log('[Audio Cache] SAVED for:', text, 'URL/Ref:', finalAudio.substring(0, 40));
                 }
             } catch (cacheErr) {
                 console.error('[Audio Cache] Failed to save cache:', cacheErr);
-                // Non-blocking
             }
         }
         // --- SAVE TO CACHE END ---
 
-        return new Response(JSON.stringify({ audioBase64: audioData, cached: false }), { status: 200 });
+        return new Response(JSON.stringify({ audioUrl: finalAudio, audioBase64: finalAudio, cached: false }), { status: 200 });
     } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Erro desconhecido';
         const apiKey = import.meta.env.GEMINI_API_KEY;

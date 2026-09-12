@@ -1,5 +1,7 @@
 import type { APIRoute } from 'astro';
 import { GoogleGenAI, Type, Modality } from '@google/genai';
+import { supabaseAdmin } from '../../../lib/supabase-admin';
+import { uploadTtsAudioToR2 } from '../../../lib/audio-storage';
 
 const isRetryable = (error: unknown): boolean => {
     const msg = error instanceof Error ? error.message : '';
@@ -231,7 +233,8 @@ export const POST: APIRoute = async ({ request }) => {
 
                     const audioData = audioResponse.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
                     if (audioData) {
-                        ex.data.audioBase64 = audioData;
+                        const audioUrl = await uploadTtsAudioToR2(audioData, `${ex.data.japanese_sentence}_${voiceName}`);
+                        ex.data.audioBase64 = audioUrl;
                     }
                 } catch (audioErr) {
                     console.error(`Erro ao gerar áudio TTS para frase: ${ex.data.japanese_sentence}`, audioErr);
