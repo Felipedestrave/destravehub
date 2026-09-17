@@ -84,6 +84,7 @@ export const Destrave2Player: React.FC<Destrave2PlayerProps> = ({
     const [escutaIsAnswered, setEscutaIsAnswered] = useState(false);
 
     // Audio Refs for Escuta
+    const escutaAudioElementRef = useRef<HTMLAudioElement | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
     const sourceRef = useRef<AudioBufferSourceNode | null>(null);
     const audioBufferRef = useRef<AudioBuffer | null>(null);
@@ -164,11 +165,21 @@ export const Destrave2Player: React.FC<Destrave2PlayerProps> = ({
 
     // Cleanup Audio on Unmount
     useEffect(() => {
-        return () => stopEscutaAudio();
+        return () => {
+            stopEscutaAudio();
+            if (escutaAudioElementRef.current) {
+                escutaAudioElementRef.current.pause();
+                escutaAudioElementRef.current.src = '';
+                escutaAudioElementRef.current = null;
+            }
+        };
     }, []);
 
     // Speed change listener
     useEffect(() => {
+        if (escutaAudioElementRef.current) {
+            escutaAudioElementRef.current.playbackRate = escutaSpeed;
+        }
         if (sourceRef.current) {
             sourceRef.current.playbackRate.value = escutaSpeed;
         }
@@ -189,18 +200,31 @@ export const Destrave2Player: React.FC<Destrave2PlayerProps> = ({
 
     const setupEscutaAudio = async (base64?: string) => {
         if (!base64) return;
+        stopEscutaAudio();
+        if (escutaAudioElementRef.current) {
+            escutaAudioElementRef.current.pause();
+            escutaAudioElementRef.current.src = '';
+            escutaAudioElementRef.current = null;
+        }
+        audioBufferRef.current = null;
+
         try {
-            if (!audioContextRef.current) {
-                audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-            }
-            if (audioContextRef.current.state === 'suspended') {
-                await audioContextRef.current.resume();
-            }
             if (base64.startsWith('http')) {
-                const res = await fetch(base64);
-                const arrayBuffer = await res.arrayBuffer();
-                audioBufferRef.current = await audioContextRef.current.decodeAudioData(arrayBuffer);
+                const audio = new Audio(base64);
+                audio.playbackRate = escutaSpeed;
+                audio.onended = () => setEscutaIsPlaying(false);
+                audio.onerror = (e) => {
+                    console.error('Erro ao reproduzir áudio do R2:', e);
+                    setEscutaIsPlaying(false);
+                };
+                escutaAudioElementRef.current = audio;
             } else {
+                if (!audioContextRef.current) {
+                    audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+                }
+                if (audioContextRef.current.state === 'suspended') {
+                    await audioContextRef.current.resume().catch(() => {});
+                }
                 audioBufferRef.current = decodePCM(base64, audioContextRef.current);
             }
             playEscutaAudio();
@@ -210,22 +234,44 @@ export const Destrave2Player: React.FC<Destrave2PlayerProps> = ({
     };
 
     const playEscutaAudio = async () => {
-        if (!audioContextRef.current || !audioBufferRef.current) return;
-        if (audioContextRef.current.state === 'suspended') await audioContextRef.current.resume();
-        if (sourceRef.current) {
-            try { sourceRef.current.stop(); } catch (_) {}
+        if (escutaAudioElementRef.current) {
+            try {
+                escutaAudioElementRef.current.playbackRate = escutaSpeed;
+                escutaAudioElementRef.current.currentTime = 0;
+                await escutaAudioElementRef.current.play();
+                setEscutaIsPlaying(true);
+            } catch (err) {
+                console.warn('Autoplay bloqueado pelo navegador até interação do usuário:', err);
+                setEscutaIsPlaying(false);
+            }
+            return;
         }
-        const source = audioContextRef.current.createBufferSource();
-        source.buffer = audioBufferRef.current;
-        source.playbackRate.value = escutaSpeed;
-        source.connect(audioContextRef.current.destination);
-        source.onended = () => setEscutaIsPlaying(false);
-        sourceRef.current = source;
-        source.start(0);
-        setEscutaIsPlaying(true);
+
+        if (!audioContextRef.current || !audioBufferRef.current) return;
+        try {
+            if (audioContextRef.current.state === 'suspended') await audioContextRef.current.resume().catch(() => {});
+            if (sourceRef.current) {
+                try { sourceRef.current.stop(); } catch (_) {}
+            }
+            const source = audioContextRef.current.createBufferSource();
+            source.buffer = audioBufferRef.current;
+            source.playbackRate.value = escutaSpeed;
+            source.connect(audioContextRef.current.destination);
+            source.onended = () => setEscutaIsPlaying(false);
+            sourceRef.current = source;
+            source.start(0);
+            setEscutaIsPlaying(true);
+        } catch (err) {
+            console.warn('Erro ao tocar áudio Web Audio API:', err);
+            setEscutaIsPlaying(false);
+        }
     };
 
     const stopEscutaAudio = () => {
+        if (escutaAudioElementRef.current) {
+            escutaAudioElementRef.current.pause();
+            escutaAudioElementRef.current.currentTime = 0;
+        }
         if (sourceRef.current) {
             try { sourceRef.current.stop(); } catch (_) {}
             sourceRef.current = null;

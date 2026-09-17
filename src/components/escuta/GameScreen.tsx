@@ -23,6 +23,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
     const [shuffledOptions, setShuffledOptions] = useState<{ text: string, originalIndex: number }[]>([]);
 
+    const audioElementRef = useRef<HTMLAudioElement | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
     const sourceRef = useRef<AudioBufferSourceNode | null>(null);
     const audioBufferRef = useRef<AudioBuffer | null>(null);
@@ -33,19 +34,30 @@ export const GameScreen: React.FC<GameScreenProps> = ({
 
         const setup = async () => {
             stopAudio();
+            if (audioElementRef.current) {
+                audioElementRef.current.pause();
+                audioElementRef.current.src = '';
+                audioElementRef.current = null;
+            }
             audioBufferRef.current = null;
+
             try {
-                if (!audioContextRef.current) {
-                    audioContextRef.current = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)({ sampleRate: 24000 });
-                }
-                if (audioContextRef.current.state === 'suspended') {
-                    await audioContextRef.current.resume();
-                }
                 if (data.audioBase64?.startsWith('http')) {
-                    const res = await fetch(data.audioBase64);
-                    const arrayBuffer = await res.arrayBuffer();
-                    audioBufferRef.current = await audioContextRef.current.decodeAudioData(arrayBuffer);
+                    const audio = new Audio(data.audioBase64);
+                    audio.playbackRate = playbackSpeed;
+                    audio.onended = () => setIsPlaying(false);
+                    audio.onerror = (e) => {
+                        console.error('Erro ao reproduzir áudio do R2:', e);
+                        setIsPlaying(false);
+                    };
+                    audioElementRef.current = audio;
                 } else if (data.audioBase64) {
+                    if (!audioContextRef.current) {
+                        audioContextRef.current = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)({ sampleRate: 24000 });
+                    }
+                    if (audioContextRef.current.state === 'suspended') {
+                        await audioContextRef.current.resume().catch(() => {});
+                    }
                     audioBufferRef.current = decodePCM(data.audioBase64, audioContextRef.current);
                 }
                 playAudio();
@@ -65,11 +77,19 @@ export const GameScreen: React.FC<GameScreenProps> = ({
             setShuffledOptions(shuffled);
         }
 
-        return () => stopAudio();
+        return () => {
+            stopAudio();
+            if (audioElementRef.current) {
+                audioElementRef.current.pause();
+                audioElementRef.current.src = '';
+                audioElementRef.current = null;
+            }
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data]);
 
     useEffect(() => {
+        if (audioElementRef.current) audioElementRef.current.playbackRate = playbackSpeed;
         if (sourceRef.current) sourceRef.current.playbackRate.value = playbackSpeed;
     }, [playbackSpeed]);
 
@@ -95,20 +115,42 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     };
 
     const playAudio = async () => {
+        if (audioElementRef.current) {
+            try {
+                audioElementRef.current.playbackRate = playbackSpeed;
+                audioElementRef.current.currentTime = 0;
+                await audioElementRef.current.play();
+                setIsPlaying(true);
+            } catch (err) {
+                console.warn('Autoplay bloqueado pelo navegador até interação do usuário:', err);
+                setIsPlaying(false);
+            }
+            return;
+        }
+
         if (!audioContextRef.current || !audioBufferRef.current) return;
-        if (audioContextRef.current.state === 'suspended') await audioContextRef.current.resume();
-        if (sourceRef.current) { try { sourceRef.current.stop(); } catch (_) { } }
-        const source = audioContextRef.current.createBufferSource();
-        source.buffer = audioBufferRef.current;
-        source.playbackRate.value = playbackSpeed;
-        source.connect(audioContextRef.current.destination);
-        source.onended = () => setIsPlaying(false);
-        sourceRef.current = source;
-        source.start(0);
-        setIsPlaying(true);
+        try {
+            if (audioContextRef.current.state === 'suspended') await audioContextRef.current.resume().catch(() => {});
+            if (sourceRef.current) { try { sourceRef.current.stop(); } catch (_) { } }
+            const source = audioContextRef.current.createBufferSource();
+            source.buffer = audioBufferRef.current;
+            source.playbackRate.value = playbackSpeed;
+            source.connect(audioContextRef.current.destination);
+            source.onended = () => setIsPlaying(false);
+            sourceRef.current = source;
+            source.start(0);
+            setIsPlaying(true);
+        } catch (err) {
+            console.warn('Autoplay bloqueado pelo navegador:', err);
+            setIsPlaying(false);
+        }
     };
 
     const stopAudio = () => {
+        if (audioElementRef.current) {
+            audioElementRef.current.pause();
+            audioElementRef.current.currentTime = 0;
+        }
         if (sourceRef.current) { try { sourceRef.current.stop(); } catch (_) { } sourceRef.current = null; }
         setIsPlaying(false);
     };
